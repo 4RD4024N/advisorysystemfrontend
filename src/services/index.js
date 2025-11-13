@@ -1,0 +1,10 @@
+// Export all services from a single file
+export { default as authService } from './authService';
+export { default as documentService } from './documentService';
+export { default as advisorService } from './advisorService';
+export { default as commentService } from './commentService';
+export { default as submissionService } from './submissionService';
+export { default as statisticsService } from './statisticsService';
+export { default as searchService } from './searchService';
+export { default as debugService } from './debugService';
+export { default as api } from './api';
