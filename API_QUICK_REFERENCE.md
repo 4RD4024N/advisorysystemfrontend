@@ -9,6 +9,11 @@ authService.login({ email, password })
 authService.logout()
 authService.isAuthenticated()
 authService.getToken()
+authService.getUserInfo()  // Get decoded JWT info (email, name, role)
+authService.hasRole(roles)  // Check if user has specific role(s)
+authService.isAdmin()       // Check if user is Admin
+authService.isAdvisor()     // Check if user is Advisor
+authService.isStudent()     // Check if user is Student
 ```
 
 ### 2️⃣ documentService
@@ -48,13 +53,60 @@ statisticsService.getAdvisorSummary()
 statisticsService.getAdminOverview()
 ```
 
-### 7️⃣ searchService
+### 7️⃣ notificationService
+```javascript
+notificationService.getNotifications({ isRead, limit })
+notificationService.getUnreadCount()
+notificationService.markAsRead(notificationId)
+notificationService.markAllAsRead()
+notificationService.createNotification({ userId, title, message, type, relatedEntityId, relatedEntityType })
+
+// Notification Types
+notificationService.NotificationType.DEADLINE_APPROACHING  // 0
+notificationService.NotificationType.NEW_COMMENT           // 1
+notificationService.NotificationType.ADVISOR_ASSIGNED      // 2
+notificationService.NotificationType.DOCUMENT_UPLOADED     // 3
+notificationService.NotificationType.SUBMISSION_STATUS_CHANGED  // 4
+notificationService.NotificationType.GENERAL               // 5
+```
+
+### 8️⃣ searchService
 ```javascript
 searchService.searchDocuments({ query, tags, startDate, endDate, page, pageSize })
 searchService.getPopularTags(top)
 ```
 
-### 8️⃣ debugService (Dev Only)
+### 9️⃣ studentService (Admin/Advisor only)
+```javascript
+studentService.getAllStudents()
+studentService.getStudentDetails(studentId)
+studentService.sendNotification(studentId, { title, message })
+studentService.sendBulkNotification({ studentIds, title, message })
+studentService.sendNotificationToAll({ title, message })
+studentService.getStudentsWithoutAdvisor()
+studentService.getStudentsWithPendingSubmissions()
+```
+
+### 🔟 storageService (Admin only)
+```javascript
+storageService.getInfo()                    // Get storage configuration
+storageService.getStatistics()              // Get storage statistics
+storageService.listFiles()                  // List all files
+storageService.checkFileExists(fileName)    // Check if file exists
+storageService.cleanupOrphanedFiles()       // Clean up orphaned files
+storageService.getFileMetadata(versionId)   // Get file metadata
+```
+
+### 1️⃣1️⃣ healthService (Admin only - Basic health is public)
+```javascript
+healthService.checkHealth()          // Basic health check (public)
+healthService.getDetailedHealth()    // Detailed health info (Admin)
+healthService.checkDatabase()        // Database connectivity (Admin)
+healthService.getMetrics()           // Application metrics (Admin)
+healthService.getSystemInfo()        // System information (Admin)
+```
+
+### 1️⃣2️⃣ debugService (Dev Only)
 ```javascript
 debugService.getAllUsers()
 debugService.deleteAllUsers() // ⚠️ DANGEROUS
@@ -226,6 +278,82 @@ if (authService.isAuthenticated()) {
   window.location.href = '/login';
 }
 
+// Get user info from JWT
+const userInfo = authService.getUserInfo();
+console.log(userInfo.email);  // user@example.com
+console.log(userInfo.role);   // Admin, Advisor, or Student
+
+// Check user roles
+if (authService.isAdmin()) {
+  // Show admin features
+}
+
+if (authService.isAdvisor()) {
+  // Show advisor features
+}
+
+if (authService.hasRole(['Admin', 'Advisor'])) {
+  // Show features for both Admin and Advisor
+}
+
+// Logout
+const handleLogout = () => {
+  authService.logout();
+  window.location.href = '/login';
+};
+```
+
+---
+
+## 🛡️ Role-Based Access Control
+
+```javascript
+import { authService } from './services';
+import RoleBasedRoute from './components/RoleBasedRoute';
+
+// In your routing
+<Route 
+  path="/students" 
+  element={
+    <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
+      <Students />
+    </RoleBasedRoute>
+  } 
+/>
+
+// Conditionally show UI elements
+function Navbar() {
+  const userInfo = authService.getUserInfo();
+  
+  return (
+    <nav>
+      <Link to="/dashboard">Dashboard</Link>
+      <Link to="/documents">Documents</Link>
+      
+      {/* Only show for Admin and Advisor */}
+      {(userInfo?.role === 'Admin' || userInfo?.role === 'Advisor') && (
+        <Link to="/students">Students</Link>
+      )}
+      
+      {/* Only show for Admin */}
+      {authService.isAdmin() && (
+        <Link to="/admin-panel">Admin Panel</Link>
+      )}
+    </nav>
+  );
+}
+```
+
+```javascript
+// Check if user is logged in
+if (authService.isAuthenticated()) {
+  // User is logged in
+  const documents = await documentService.getMyDocuments();
+} else {
+  // Redirect to login
+  window.location.href = '/login';
+}
+
 // Logout
 const handleLogout = () => {
   authService.logout();
@@ -335,6 +463,140 @@ function MyDocuments() {
       {documents.map(doc => (
         <div key={doc.id}>{doc.title}</div>
       ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 📬 Notifications in React
+
+```javascript
+import { useState, useEffect } from 'react';
+import { notificationService } from './services';
+
+function Notifications() {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    loadNotifications();
+    loadUnreadCount();
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadNotifications = async () => {
+    const data = await notificationService.getNotifications({ 
+      isRead: false,  // Only unread
+      limit: 20 
+    });
+    setNotifications(data);
+  };
+
+  const loadUnreadCount = async () => {
+    const data = await notificationService.getUnreadCount();
+    setUnreadCount(data.unreadCount);
+  };
+
+  const handleMarkAsRead = async (id) => {
+    await notificationService.markAsRead(id);
+    loadNotifications();
+    loadUnreadCount();
+  };
+
+  return (
+    <div>
+      <h2>Notifications ({unreadCount})</h2>
+      {notifications.map(notif => (
+        <div key={notif.id}>
+          <h3>{notif.title}</h3>
+          <p>{notif.message}</p>
+          {!notif.isRead && (
+            <button onClick={() => handleMarkAsRead(notif.id)}>
+              Mark as read
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 👨‍🎓 Student Management in React
+
+```javascript
+import { useState, useEffect } from 'react';
+import { studentService } from './services';
+
+function StudentManagement() {
+  const [students, setStudents] = useState([]);
+  const [selectedStudents, setSelectedStudents] = useState([]);
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    // Get all students
+    const allStudents = await studentService.getAllStudents();
+    
+    // Or get filtered lists
+    const withoutAdvisor = await studentService.getStudentsWithoutAdvisor();
+    const withPending = await studentService.getStudentsWithPendingSubmissions();
+    
+    setStudents(allStudents);
+  };
+
+  const sendToStudent = async (studentId) => {
+    await studentService.sendNotification(studentId, {
+      title: 'Document Review',
+      message: 'Please check your latest submission.'
+    });
+  };
+
+  const sendBulkNotification = async () => {
+    await studentService.sendBulkNotification({
+      studentIds: selectedStudents,
+      title: 'Reminder',
+      message: 'Deadline approaching!'
+    });
+  };
+
+  const sendToAll = async () => {
+    await studentService.sendNotificationToAll({
+      title: 'System Announcement',
+      message: 'Important update for all students.'
+    });
+  };
+
+  return (
+    <div>
+      <h2>Students ({students.length})</h2>
+      
+      {students.map(student => (
+        <div key={student.id}>
+          <h3>{student.fullName}</h3>
+          <p>{student.email}</p>
+          <button onClick={() => sendToStudent(student.id)}>
+            Send Notification
+          </button>
+        </div>
+      ))}
+
+      <button onClick={sendBulkNotification}>
+        Send to Selected ({selectedStudents.length})
+      </button>
+      
+      <button onClick={sendToAll}>
+        Send to All Students
+      </button>
     </div>
   );
 }

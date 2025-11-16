@@ -46,6 +46,65 @@ const authService = {
   getToken: () => {
     return localStorage.getItem('token');
   },
+
+  /**
+   * Decode JWT token and get user info
+   */
+  getUserInfo: () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+      // JWT structure: header.payload.signature
+      const payload = token.split('.')[1];
+      const decoded = JSON.parse(atob(payload));
+      
+      return {
+        email: decoded.email,
+        name: decoded.name,
+        role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
+        sub: decoded.sub
+      };
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Check if user has specific role
+   * @param {string|array} roles - Role(s) to check (e.g., 'Admin' or ['Admin', 'Advisor'])
+   */
+  hasRole: (roles) => {
+    const userInfo = authService.getUserInfo();
+    if (!userInfo || !userInfo.role) return false;
+
+    const userRoles = Array.isArray(userInfo.role) ? userInfo.role : [userInfo.role];
+    const requiredRoles = Array.isArray(roles) ? roles : [roles];
+
+    return requiredRoles.some(role => userRoles.includes(role));
+  },
+
+  /**
+   * Check if user is Admin
+   */
+  isAdmin: () => {
+    return authService.hasRole('Admin');
+  },
+
+  /**
+   * Check if user is Advisor
+   */
+  isAdvisor: () => {
+    return authService.hasRole('Advisor');
+  },
+
+  /**
+   * Check if user is Student
+   */
+  isStudent: () => {
+    return authService.hasRole('Student');
+  },
 };
 
 export default authService;

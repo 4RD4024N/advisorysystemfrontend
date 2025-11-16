@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://localhost:7175/api';
+// API Base URL - can be configured for different environments
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7175/api';
 
 // Create axios instance
 const api = axios.create({

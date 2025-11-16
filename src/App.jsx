@@ -10,7 +10,11 @@ import Submissions from './pages/Submissions';
 import Statistics from './pages/Statistics';
 import Search from './pages/Search';
 import Profile from './pages/Profile';
+import Notifications from './pages/Notifications';
+import Students from './pages/Students';
+import SystemMonitoring from './pages/SystemMonitoring';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleBasedRoute from './components/RoleBasedRoute';
 
 function App() {
   return (
@@ -28,6 +32,28 @@ function App() {
           <Route path="/submissions" element={<Submissions />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/notifications" element={<Notifications />} />
+          
+          {/* Students page - Admin and Advisor only */}
+          <Route 
+            path="/students" 
+            element={
+              <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
+                <Students />
+              </RoleBasedRoute>
+            } 
+          />
+          
+          {/* System Monitoring - Admin only */}
+          <Route 
+            path="/monitoring" 
+            element={
+              <RoleBasedRoute allowedRoles={['Admin']}>
+                <SystemMonitoring />
+              </RoleBasedRoute>
+            } 
+          />
+          
           <Route path="/profile" element={<Profile />} />
         </Route>
 
