@@ -20,13 +20,19 @@ const Register = () => {
     setLoading(true);
 
     try {
+      console.log('Gönderilen veri:', formData);
       await authService.register(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('Register hatası:', err.response?.data);
+      const errorMsg = err.response?.data?.message 
+        || err.response?.data?.title
+        || err.response?.data?.errors 
+        || 'Registration failed. Please try again.';
+      setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
       setLoading(false);
     }

@@ -82,11 +82,39 @@ const Layout = () => {
             <span className="nav-text">Notifications</span>
           </NavLink>
 
+          {/* Student Profile - All users */}
+          <NavLink to="/student-profile" className="nav-item">
+            <span className="nav-icon">📋</span>
+            <span className="nav-text">My Profile</span>
+          </NavLink>
+
+          {/* Courses - All users */}
+          <NavLink to="/courses" className="nav-item">
+            <span className="nav-icon">📚</span>
+            <span className="nav-text">Courses</span>
+          </NavLink>
+
           {/* Students page - Admin and Advisor only */}
           {(userRole === 'Admin' || userRole === 'Advisor') && (
             <NavLink to="/students" className="nav-item">
               <span className="nav-icon">👨‍🎓</span>
               <span className="nav-text">Students</span>
+            </NavLink>
+          )}
+
+          {/* Assign Advisor - Admin only */}
+          {userRole === 'Admin' && (
+            <NavLink to="/assign-advisor" className="nav-item">
+              <span className="nav-icon">👨‍🏫</span>
+              <span className="nav-text">Assign Advisor</span>
+            </NavLink>
+          )}
+
+          {/* Create Submission - Admin and Advisor only */}
+          {(userRole === 'Admin' || userRole === 'Advisor') && (
+            <NavLink to="/create-submission" className="nav-item">
+              <span className="nav-icon">📤</span>
+              <span className="nav-text">Create Submission</span>
             </NavLink>
           )}
 

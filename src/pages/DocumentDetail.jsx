@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { documentService, commentService } from '../services';
+import { documentService, commentService, ratingService, authService } from '../services';
+import { validateFile, formatFileSize, getFileTypeIcon } from '../utils/fileValidation';
 
 const DocumentDetail = () => {
   const { id } = useParams();
   const [versions, setVersions] = useState([]);
   const [comments, setComments] = useState({});
+  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [notes, setNotes] = useState('');
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [newComment, setNewComment] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [ratingForm, setRatingForm] = useState({ score: '', comments: '' });
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [metadata, setMetadata] = useState(null);
+  
+  const userInfo = authService.getUserInfo();
+  const isAdvisorOrAdmin = authService.isAdvisor() || authService.isAdmin();
 
   useEffect(() => {
     loadVersions();
@@ -20,10 +29,14 @@ const DocumentDetail = () => {
   const loadVersions = async () => {
     try {
       const data = await documentService.getVersions(id);
-      setVersions(data);
-      if (data.length > 0) {
-        setSelectedVersion(data[0].id);
-        loadComments(data[0].id);
+      // Only show last 2 versions (current + 1 previous)
+      const limitedVersions = Array.isArray(data) ? data.slice(0, 2) : [];
+      setVersions(limitedVersions);
+      if (limitedVersions.length > 0) {
+        setSelectedVersion(limitedVersions[0].id);
+        loadComments(limitedVersions[0].id);
+        loadRatings(limitedVersions[0].id);
+        loadMetadata(limitedVersions[0].id);
       }
     } catch (error) {
       console.error('Error loading versions:', error);
@@ -41,9 +54,39 @@ const DocumentDetail = () => {
     }
   };
 
+  const loadRatings = async (versionId) => {
+    try {
+      const data = await ratingService.getRatingsByVersion(versionId);
+      setRatings(prev => ({ ...prev, [versionId]: data }));
+    } catch (error) {
+      console.error('Error loading ratings:', error);
+    }
+  };
+
+  const loadMetadata = async (versionId) => {
+    try {
+      const data = await documentService.getMetadata(versionId);
+      setMetadata(data);
+      if (data.isPdf && data.canPreview) {
+        setPreviewUrl(documentService.getPreviewUrl(versionId));
+      } else {
+        setPreviewUrl(null);
+      }
+    } catch (error) {
+      console.error('Error loading metadata:', error);
+    }
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
     if (!selectedFile) return;
+
+    // Validate file
+    const validation = validateFile(selectedFile);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
 
     setUploading(true);
     try {
@@ -79,6 +122,37 @@ const DocumentDetail = () => {
       loadComments(selectedVersion);
     } catch (error) {
       alert('Failed to add comment: ' + error.message);
+    }
+  };
+
+  const handleAddRating = async (e) => {
+    e.preventDefault();
+    if (!selectedVersion || !ratingForm.score) return;
+
+    try {
+      await ratingService.createOrUpdateRating({
+        documentVersionId: selectedVersion,
+        score: parseInt(ratingForm.score),
+        comments: ratingForm.comments
+      });
+      setShowRatingModal(false);
+      setRatingForm({ score: '', comments: '' });
+      loadRatings(selectedVersion);
+      alert('Rating submitted successfully!');
+    } catch (error) {
+      alert('Failed to submit rating: ' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleDeleteRating = async (ratingId) => {
+    if (!confirm('Are you sure you want to delete this rating?')) return;
+
+    try {
+      await ratingService.deleteRating(ratingId);
+      loadRatings(selectedVersion);
+      alert('Rating deleted successfully!');
+    } catch (error) {
+      alert('Failed to delete rating: ' + error.message);
     }
   };
 
@@ -171,10 +245,12 @@ const DocumentDetail = () => {
                       onClick={() => {
                         setSelectedVersion(version.id);
                         loadComments(version.id);
+                        loadRatings(version.id);
+                        loadMetadata(version.id);
                       }}
                       className="btn btn-primary btn-sm"
                     >
-                      Comments
+                      View Details
                     </button>
                   </div>
                 </div>
@@ -186,51 +262,258 @@ const DocumentDetail = () => {
 
       {/* Comments Section */}
       {selectedVersion && (
-        <div className="card mt-3">
-          <h2 className="card-header">
-            Comments for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
-          </h2>
-
-          <form onSubmit={handleAddComment} className="mb-3">
-            <div className="input-group">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="input"
-                rows="2"
-                placeholder="Add a comment..."
-                required
-              />
-            </div>
-            <button type="submit" className="btn btn-primary btn-sm">
-              Add Comment
-            </button>
-          </form>
-
-          <div>
-            {comments[selectedVersion]?.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">💬</div>
-                <div className="empty-state-text">No comments yet</div>
+        <div className="grid grid-2 gap-3 mt-3">
+          {/* PDF Preview Section */}
+          {previewUrl && metadata?.isPdf && (
+            <div className="card" style={{ gridColumn: 'span 2' }}>
+              <h2 className="card-header">Document Preview</h2>
+              <div style={{ height: '600px', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                <iframe 
+                  src={previewUrl} 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 'none' }}
+                  title="Document Preview"
+                />
               </div>
-            ) : (
-              comments[selectedVersion]?.map((comment) => (
-                <div
-                  key={comment.id}
-                  style={{
-                    padding: '12px',
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '8px',
-                    marginBottom: '8px'
-                  }}
+            </div>
+          )}
+
+          {/* Ratings Section */}
+          <div className="card">
+            <div className="flex-between mb-3">
+              <h2 className="card-header" style={{ marginBottom: 0 }}>
+                Ratings for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
+              </h2>
+              {isAdvisorOrAdmin && (
+                <button 
+                  onClick={() => setShowRatingModal(true)}
+                  className="btn btn-primary btn-sm"
                 >
-                  <div className="text-sm">{comment.content}</div>
-                  <div className="text-xs text-muted mt-1">
-                    {new Date(comment.createdAt).toLocaleString()}
+                  Rate Document
+                </button>
+              )}
+            </div>
+
+            {ratings[selectedVersion]?.hasRating ? (
+              <div>
+                <div style={{ 
+                  padding: '16px', 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  marginBottom: '16px'
+                }}>
+                  <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
+                    {ratings[selectedVersion].averageScore.toFixed(1)} / 100
+                  </div>
+                  <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
+                    Average Score ({ratings[selectedVersion].ratingCount} rating{ratings[selectedVersion].ratingCount !== 1 ? 's' : ''})
                   </div>
                 </div>
-              ))
+
+                <div>
+                  {ratings[selectedVersion].ratings?.map((rating) => (
+                    <div
+                      key={rating.id}
+                      style={{
+                        padding: '16px',
+                        background: 'var(--bg-secondary)',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        border: '2px solid var(--border-color)'
+                      }}
+                    >
+                      <div className="flex-between mb-2">
+                        <div style={{ 
+                          display: 'inline-block',
+                          padding: '4px 12px',
+                          background: rating.score >= 80 ? '#84fab0' : rating.score >= 60 ? '#ffd3a5' : '#fd6585',
+                          borderRadius: '6px',
+                          fontWeight: 'bold',
+                          fontSize: '1.1rem'
+                        }}>
+                          {rating.score} / 100
+                        </div>
+                        {(authService.isAdmin() || rating.advisorUserId === userInfo?.sub) && (
+                          <button
+                            onClick={() => handleDeleteRating(rating.id)}
+                            className="btn btn-danger btn-sm"
+                            style={{ fontSize: '0.8rem' }}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                      {rating.comments && (
+                        <div className="text-sm" style={{ marginTop: '8px', lineHeight: '1.5' }}>
+                          {rating.comments}
+                        </div>
+                      )}
+                      <div className="text-xs text-muted mt-2">
+                        {new Date(rating.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <div className="empty-state-icon">⭐</div>
+                <div className="empty-state-text">No ratings yet</div>
+              </div>
             )}
+          </div>
+
+          {/* Comments Section */}
+          <div className="card">
+            <h2 className="card-header">
+              Comments for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
+            </h2>
+
+            <form onSubmit={handleAddComment} className="mb-3">
+              <div className="input-group">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="input"
+                  rows="2"
+                  placeholder="Add a comment..."
+                  required
+                />
+              </div>
+              <button type="submit" className="btn btn-primary btn-sm">
+                Add Comment
+              </button>
+            </form>
+
+            <div>
+              {comments[selectedVersion]?.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">💬</div>
+                  <div className="empty-state-text">No comments yet</div>
+                </div>
+              ) : (
+                comments[selectedVersion]?.map((comment) => (
+                  <div
+                    key={comment.id}
+                    style={{
+                      padding: '12px',
+                      background: 'var(--bg-secondary)',
+                      borderRadius: '8px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    <div className="text-sm">{comment.content}</div>
+                    <div className="text-xs text-muted mt-1">
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rating Modal */}
+      {showRatingModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowRatingModal(false)}
+        >
+          <div 
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '500px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '1.5rem 2rem',
+              borderBottom: '2px solid var(--border-color)'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Rate Document</h2>
+              <button
+                onClick={() => setShowRatingModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '2rem',
+                  cursor: 'pointer',
+                  padding: 0,
+                  width: '2rem',
+                  height: '2rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%'
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleAddRating} style={{ padding: '2rem' }}>
+              <div className="input-group">
+                <label className="input-label">Score (1-100) *</label>
+                <input
+                  type="number"
+                  value={ratingForm.score}
+                  onChange={(e) => setRatingForm({ ...ratingForm, score: e.target.value })}
+                  className="input"
+                  min="1"
+                  max="100"
+                  placeholder="e.g., 85"
+                  required
+                />
+              </div>
+
+              <div className="input-group">
+                <label className="input-label">Comments</label>
+                <textarea
+                  value={ratingForm.comments}
+                  onChange={(e) => setRatingForm({ ...ratingForm, comments: e.target.value })}
+                  className="input"
+                  rows="4"
+                  placeholder="Provide feedback on the document..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
+                  Submit Rating
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowRatingModal(false)}
+                  className="btn btn-secondary"
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

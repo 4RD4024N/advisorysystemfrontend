@@ -14,6 +14,8 @@ authService.hasRole(roles)  // Check if user has specific role(s)
 authService.isAdmin()       // Check if user is Admin
 authService.isAdvisor()     // Check if user is Advisor
 authService.isStudent()     // Check if user is Student
+authService.refresh()       // Refresh JWT token (NEW)
+authService.validate()      // Validate JWT token (NEW)
 ```
 
 ### 2️⃣ documentService
@@ -24,6 +26,8 @@ documentService.uploadVersion(documentId, file, notes)
 documentService.getVersions(documentId)
 documentService.downloadFile(versionId)
 documentService.downloadAndSaveFile(versionId, fileName)
+documentService.getPreviewUrl(versionId)  // Get PDF preview URL (NEW)
+documentService.getMetadata(versionId)    // Get file metadata (NEW)
 ```
 
 ### 3️⃣ advisorService
@@ -112,6 +116,32 @@ debugService.getAllUsers()
 debugService.deleteAllUsers() // ⚠️ DANGEROUS
 debugService.getSeedInfo()
 debugService.generateToken(email)
+```
+
+### 1️⃣3️⃣ studentProfileService (NEW)
+```javascript
+studentProfileService.getMyProfile()                    // Get my profile
+studentProfileService.saveProfile(profileData)          // Create/update profile
+studentProfileService.getProfileByStudentId(studentId)  // Get by ID (Admin/Advisor)
+studentProfileService.checkPrerequisites()              // Check prerequisites
+```
+
+### 1️⃣4️⃣ courseService (NEW)
+```javascript
+courseService.getAllRequirements()                    // Get all course requirements
+courseService.addRequirement(requirementData)         // Add requirement (Admin)
+courseService.getMyCourses()                          // Get my completed courses
+courseService.addMyCourse(courseData)                 // Add course to record
+courseService.updateCourseCompletion(id, updateData)  // Update course completion
+```
+
+### 1️⃣5️⃣ ratingService (NEW)
+```javascript
+ratingService.createOrUpdateRating(ratingData)   // Create/update rating (Advisor/Admin)
+ratingService.getRatingsByVersion(versionId)     // Get ratings for version
+ratingService.getRatingsByAdvisor(advisorId)     // Get ratings by advisor
+ratingService.getMyDocumentRatings()             // Get my document ratings (Student)
+ratingService.deleteRating(id)                   // Delete rating (Admin/Author)
 ```
 
 ---

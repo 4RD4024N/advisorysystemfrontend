@@ -105,6 +105,30 @@ const authService = {
   isStudent: () => {
     return authService.hasRole('Student');
   },
+
+  /**
+   * Refresh JWT token
+   * Get a new token before the current one expires
+   */
+  refresh: async () => {
+    const response = await api.post('/auth/refresh');
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      if (response.data.expiresAt) {
+        localStorage.setItem('tokenExpiry', response.data.expiresAt);
+      }
+    }
+    return response.data;
+  },
+
+  /**
+   * Validate JWT token
+   * Check if current token is valid and get user info
+   */
+  validate: async () => {
+    const response = await api.get('/auth/validate');
+    return response.data;
+  },
 };
 
 export default authService;

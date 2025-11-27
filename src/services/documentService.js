@@ -81,6 +81,27 @@ const documentService = {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   },
+
+  /**
+   * Preview PDF file in browser
+   * @param {number} versionId - Version ID
+   * @returns {string} URL for PDF preview
+   */
+  getPreviewUrl: (versionId) => {
+    const token = localStorage.getItem('token');
+    const baseURL = api.defaults.baseURL || 'https://localhost:7175/api';
+    return `${baseURL}/documents/preview/${versionId}?token=${token}`;
+  },
+
+  /**
+   * Get file metadata
+   * @param {number} versionId - Version ID
+   * @returns {Object} File metadata
+   */
+  getMetadata: async (versionId) => {
+    const response = await api.get(`/documents/metadata/${versionId}`);
+    return response.data;
+  },
 };
 
 export default documentService;

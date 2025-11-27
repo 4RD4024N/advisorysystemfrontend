@@ -13,6 +13,10 @@ import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Students from './pages/Students';
 import SystemMonitoring from './pages/SystemMonitoring';
+import StudentProfile from './pages/StudentProfile';
+import Courses from './pages/Courses';
+import AssignAdvisor from './pages/AssignAdvisor';
+import CreateSubmission from './pages/CreateSubmission';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedRoute from './components/RoleBasedRoute';
 
@@ -34,12 +38,38 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/notifications" element={<Notifications />} />
           
+          {/* Student Profile - All authenticated users */}
+          <Route path="/student-profile" element={<StudentProfile />} />
+          
+          {/* Courses - All authenticated users */}
+          <Route path="/courses" element={<Courses />} />
+          
           {/* Students page - Admin and Advisor only */}
           <Route 
             path="/students" 
             element={
               <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
                 <Students />
+              </RoleBasedRoute>
+            } 
+          />
+          
+          {/* Assign Advisor - Admin only */}
+          <Route 
+            path="/assign-advisor" 
+            element={
+              <RoleBasedRoute allowedRoles={['Admin']}>
+                <AssignAdvisor />
+              </RoleBasedRoute>
+            } 
+          />
+          
+          {/* Create Submission - Admin and Advisor only */}
+          <Route 
+            path="/create-submission" 
+            element={
+              <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
+                <CreateSubmission />
               </RoleBasedRoute>
             } 
           />

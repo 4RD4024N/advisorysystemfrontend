@@ -11,4 +11,7 @@ export { default as studentService } from './studentService';
 export { default as storageService } from './storageService';
 export { default as healthService } from './healthService';
 export { default as debugService } from './debugService';
+export { default as studentProfileService } from './studentProfileService';
+export { default as courseService } from './courseService';
+export { default as ratingService } from './ratingService';
 export { default as api } from './api';
