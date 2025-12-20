@@ -197,6 +197,92 @@
   font-size: 1.1rem;
 }
 
+/* ✨ NEW v2.1: Advisor Card Styles */
+.advisor-card {
+  margin-bottom: 2rem;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: white;
+  border: 2px solid #e1e8ed;
+}
+
+.advisor-card.has-advisor {
+  background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+  border: 2px solid #3b82f6;
+}
+
+.advisor-card.no-advisor {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 2px solid #f59e0b;
+}
+
+.advisor-card h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  color: #14171a;
+}
+
+.advisor-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.advisor-info {
+  flex: 1;
+}
+
+.advisor-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #14171a;
+  margin-bottom: 0.5rem;
+}
+
+.advisor-email {
+  color: #657786;
+  font-size: 0.95rem;
+}
+
+.advisor-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status-badge.assigned {
+  background: #10b981;
+  color: white;
+}
+
+.no-advisor-message {
+  text-align: center;
+  padding: 2rem;
+}
+
+.no-advisor-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.no-advisor-message p {
+  margin: 0.5rem 0;
+  color: #14171a;
+  font-size: 1.1rem;
+}
+
+.no-advisor-message .text-muted {
+  color: #657786;
+  font-size: 0.9rem;
+}
+
 .prerequisites-card {
   margin-top: 2rem;
   padding: 2rem;

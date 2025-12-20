@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { statisticsService, documentService } from '../services';
+import { statisticsService, documentService, advisorService, authService } from '../services';
 
 const Dashboard = () => {
+  const userInfo = authService.getUserInfo();
   const [stats, setStats] = useState(null);
   const [recentDocs, setRecentDocs] = useState([]);
+  const [advisor, setAdvisor] = useState(null); // ✨ NEW v2.1: For students
+  const [myStudents, setMyStudents] = useState(null); // ✨ NEW v2.1: For advisors
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,13 +16,33 @@ const Dashboard = () => {
 
   const loadDashboard = async () => {
     try {
-      const [statsData, docsData] = await Promise.all([
+      const promises = [
         statisticsService.getStudentSummary().catch(() => null),
         documentService.getMyDocuments().catch(() => [])
-      ]);
+      ];
+
+      // ✨ NEW v2.1: Load advisor info for students
+      if (userInfo?.role === 'Student') {
+        promises.push(advisorService.getMyAdvisor().catch(() => null));
+      }
+
+      // ✨ NEW v2.1: Load student list for advisors
+      if (userInfo?.role === 'Advisor') {
+        promises.push(advisorService.getMyStudents().catch(() => null));
+      }
+
+      const results = await Promise.all(promises);
       
-      setStats(statsData);
-      setRecentDocs(docsData.slice(0, 5));
+      setStats(results[0]);
+      setRecentDocs(results[1].slice(0, 5));
+      
+      if (userInfo?.role === 'Student' && results[2]) {
+        setAdvisor(results[2]);
+      }
+      
+      if (userInfo?.role === 'Advisor' && results[2]) {
+        setMyStudents(results[2]);
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -43,6 +66,56 @@ const Dashboard = () => {
           + New Document
         </Link>
       </div>
+
+      {/* ✨ NEW v2.1: Advisor Card for Students */}
+      {userInfo?.role === 'Student' && advisor && (
+        <div className="card mb-4" style={{ 
+          background: advisor.hasAdvisor 
+            ? 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)' 
+            : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          border: advisor.hasAdvisor ? '2px solid #3b82f6' : '2px solid #f59e0b'
+        }}>
+          <h2 className="card-header" style={{ marginBottom: '1rem' }}>👨‍🏫 My Advisor</h2>
+          {advisor.hasAdvisor ? (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#14171a', marginBottom: '0.5rem' }}>
+                  {advisor.advisor.userName}
+                </div>
+                <div style={{ color: '#657786', fontSize: '0.95rem' }}>
+                  {advisor.advisor.email}
+                </div>
+              </div>
+              <span className="badge badge-success" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
+                ✅ Assigned
+              </span>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '1.5rem' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📭</div>
+              <p style={{ color: '#657786', margin: 0 }}>No advisor assigned yet</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ✨ NEW v2.1: Student Count for Advisors */}
+      {userInfo?.role === 'Advisor' && myStudents && (
+        <div className="card mb-4" style={{ 
+          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+          border: '2px solid #f59e0b'
+        }}>
+          <div className="flex-between mb-3">
+            <h2 className="card-header" style={{ marginBottom: 0 }}>👥 My Students</h2>
+            <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f59e0b' }}>
+              {myStudents.totalStudents || 0}
+            </div>
+          </div>
+          <p style={{ color: '#657786', margin: 0, fontSize: '0.95rem' }}>
+            You are currently advising {myStudents.totalStudents || 0} student{myStudents.totalStudents !== 1 ? 's' : ''}
+          </p>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-3 mb-4">

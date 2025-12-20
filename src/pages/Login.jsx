@@ -93,6 +93,7 @@ const Login = () => {
           <p className="text-xs text-muted">Demo Accounts:</p>
           <p className="text-xs text-muted">Student: stu@local / Arda123!</p>
           <p className="text-xs text-muted">Admin: admin@local / Admin123!</p>
+          <p className="text-xs text-muted">Admin: ad@local / ad123!</p>
         </div>
       </div>
     </div>

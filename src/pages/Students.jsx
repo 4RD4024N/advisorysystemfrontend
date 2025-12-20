@@ -227,12 +227,19 @@ function Students() {
                       {new Date(student.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  {student.advisorId && (
-                    <div className="detail-item">
-                      <span className="detail-label">Advisor:</span>
-                      <span className="detail-value">✅ Assigned</span>
-                    </div>
-                  )}
+                  {/* ✨ NEW v2.1: Display advisor information */}
+                  <div className="detail-item">
+                    <span className="detail-label">👨‍🏫 Advisor:</span>
+                    {student.hasAdvisor && student.advisor ? (
+                      <span className="detail-value" style={{ color: '#10b981', fontWeight: '600' }}>
+                        {student.advisor.userName}
+                      </span>
+                    ) : (
+                      <span className="detail-value" style={{ color: '#f59e0b' }}>
+                        Not Assigned
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="student-actions">

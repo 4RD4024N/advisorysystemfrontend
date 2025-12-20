@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { studentProfileService, authService } from '../services';
+import { studentProfileService, advisorService, authService } from '../services';
 import './StudentProfile.css';
 
 function StudentProfile() {
   const [profile, setProfile] = useState(null);
   const [prerequisites, setPrerequisites] = useState(null);
+  const [advisor, setAdvisor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,6 +21,7 @@ function StudentProfile() {
   useEffect(() => {
     loadProfile();
     checkPrerequisites();
+    loadAdvisor(); // ✨ NEW v2.1: Load advisor information
   }, []);
 
   const loadProfile = async () => {
@@ -51,6 +53,18 @@ function StudentProfile() {
       setPrerequisites(data);
     } catch (error) {
       console.error('Failed to check prerequisites:', error);
+    }
+  };
+
+  /**
+   * ✨ NEW v2.1: Load my advisor information
+   */
+  const loadAdvisor = async () => {
+    try {
+      const data = await advisorService.getMyAdvisor();
+      setAdvisor(data);
+    } catch (error) {
+      console.error('Failed to load advisor:', error);
     }
   };
 
@@ -121,6 +135,30 @@ function StudentProfile() {
       {message.text && (
         <div className={`message ${message.type}`}>
           {message.text}
+        </div>
+      )}
+
+      {/* ✨ NEW v2.1: Display Advisor Information */}
+      {advisor && (
+        <div className={`advisor-card ${advisor.hasAdvisor ? 'has-advisor' : 'no-advisor'}`}>
+          <h2>👨‍🏫 My Advisor</h2>
+          {advisor.hasAdvisor ? (
+            <div className="advisor-details">
+              <div className="advisor-info">
+                <div className="advisor-name">{advisor.advisor.userName}</div>
+                <div className="advisor-email">{advisor.advisor.email}</div>
+              </div>
+              <div className="advisor-status">
+                <span className="status-badge assigned">✅ Assigned</span>
+              </div>
+            </div>
+          ) : (
+            <div className="no-advisor-message">
+              <div className="no-advisor-icon">📭</div>
+              <p>You don't have an advisor assigned yet.</p>
+              <p className="text-muted">Please contact administration.</p>
+            </div>
+          )}
         </div>
       )}
 

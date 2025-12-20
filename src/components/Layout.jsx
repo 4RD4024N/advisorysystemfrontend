@@ -44,6 +44,17 @@ const Layout = () => {
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
           <h2 className="sidebar-logo">📚 Advisory</h2>
+          {authService.getUserInfo() && (
+            <div className="user-info">
+              <div className="user-avatar">
+                {authService.getUserInfo().email?.charAt(0).toUpperCase()}
+              </div>
+              <div className="user-details">
+                <div className="user-name">{authService.getUserInfo().email?.split('@')[0]}</div>
+                <div className="user-role">{userRole}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         <nav className="sidebar-nav">
@@ -62,15 +73,12 @@ const Layout = () => {
             <span className="nav-text">Submissions</span>
           </NavLink>
 
-          <NavLink to="/statistics" className="nav-item">
-            <span className="nav-icon">📈</span>
-            <span className="nav-text">Statistics</span>
-          </NavLink>
-
           <NavLink to="/search" className="nav-item">
             <span className="nav-icon">🔍</span>
             <span className="nav-text">Search</span>
           </NavLink>
+
+          <div className="nav-divider"></div>
 
           <NavLink to="/notifications" className="nav-item">
             <span className="nav-icon">
@@ -82,49 +90,67 @@ const Layout = () => {
             <span className="nav-text">Notifications</span>
           </NavLink>
 
-          {/* Student Profile - All users */}
+          <NavLink to="/statistics" className="nav-item">
+            <span className="nav-icon">📈</span>
+            <span className="nav-text">Statistics</span>
+          </NavLink>
+
+          <div className="nav-divider"></div>
+
           <NavLink to="/student-profile" className="nav-item">
             <span className="nav-icon">📋</span>
             <span className="nav-text">My Profile</span>
           </NavLink>
 
-          {/* Courses - All users */}
           <NavLink to="/courses" className="nav-item">
             <span className="nav-icon">📚</span>
             <span className="nav-text">Courses</span>
           </NavLink>
 
-          {/* Students page - Admin and Advisor only */}
+          {/* Admin & Advisor Section */}
           {(userRole === 'Admin' || userRole === 'Advisor') && (
-            <NavLink to="/students" className="nav-item">
-              <span className="nav-icon">👨‍🎓</span>
-              <span className="nav-text">Students</span>
-            </NavLink>
+            <>
+              <div className="nav-divider"></div>
+              
+              {(userRole === 'Admin' || userRole === 'Advisor') && (
+                <NavLink to="/students" className="nav-item">
+                  <span className="nav-icon">👨‍🎓</span>
+                  <span className="nav-text">Students</span>
+                </NavLink>
+              )}
+
+              {userRole === 'Advisor' && (
+                <NavLink to="/advisor-requests" className="nav-item">
+                  <span className="nav-icon">📨</span>
+                  <span className="nav-text">Student Requests</span>
+                </NavLink>
+              )}
+
+              {/* v3.0: Yeni basitleştirilmiş admin öğretmen atama sistemi */}
+              {userRole === 'Admin' && (
+                <NavLink to="/assign-advisor" className="nav-item">
+                  <span className="nav-icon">👨‍🏫</span>
+                  <span className="nav-text">Öğretmen Atama</span>
+                </NavLink>
+              )}
+
+              {(userRole === 'Admin' || userRole === 'Advisor') && (
+                <NavLink to="/create-submission" className="nav-item">
+                  <span className="nav-icon">📤</span>
+                  <span className="nav-text">Set Deadline</span>
+                </NavLink>
+              )}
+
+              {userRole === 'Admin' && (
+                <NavLink to="/monitoring" className="nav-item">
+                  <span className="nav-icon">⚙️</span>
+                  <span className="nav-text">Monitoring</span>
+                </NavLink>
+              )}
+            </>
           )}
 
-          {/* Assign Advisor - Admin only */}
-          {userRole === 'Admin' && (
-            <NavLink to="/assign-advisor" className="nav-item">
-              <span className="nav-icon">👨‍🏫</span>
-              <span className="nav-text">Assign Advisor</span>
-            </NavLink>
-          )}
-
-          {/* Create Submission - Admin and Advisor only */}
-          {(userRole === 'Admin' || userRole === 'Advisor') && (
-            <NavLink to="/create-submission" className="nav-item">
-              <span className="nav-icon">📤</span>
-              <span className="nav-text">Create Submission</span>
-            </NavLink>
-          )}
-
-          {/* System Monitoring - Admin only */}
-          {userRole === 'Admin' && (
-            <NavLink to="/monitoring" className="nav-item">
-              <span className="nav-icon">⚙️</span>
-              <span className="nav-text">Monitoring</span>
-            </NavLink>
-          )}
+          <div className="nav-divider"></div>
 
           <NavLink to="/profile" className="nav-item">
             <span className="nav-icon">👤</span>
