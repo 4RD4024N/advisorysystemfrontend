@@ -59,14 +59,40 @@ const authService = {
       const payload = token.split('.')[1];
       const decoded = JSON.parse(atob(payload));
       
+      // Debug: Log all claims to find role
+      console.log('🔍 Token Claims:', decoded);
+      
+      // Check if token is expired
+      if (decoded.exp) {
+        const expirationDate = new Date(decoded.exp * 1000);
+        const now = new Date();
+        const isExpired = now > expirationDate;
+        console.log('⏰ Token Expiration:', expirationDate.toLocaleString());
+        console.log('⏰ Current Time:', now.toLocaleString());
+        console.log(isExpired ? '❌ Token EXPIRED!' : '✅ Token is valid');
+        
+        if (isExpired) {
+          console.warn('🚨 Token has expired! Please login again.');
+        }
+      }
+      
+      // Try different role claim formats
+      const role = decoded.role 
+        || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+        || decoded.Role
+        || decoded.roles
+        || decoded['role'];
+      
+      console.log('✅ Detected Role:', role);
+      
       return {
         email: decoded.email,
-        name: decoded.name,
-        role: decoded.role || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'],
-        sub: decoded.sub
+        name: decoded.name || decoded.unique_name || decoded.given_name,
+        role: role,
+        sub: decoded.sub || decoded.nameid
       };
     } catch (error) {
-      console.error('Failed to decode token:', error);
+      console.error('❌ Failed to decode token:', error);
       return null;
     }
   },

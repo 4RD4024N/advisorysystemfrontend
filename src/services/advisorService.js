@@ -51,59 +51,11 @@ const advisorService = {
   },
 
   /**
-   * Get available advisors list for students to request
-   * @returns {Array} List of available advisors
-   */
-  getAvailableAdvisors: async () => {
-    const response = await api.get('/advisors/available');
-    return response.data;
-  },
-
-  /**
-   * Send advisor assignment request (Student)
-   * @param {string} advisorId - Advisor user ID
-   * @returns {Object} { message }
-   */
-  requestAdvisor: async (advisorId) => {
-    const response = await api.post('/advisors/request', { advisorId });
-    return response.data;
-  },
-
-  /**
-   * Get pending advisor requests (Advisor)
-   * @returns {Array} List of pending requests
-   */
-  getPendingRequests: async () => {
-    const response = await api.get('/advisors/pending-requests');
-    return response.data;
-  },
-
-  /**
-   * Accept advisor request (Advisor)
-   * @param {string} requestId - Request ID
-   * @returns {Object} { message }
-   */
-  acceptRequest: async (requestId) => {
-    const response = await api.post(`/advisors/accept-request/${requestId}`);
-    return response.data;
-  },
-
-  /**
-   * Reject advisor request (Advisor)
-   * @param {string} requestId - Request ID
-   * @returns {Object} { message }
-   */
-  rejectRequest: async (requestId) => {
-    const response = await api.post(`/advisors/reject-request/${requestId}`);
-    return response.data;
-  },
-
-  /**
    * Get my students (Advisor)
    * @returns {Object} { totalStudents: number, students: [...] }
    */
   getMyStudents: async () => {
-    const response = await api.get('/advisors/my-students');
+    const response = await api.get('/students/my-students');
     return response.data;
   },
 
