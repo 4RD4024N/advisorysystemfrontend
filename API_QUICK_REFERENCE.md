@@ -82,13 +82,15 @@ searchService.getPopularTags(top)
 
 ### 9️⃣ studentService (Admin/Advisor only)
 ```javascript
-studentService.getAllStudents()
-studentService.getStudentDetails(studentId)
-studentService.sendNotification(studentId, { title, message })
-studentService.sendBulkNotification({ studentIds, title, message })
-studentService.sendNotificationToAll({ title, message })
-studentService.getStudentsWithoutAdvisor()
-studentService.getStudentsWithPendingSubmissions()
+// v3.1: Advisors can only access their assigned students
+studentService.getAllStudents()                           // Advisors: own students only
+studentService.getMyStudents()                            // Advisors: get my students (NEW v3.1)
+studentService.getStudentDetails(studentId)               // Advisors: own students only (403 if not)
+studentService.sendNotification(studentId, { title, message })           // Advisors: own students only (403 if not)
+studentService.sendBulkNotification({ studentIds, title, message })      // Advisors: own students only (returns errors for unauthorized)
+studentService.sendNotificationToAll({ title, message })                 // ADMIN ONLY (v3.1)
+studentService.getStudentsWithoutAdvisor()                               // ADMIN ONLY (v3.1)
+studentService.getStudentsWithPendingSubmissions()        // Advisors: own students only
 ```
 
 ### 🔟 storageService (Admin only)
@@ -287,10 +289,40 @@ try {
   if (error.response?.status === 401) {
     alert('Please login first');
   } else if (error.response?.status === 403) {
-    alert('You do not have permission');
+    alert('You do not have permission to access this resource');
   } else {
     alert('An error occurred: ' + error.message);
   }
+}
+```
+
+### v3.1: Advisor Authorization Errors
+```javascript
+// Advisors trying to access students not assigned to them
+try {
+  const student = await studentService.getStudentDetails('other-student-id');
+} catch (error) {
+  if (error.response?.status === 403) {
+    alert('You can only access students assigned to you');
+  }
+}
+
+// Bulk notification with partial failures
+try {
+  const response = await studentService.sendBulkNotification({
+    studentIds: ['student1', 'student2', 'student3'],
+    title: 'Meeting',
+    message: 'Tomorrow at 10 AM'
+  });
+  
+  // Check for errors
+  if (response.errors && response.errors.length > 0) {
+    console.log(`Sent to ${response.successCount} students`);
+    console.log(`Failed: ${response.failedCount}`);
+    console.log('Errors:', response.errors);
+  }
+} catch (error) {
+  console.error('Failed to send notifications:', error);
 }
 ```
 
@@ -676,3 +708,226 @@ function FileUpload({ documentId }) {
 ---
 
 **Happy Coding! 🎉**
+
+---
+
+## 🔒 v3.1 Authorization Changes (January 2025)
+
+### Overview
+In v3.1, Advisor permissions were restricted to **only their assigned students**. This ensures advisors can only access students they are responsible for.
+
+### What Changed for Advisors
+
+#### ✅ Allowed Operations (Own Students Only)
+
+1. **View Students**
+   - `GET /api/students` - Returns only students where `AdvisorId` matches advisor's ID
+   - `GET /api/students/my-students` - New endpoint to explicitly get assigned students
+   - `GET /api/students/{id}` - Can only view details of own students (403 if not)
+
+2. **Send Notifications**
+   - `POST /api/students/{id}/send-notification` - Own students only (403 if not)
+   - `POST /api/students/send-bulk-notification` - Filters to own students, returns errors for unauthorized students
+
+3. **View Documents**
+   - `GET /api/documents` - Returns only documents from own students
+   - `GET /api/documents/{id}/versions` - Own students' documents only (403 if not)
+   - `GET /api/documents/download/{versionId}` - Own students' documents only (403 if not)
+
+4. **Manage Submissions**
+   - `POST /api/submissions` - Can only create for own students (403 if not)
+   - `GET /api/submissions/my` - Returns only own students' submissions
+   - `GET /api/students/with-pending-submissions` - Own students only
+
+#### ❌ Restricted Operations (Admin Only in v3.1)
+
+1. **Send to All Students**
+   - `POST /api/students/send-notification-to-all` - ⚠️ **Admin Only** (was Admin/Advisor)
+
+2. **View Unassigned Students**
+   - `GET /api/students/without-advisor` - ⚠️ **Admin Only** (was Admin/Advisor)
+
+### Frontend Changes
+
+#### UI Updates
+```javascript
+// Students.jsx now checks user role
+const userInfo = authService.getUserInfo();
+
+// Hide Admin-only features from Advisors
+{userRole === 'Admin' && (
+  <button onClick={() => setFilter('without-advisor')}>
+    Without Advisor
+  </button>
+)}
+
+{userRole === 'Admin' ? (
+  <button onClick={handleSendToAll}>
+    Send to All Students
+  </button>
+) : (
+  <button disabled>
+    Select Students to Send
+  </button>
+)}
+```
+
+#### Error Handling
+```javascript
+// All student operations now handle 403 errors
+try {
+  await studentService.sendNotification(studentId, data);
+} catch (error) {
+  if (error.response?.status === 403) {
+    alert('You can only send notifications to students assigned to you');
+  }
+}
+```
+
+### Migration Guide
+
+#### For Existing Advisor Users
+- No action required
+- Advisors will automatically only see their assigned students
+- Attempting to access other students will return 403 Forbidden
+
+#### For Frontend Developers
+1. Update error handling to catch 403 responses
+2. Hide "Send to All" and "Without Advisor" features from Advisors
+3. Use `studentService.getMyStudents()` for explicit student list
+4. Display appropriate error messages for unauthorized access
+
+### Example: Updated Student Management
+
+```javascript
+function StudentManagement() {
+  const userRole = authService.getUserInfo()?.role;
+  const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const loadStudents = async () => {
+    try {
+      // For Advisors, this returns only assigned students
+      const data = await studentService.getAllStudents();
+      setStudents(data.students);
+    } catch (error) {
+      if (error.response?.status === 403) {
+        alert('You can only access students assigned to you');
+      }
+    }
+  };
+
+  const sendNotification = async (studentId) => {
+    try {
+      await studentService.sendNotification(studentId, {
+        title: 'Meeting Reminder',
+        message: 'Don\'t forget our meeting tomorrow'
+      });
+      alert('Notification sent!');
+    } catch (error) {
+      if (error.response?.status === 403) {
+        alert('This student is not assigned to you');
+      }
+    }
+  };
+
+  return (
+    <div>
+      <h1>{userRole === 'Admin' ? 'All Students' : 'My Students'}</h1>
+      
+      {/* Hide Admin-only filters */}
+      {userRole === 'Admin' && (
+        <button onClick={loadWithoutAdvisor}>
+          Without Advisor
+        </button>
+      )}
+
+      {students.map(student => (
+        <div key={student.id}>
+          <h3>{student.userName}</h3>
+          <button onClick={() => sendNotification(student.id)}>
+            Send Notification
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### Testing v3.1 Authorization
+
+#### Test Case 1: Advisor Access Own Students ✅
+```javascript
+// Login as advisor1
+await authService.login({ email: 'advisor1@local', password: 'Advisor123!' });
+
+// Get students - should only return advisor1's students
+const { students } = await studentService.getAllStudents();
+// ✅ Returns only students where AdvisorId = advisor1's ID
+```
+
+#### Test Case 2: Advisor Access Other Students ❌
+```javascript
+// Try to get student assigned to advisor2
+try {
+  await studentService.getStudentDetails('other-advisor-student-id');
+} catch (error) {
+  console.log(error.response.status); // 403 Forbidden ✅
+}
+```
+
+#### Test Case 3: Advisor Send to All ❌
+```javascript
+// Advisors cannot send to all students
+try {
+  await studentService.sendNotificationToAll({
+    title: 'Test',
+    message: 'Test message'
+  });
+} catch (error) {
+  console.log(error.response.status); // 403 Forbidden ✅
+}
+```
+
+#### Test Case 4: Admin Still Has Full Access ✅
+```javascript
+// Login as admin
+await authService.login({ email: 'admin@local', password: 'Admin123!' });
+
+// Can see all students
+const { students } = await studentService.getAllStudents();
+// ✅ Returns all students
+
+// Can send to all
+await studentService.sendNotificationToAll({ title: 'Test', message: 'Test' });
+// ✅ Success
+
+// Can see without advisor
+const unassigned = await studentService.getStudentsWithoutAdvisor();
+// ✅ Success
+```
+
+### Summary of Changes
+
+| Feature | v3.0 (Old) | v3.1 (New) |
+|---------|------------|------------|
+| Advisor: View Students | All students | Own students only |
+| Advisor: Send Notification | Any student | Own students only (403 if not) |
+| Advisor: Bulk Notification | Any students | Own students only (errors for others) |
+| Advisor: Send to All | ✅ Allowed | ❌ Admin Only |
+| Advisor: Without Advisor List | ✅ Allowed | ❌ Admin Only |
+| Advisor: View Documents | All documents | Own students' documents only |
+| Advisor: Create Submission | Any student | Own students only (403 if not) |
+| Admin: All Features | ✅ Full Access | ✅ Full Access (No Change) |
+
+### Breaking Changes
+⚠️ **None** - This is a permission restriction only. Existing functionality remains unchanged, just limited to authorized students.
+
+### New Endpoints
+- `GET /api/students/my-students` - Explicitly fetch advisor's assigned students
+
+---

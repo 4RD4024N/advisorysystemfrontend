@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { studentService, advisorService } from '../services';
+import { studentService, advisorService, authService } from '../services';
 import './Students.css';
 
 function Students() {
@@ -11,8 +11,12 @@ function Students() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [notificationData, setNotificationData] = useState({ title: '', message: '' });
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
+    // Get user role
+    const userInfo = authService.getUserInfo();
+    setUserRole(userInfo?.role);
     loadStudents();
   }, [filter]);
 
@@ -36,6 +40,9 @@ function Students() {
       }
     } catch (error) {
       console.error('Failed to load students:', error);
+      if (error.response?.status === 403) {
+        alert('You can only access students assigned to you');
+      }
       setStudents([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -55,7 +62,11 @@ function Students() {
       setNotificationData({ title: '', message: '' });
     } catch (error) {
       console.error('Failed to send notification:', error);
-      alert('Failed to send notification');
+      if (error.response?.status === 403) {
+        alert('You can only send notifications to students assigned to you');
+      } else {
+        alert('Failed to send notification');
+      }
     }
   };
 
@@ -71,17 +82,28 @@ function Students() {
     }
 
     try {
-      await studentService.sendBulkNotification({
+      const response = await studentService.sendBulkNotification({
         studentIds: selectedStudents,
         ...notificationData
       });
-      alert(`Notification sent to ${selectedStudents.length} students!`);
+      
+      // Show success/error details if available
+      if (response.errors && response.errors.length > 0) {
+        alert(`Sent to ${response.successCount} students. Failed: ${response.failedCount}\n${response.errors.join('\n')}`);
+      } else {
+        alert(`Notification sent to ${selectedStudents.length} students!`);
+      }
+      
       setShowBulkModal(false);
       setSelectedStudents([]);
       setNotificationData({ title: '', message: '' });
     } catch (error) {
       console.error('Failed to send bulk notification:', error);
-      alert('Failed to send notifications');
+      if (error.response?.status === 403) {
+        alert('You can only send notifications to students assigned to you');
+      } else {
+        alert('Failed to send notifications');
+      }
     }
   };
 
@@ -145,14 +167,16 @@ function Students() {
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All Students
+          {userRole === 'Admin' ? 'All Students' : 'My Students'}
         </button>
-        <button 
-          className={`filter-btn ${filter === 'without-advisor' ? 'active' : ''}`}
-          onClick={() => setFilter('without-advisor')}
-        >
-          Without Advisor
-        </button>
+        {userRole === 'Admin' && (
+          <button 
+            className={`filter-btn ${filter === 'without-advisor' ? 'active' : ''}`}
+            onClick={() => setFilter('without-advisor')}
+          >
+            Without Advisor
+          </button>
+        )}
         <button 
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
@@ -378,12 +402,20 @@ function Students() {
                 >
                   Send to Selected ({selectedStudents.length})
                 </button>
-              ) : (
+              ) : userRole === 'Admin' ? (
                 <button 
                   className="btn-danger"
                   onClick={handleSendToAll}
                 >
                   Send to All Students
+                </button>
+              ) : (
+                <button 
+                  className="btn-primary"
+                  onClick={handleSendBulkNotification}
+                  disabled
+                >
+                  Select Students to Send
                 </button>
               )}
             </div>

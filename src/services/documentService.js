@@ -7,6 +7,7 @@ const documentService = {
   /**
    * Get my documents
    * @returns {Array} List of documents
+   * @note v3.1: Advisors will only see documents from their assigned students
    */
   getMyDocuments: async () => {
     const response = await api.get('/documents');
@@ -47,6 +48,7 @@ const documentService = {
    * Get document versions
    * @param {number} documentId - Document ID
    * @returns {Array} List of versions
+   * @note v3.1: Advisors can only access their assigned students' documents (403 if not)
    */
   getVersions: async (documentId) => {
     const response = await api.get(`/documents/${documentId}/versions`);
@@ -57,6 +59,7 @@ const documentService = {
    * Download a file
    * @param {number} versionId - Version ID
    * @returns {Blob} File blob
+   * @note v3.1: Advisors can only download their assigned students' documents (403 if not)
    */
   downloadFile: async (versionId) => {
     const response = await api.get(`/documents/download/${versionId}`, {
@@ -86,6 +89,7 @@ const documentService = {
    * Preview PDF file in browser
    * @param {number} versionId - Version ID
    * @returns {string} URL for PDF preview
+   * @note v3.1: Advisors can only preview their assigned students' documents (403 if not)
    */
   getPreviewUrl: (versionId) => {
     const token = localStorage.getItem('token');

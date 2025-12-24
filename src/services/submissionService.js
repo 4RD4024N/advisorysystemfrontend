@@ -5,8 +5,9 @@ import api from './api';
  */
 const submissionService = {
   /**
-   * Get my submissions (Student)
+   * Get my submissions (Student) / Get students' submissions (Advisor/Admin)
    * @returns {Array} List of submissions
+   * @note v3.1: Advisors will only see submissions from their assigned students
    */
   getMySubmissions: async () => {
     const response = await api.get('/submissions/my');
@@ -15,8 +16,10 @@ const submissionService = {
 
   /**
    * Create a new submission (Advisor/Admin)
-   * @param {Object} data - { studentId, dueDate }
+   * @param {Object} data - { studentId, documentId, dueDate, notes }
    * @returns {Object} { id }
+   * @note v3.1: Advisors can only create submissions for their assigned students (403 if not)
+   * @note Notes field is optional - if provided, it will be included in the notification
    */
   createSubmission: async (data) => {
     const response = await api.post('/submissions', data);

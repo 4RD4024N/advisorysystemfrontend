@@ -29,10 +29,13 @@ const Documents = () => {
 
   const loadDocuments = async () => {
     try {
-      const data = await documentService.getAll();
+      const data = await documentService.getMyDocuments();
       setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading documents:', error);
+      if (error.response?.status === 403) {
+        setError('You can only access documents from students assigned to you');
+      }
       setDocuments([]);
     } finally {
       setLoading(false);

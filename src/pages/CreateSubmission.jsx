@@ -10,7 +10,7 @@ const CreateSubmission = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   
   const [formData, setFormData] = useState({
-    studentId: '',
+    studentEmail: '',
     documentId: '',
     dueDate: '',
     notes: ''
@@ -23,9 +23,8 @@ const CreateSubmission = () => {
   const loadInitialData = async () => {
     try {
       setLoadingData(true);
-      // Load students - bu endpoint'i students service'den çağırmalısınız
-      // Şimdilik documentService.getAll() ile belgeleri yüklüyoruz
-      const docsData = await documentService.getAll();
+      // Load documents
+      const docsData = await documentService.getMyDocuments();
       setDocuments(Array.isArray(docsData) ? docsData : []);
       
       // TODO: Load students list from students service
@@ -44,10 +43,10 @@ const CreateSubmission = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.studentId || !formData.dueDate) {
+    if (!formData.studentEmail || !formData.dueDate) {
       setMessage({
         type: 'error',
-        text: 'Lütfen öğrenci ve teslim tarihi seçin'
+        text: 'Lütfen öğrenci e-postası ve teslim tarihi seçin'
       });
       return;
     }
@@ -68,7 +67,7 @@ const CreateSubmission = () => {
       setMessage({ type: '', text: '' });
       
       await submissionService.createSubmission({
-        studentId: formData.studentId,
+        studentEmail: formData.studentEmail,
         documentId: formData.documentId ? parseInt(formData.documentId) : null,
         dueDate: new Date(formData.dueDate).toISOString(),
         notes: formData.notes
@@ -81,16 +80,23 @@ const CreateSubmission = () => {
       
       // Reset form
       setFormData({
-        studentId: '',
+        studentEmail: '',
         documentId: '',
         dueDate: '',
         notes: ''
       });
     } catch (error) {
-      setMessage({
-        type: 'error',
-        text: error.response?.data?.message || 'Teslim talebi oluşturulurken bir hata oluştu'
-      });
+      if (error.response?.status === 403) {
+        setMessage({
+          type: 'error',
+          text: '⛔ Bu öğrenci size atanmamış. Sadece kendi öğrencileriniz için teslim talebi oluşturabilirsiniz.'
+        });
+      } else {
+        setMessage({
+          type: 'error',
+          text: error.response?.data?.message || 'Teslim talebi oluşturulurken bir hata oluştu'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -163,19 +169,19 @@ const CreateSubmission = () => {
           {/* Student Selection */}
           <div>
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Öğrenci <span className="text-red-500">*</span>
+              Öğrenci E-postası <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
-              name="studentId"
-              value={formData.studentId}
+              type="email"
+              name="studentEmail"
+              value={formData.studentEmail}
               onChange={handleChange}
-              placeholder="Öğrenci ID (UUID)"
+              placeholder="ornek@ogrenci.edu.tr"
               required
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none font-mono text-sm"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
             />
             <p className="mt-2 text-sm text-gray-500">
-              💡 Öğrenci UUID'sini girin (örn: 550e8400-e29b-41d4-a716-446655440000)
+              📧 Öğrencinin e-posta adresini girin
             </p>
           </div>
 
