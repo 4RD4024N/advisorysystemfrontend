@@ -162,7 +162,7 @@ const Documents = () => {
               value={filters.title}
               onChange={handleFilterChange}
               placeholder="Başlık ara..."
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             />
           </div>
           <div>
@@ -174,7 +174,7 @@ const Documents = () => {
               name="startDate"
               value={filters.startDate}
               onChange={handleFilterChange}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             />
           </div>
           <div>
@@ -186,7 +186,7 @@ const Documents = () => {
               name="endDate"
               value={filters.endDate}
               onChange={handleFilterChange}
-              className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             />
           </div>
         </div>
@@ -288,7 +288,7 @@ const Documents = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">📄 Yeni Belge</h2>
+              <h2 className="text-2xl font-bold text-gray-900 ">📄 Yeni Belge</h2>
               <button 
                 onClick={() => setShowCreateModal(false)} 
                 className="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors"
