@@ -79,14 +79,75 @@ const CourseSchedule = () => {
 
   const loadSchedule = async () => {
     // TODO: Backend'den ders programını yükle
-    // Şimdilik örnek veri
+    // Şimdilik örnek veri - 4 saatlik ders 2+2 şeklinde bölünmüş
     setSchedule({
       monday: {
-        '09:00': { code: 'BİL101', name: 'BİLGİSAYAR YAZILIMI I', duration: 3 },
-        '14:00': { code: 'MAT151', name: 'MATEMATİKSEL ANALİZ I', duration: 4 }
+        '09:00': { 
+          code: 'BİL101', 
+          name: 'BİLGİSAYAR YAZILIMI I', 
+          duration: 2,
+          credit: 3,
+          ects: 5,
+          sessionLabel: '(1/2)',
+          sessionNumber: 1,
+          totalSessions: 2
+        },
+        '14:00': { 
+          code: 'MAT151', 
+          name: 'MATEMATİKSEL ANALİZ I', 
+          duration: 3,
+          credit: 4,
+          ects: 6,
+          sessionLabel: '(1/2)',
+          sessionNumber: 1,
+          totalSessions: 2
+        }
       },
       wednesday: {
-        '10:00': { code: 'FİZ105', name: 'GENEL FİZİK I', duration: 3 }
+        '10:00': { 
+          code: 'FİZ105', 
+          name: 'GENEL FİZİK I', 
+          duration: 2,
+          credit: 3,
+          ects: 5,
+          sessionLabel: '(1/2)',
+          sessionNumber: 1,
+          totalSessions: 2
+        }
+      },
+      thursday: {
+        '09:00': { 
+          code: 'BİL101', 
+          name: 'BİLGİSAYAR YAZILIMI I', 
+          duration: 2,
+          credit: 3,
+          ects: 5,
+          sessionLabel: '(2/2)',
+          sessionNumber: 2,
+          totalSessions: 2
+        }
+      },
+      friday: {
+        '11:00': { 
+          code: 'MAT151', 
+          name: 'MATEMATİKSEL ANALİZ I', 
+          duration: 2,
+          credit: 4,
+          ects: 6,
+          sessionLabel: '(2/2)',
+          sessionNumber: 2,
+          totalSessions: 2
+        },
+        '14:00': { 
+          code: 'FİZ105', 
+          name: 'GENEL FİZİK I', 
+          duration: 2,
+          credit: 3,
+          ects: 5,
+          sessionLabel: '(2/2)',
+          sessionNumber: 2,
+          totalSessions: 2
+        }
       }
     });
   };
@@ -104,41 +165,196 @@ const CourseSchedule = () => {
     setShowAddCourseModal(true);
   };
 
+  // Çakışma kontrolü - verilen zaman diliminde çakışan ders var mı kontrol et
+  const checkConflict = (day, startTime, duration) => {
+    if (!schedule[day]) return null;
+
+    const startHour = parseInt(startTime.split(':')[0]);
+    const endHour = startHour + duration;
+
+    for (let hour = startHour; hour < endHour; hour++) {
+      const timeKey = `${hour.toString().padStart(2, '0')}:00`;
+      if (schedule[day][timeKey]) {
+        return schedule[day][timeKey];
+      }
+    }
+    return null;
+  };
+
+  // Dersi birden fazla oturuma böl (örn: 4 saatlik ders -> 2 saat + 2 saat)
+  const splitCourseIntoSessions = (course) => {
+    const totalDuration = course.theory + course.practice;
+    
+    if (totalDuration <= 2) {
+      return [{ duration: totalDuration, label: '' }];
+    } else if (totalDuration === 3) {
+      return [{ duration: 2, label: '(1/2)' }, { duration: 1, label: '(2/2)' }];
+    } else if (totalDuration === 4) {
+      return [{ duration: 2, label: '(1/2)' }, { duration: 2, label: '(2/2)' }];
+    } else if (totalDuration === 5) {
+      return [{ duration: 3, label: '(1/2)' }, { duration: 2, label: '(2/2)' }];
+    } else {
+      // 6+ saat için 3'lü gruplara böl
+      const sessions = [];
+      let remaining = totalDuration;
+      let sessionNum = 1;
+      while (remaining > 0) {
+        const sessionDuration = Math.min(3, remaining);
+        sessions.push({ duration: sessionDuration, label: `(${sessionNum}/${Math.ceil(totalDuration / 3)})` });
+        remaining -= sessionDuration;
+        sessionNum++;
+      }
+      return sessions;
+    }
+  };
+
   const handleSaveCourse = () => {
-    if (!selectedCourse || !selectedSlot) return;
+    if (!selectedCourse) return;
+
+    // Dersin toplam saatini hesapla
+    const totalDuration = selectedCourse.theory + selectedCourse.practice;
+    
+    // Eğer slot seçili değilse (genel ekleme), kullanıcıya bilgi ver
+    if (!selectedSlot) {
+      alert('Lütfen takvimden bir zaman dilimi seçin veya derse tıklayın.');
+      return;
+    }
+
+    // Dersi oturumlara böl
+    const sessions = splitCourseIntoSessions(selectedCourse);
+    
+    // İlk oturum için çakışma kontrolü
+    const conflict = checkConflict(selectedSlot.day, selectedSlot.time, sessions[0].duration);
+    if (conflict) {
+      alert(`⚠️ Çakışma tespit edildi!\n\n${selectedSlot.time} saatinde ${conflict.code} - ${conflict.name} dersi mevcut.\n\nLütfen farklı bir zaman dilimi seçin.`);
+      return;
+    }
 
     const newSchedule = { ...schedule };
     if (!newSchedule[selectedSlot.day]) {
       newSchedule[selectedSlot.day] = {};
     }
     
-    newSchedule[selectedSlot.day][selectedSlot.time] = {
+    // İlk oturumu ekle
+    const startHour = parseInt(selectedSlot.time.split(':')[0]);
+    const firstSessionTime = selectedSlot.time;
+    
+    newSchedule[selectedSlot.day][firstSessionTime] = {
       ...selectedCourse,
-      duration: selectedCourse.theory + selectedCourse.practice
+      duration: sessions[0].duration,
+      sessionLabel: sessions.length > 1 ? sessions[0].label : '',
+      sessionNumber: 1,
+      totalSessions: sessions.length
     };
 
-    setSchedule(newSchedule);
-    setShowAddCourseModal(false);
-    setSelectedCourse(null);
-    setSelectedSlot(null);
+    // Eğer birden fazla oturum varsa, kullanıcıya ikinci oturum için soru sor
+    if (sessions.length > 1) {
+      setSchedule(newSchedule);
+      setShowAddCourseModal(false);
+      
+      // 2. oturumu eklemek için modal tekrar aç
+      setTimeout(() => {
+        const secondSessionNeeded = sessions.length > 1;
+        if (secondSessionNeeded && confirm(`${selectedCourse.code} dersi ${totalDuration} saatlik.\n\nİlk ${sessions[0].duration} saat eklendi.\n\nİkinci oturum (${sessions[1].duration} saat) için zaman dilimi seçmek ister misiniz?`)) {
+          // Kullanıcı ikinci oturumu eklemek isterse, modalı kapat ve bekleme moduna geç
+          alert('Takvimden ikinci oturum için bir zaman dilimi seçin.');
+          setSelectedCourse({
+            ...selectedCourse,
+            remainingSessions: sessions.slice(1),
+            sessionNumber: 2
+          });
+          // Modal'ı kapatmıyoruz, devam ediyoruz
+        } else {
+          setSelectedCourse(null);
+          setSelectedSlot(null);
+        }
+      }, 100);
+    } else {
+      setSchedule(newSchedule);
+      setShowAddCourseModal(false);
+      setSelectedCourse(null);
+      setSelectedSlot(null);
+    }
     
     // TODO: Backend'e kaydet
   };
 
   const handleRemoveCourse = (day, time) => {
-    if (!confirm('Bu dersi programdan kaldırmak istediğinize emin misiniz?')) return;
+    const courseToRemove = schedule[day]?.[time];
+    if (!courseToRemove) return;
 
-    const newSchedule = { ...schedule };
-    if (newSchedule[day]) {
-      delete newSchedule[day][time];
+    let confirmMessage = 'Bu dersi programdan kaldırmak istediğinize emin misiniz?';
+    
+    // Eğer ders birden fazla oturuma bölünmüşse, tüm oturumları kaldırma seçeneği sun
+    if (courseToRemove.totalSessions > 1) {
+      confirmMessage = `${courseToRemove.code} dersi ${courseToRemove.totalSessions} oturuma bölünmüş.\n\n`;
+      confirmMessage += `Sadece bu oturumu mu (${courseToRemove.sessionNumber}/${courseToRemove.totalSessions}) yoksa TÜM oturumları mı kaldırmak istersiniz?\n\n`;
+      confirmMessage += `OK: Sadece bu oturum\nİptal: Tüm oturumlar`;
+      
+      const removeOnlyThis = confirm(confirmMessage);
+      
+      const newSchedule = { ...schedule };
+      
+      if (removeOnlyThis) {
+        // Sadece bu oturumu kaldır
+        if (newSchedule[day]) {
+          delete newSchedule[day][time];
+        }
+      } else {
+        // Aynı ders koduna sahip tüm oturumları kaldır
+        Object.keys(newSchedule).forEach(dayKey => {
+          Object.keys(newSchedule[dayKey]).forEach(timeKey => {
+            if (newSchedule[dayKey][timeKey].code === courseToRemove.code) {
+              delete newSchedule[dayKey][timeKey];
+            }
+          });
+        });
+      }
+      
+      setSchedule(newSchedule);
+    } else {
+      // Tek oturumluk ders, direkt kaldır
+      if (!confirm(confirmMessage)) return;
+      
+      const newSchedule = { ...schedule };
+      if (newSchedule[day]) {
+        delete newSchedule[day][time];
+      }
+      setSchedule(newSchedule);
     }
-    setSchedule(newSchedule);
     
     // TODO: Backend'den sil
   };
 
   const getCourseAtSlot = (day, time) => {
     return schedule[day]?.[time];
+  };
+
+  // Belirli bir zaman diliminde ders olup olmadığını kontrol et (çakışma için)
+  const isSlotOccupied = (day, time) => {
+    return schedule[day]?.[time] !== undefined;
+  };
+
+  // Slot'un disabled olup olmadığını kontrol et (başka bir dersin içinde kaldıysa)
+  const isSlotDisabled = (day, time) => {
+    if (!schedule[day]) return false;
+    
+    const currentHour = parseInt(time.split(':')[0]);
+    
+    // Önceki saatleri kontrol et - eğer orada başlayan bir ders bu saati kapsıyorsa
+    for (let i = 1; i < 6; i++) {
+      const prevHour = currentHour - i;
+      if (prevHour < 8) break;
+      
+      const prevTime = `${prevHour.toString().padStart(2, '0')}:00`;
+      const prevCourse = schedule[day][prevTime];
+      
+      if (prevCourse && prevCourse.duration > i) {
+        return true;
+      }
+    }
+    
+    return false;
   };
 
   const getCourseColor = (courseCode) => {
@@ -195,23 +411,46 @@ const CourseSchedule = () => {
         <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam Ders</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {Object.values(schedule).reduce((acc, day) => acc + Object.keys(day).length, 0)}
+            {(() => {
+              // Benzersiz ders kodlarını say (aynı dersin birden fazla oturumu varsa bir kez say)
+              const uniqueCourses = new Set();
+              Object.values(schedule).forEach(day => {
+                Object.values(day).forEach(course => {
+                  uniqueCourses.add(course.code);
+                });
+              });
+              return uniqueCourses.size;
+            })()}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam Kredi</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {Object.values(schedule).reduce((acc, day) => {
-              return acc + Object.values(day).reduce((sum, course) => sum + (course.credit || 0), 0);
-            }, 0)}
+            {(() => {
+              // Benzersiz derslerin kredilerini topla
+              const courseCredits = {};
+              Object.values(schedule).forEach(day => {
+                Object.values(day).forEach(course => {
+                  courseCredits[course.code] = course.credit || 0;
+                });
+              });
+              return Object.values(courseCredits).reduce((sum, credit) => sum + credit, 0);
+            })()}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam AKTS</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {Object.values(schedule).reduce((acc, day) => {
-              return acc + Object.values(day).reduce((sum, course) => sum + (course.ects || 0), 0);
-            }, 0)}
+            {(() => {
+              // Benzersiz derslerin AKTS değerlerini topla
+              const courseEcts = {};
+              Object.values(schedule).forEach(day => {
+                Object.values(day).forEach(course => {
+                  courseEcts[course.code] = course.ects || 0;
+                });
+              });
+              return Object.values(courseEcts).reduce((sum, ects) => sum + ects, 0);
+            })()}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
@@ -268,6 +507,9 @@ const CourseSchedule = () => {
                   </td>
                   {days.map(day => {
                     const course = getCourseAtSlot(day.key, time);
+                    const isDisabled = isSlotDisabled(day.key, time);
+                    const isOccupied = isSlotOccupied(day.key, time);
+                    
                     return (
                       <td 
                         key={`${day.key}-${time}`}
@@ -277,22 +519,28 @@ const CourseSchedule = () => {
                           borderRight: '1px solid var(--border-color)',
                           minHeight: '60px',
                           verticalAlign: 'top',
-                          cursor: !selectedStudent ? 'pointer' : 'default',
-                          background: course ? getCourseColor(course.code) : 'transparent',
-                          color: course ? 'white' : 'inherit'
+                          cursor: !selectedStudent && !isOccupied && !isDisabled ? 'pointer' : 'default',
+                          background: course ? getCourseColor(course.code) : isDisabled ? '#f5f5f5' : 'transparent',
+                          color: course ? 'white' : 'inherit',
+                          opacity: isDisabled ? 0.5 : 1,
+                          position: 'relative'
                         }}
-                        onClick={() => !selectedStudent && !course && handleAddCourse(day.key, time)}
+                        onClick={() => !selectedStudent && !course && !isDisabled && handleAddCourse(day.key, time)}
+                        title={isDisabled ? 'Bu saat başka bir ders ile dolu' : ''}
                       >
                         {course ? (
                           <div style={{ position: 'relative' }}>
                             <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
-                              {course.code}
+                              {course.code} {course.sessionLabel}
                             </div>
                             <div style={{ fontSize: '0.75rem', opacity: 0.95, marginBottom: '4px' }}>
                               {course.name}
                             </div>
                             <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>
                               {course.duration} saat
+                              {course.totalSessions > 1 && (
+                                <span> • Oturum {course.sessionNumber}/{course.totalSessions}</span>
+                              )}
                             </div>
                             {!selectedStudent && (
                               <button
@@ -320,6 +568,15 @@ const CourseSchedule = () => {
                                 ×
                               </button>
                             )}
+                          </div>
+                        ) : isDisabled ? (
+                          <div style={{ 
+                            textAlign: 'center', 
+                            color: 'var(--text-muted)',
+                            fontSize: '0.7rem',
+                            padding: '1rem 0'
+                          }}>
+                            ○
                           </div>
                         ) : (
                           !selectedStudent && (
@@ -394,44 +651,88 @@ const CourseSchedule = () => {
             </div>
 
             <div style={{ padding: '1.5rem 2rem' }}>
+              {selectedSlot && (
+                <div style={{
+                  padding: '1rem',
+                  background: '#e3f2fd',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  border: '1px solid #90caf9'
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    📅 Seçili Zaman Dilimi
+                  </div>
+                  <div style={{ fontSize: '0.9rem' }}>
+                    {days.find(d => d.key === selectedSlot.day)?.label} - {selectedSlot.time}
+                  </div>
+                </div>
+              )}
+
               <div className="input-group">
                 <label className="input-label">Mevcut Dersler</label>
                 <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                  {availableCourses.map(course => (
-                    <div
-                      key={course.code}
-                      onClick={() => setSelectedCourse(course)}
-                      style={{
-                        padding: '1rem',
-                        marginBottom: '0.5rem',
-                        border: selectedCourse?.code === course.code ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        background: selectedCourse?.code === course.code ? 'var(--primary-light)' : 'transparent'
-                      }}
-                    >
-                      <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                        {course.code} - {course.name}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                        T: {course.theory} | U: {course.practice} | K: {course.credit} | AKTS: {course.ects}
-                        {course.prerequisite && <span> | Önkoşul: {course.prerequisite}</span>}
-                      </div>
-                      {course.type && (
-                        <div style={{ 
-                          display: 'inline-block',
-                          marginTop: '0.5rem',
-                          padding: '2px 8px',
-                          background: course.type === 'Zorunlu' ? '#e3f2fd' : '#fff3e0',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem',
-                          color: course.type === 'Zorunlu' ? '#1976d2' : '#f57c00'
-                        }}>
-                          {course.type}
+                  {availableCourses.map(course => {
+                    const totalHours = course.theory + course.practice;
+                    const sessions = splitCourseIntoSessions(course);
+                    const hasConflict = selectedSlot ? checkConflict(selectedSlot.day, selectedSlot.time, sessions[0].duration) : null;
+                    
+                    return (
+                      <div
+                        key={course.code}
+                        onClick={() => !hasConflict && setSelectedCourse(course)}
+                        style={{
+                          padding: '1rem',
+                          marginBottom: '0.5rem',
+                          border: selectedCourse?.code === course.code ? '2px solid var(--primary)' : hasConflict ? '2px solid #f44336' : '1px solid var(--border-color)',
+                          borderRadius: '8px',
+                          cursor: hasConflict ? 'not-allowed' : 'pointer',
+                          background: selectedCourse?.code === course.code ? 'var(--primary-light)' : hasConflict ? '#ffebee' : 'transparent',
+                          opacity: hasConflict ? 0.6 : 1
+                        }}
+                      >
+                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                          {course.code} - {course.name}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                          T: {course.theory} | U: {course.practice} | K: {course.credit} | AKTS: {course.ects}
+                          {course.prerequisite && <span> | Önkoşul: {course.prerequisite}</span>}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
+                          ⏱️ Toplam: {totalHours} saat
+                          {sessions.length > 1 && (
+                            <span style={{ marginLeft: '0.5rem', color: '#f57c00' }}>
+                              • {sessions.length} oturuma bölünecek ({sessions.map(s => s.duration).join(' + ')} saat)
+                            </span>
+                          )}
+                        </div>
+                        {hasConflict && (
+                          <div style={{
+                            fontSize: '0.75rem',
+                            color: '#d32f2f',
+                            marginTop: '0.5rem',
+                            padding: '0.5rem',
+                            background: 'white',
+                            borderRadius: '4px'
+                          }}>
+                            ⚠️ Çakışma: {hasConflict.code} - {hasConflict.name}
+                          </div>
+                        )}
+                        {course.type && (
+                          <div style={{ 
+                            display: 'inline-block',
+                            marginTop: '0.5rem',
+                            padding: '2px 8px',
+                            background: course.type === 'Zorunlu' ? '#e3f2fd' : '#fff3e0',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            color: course.type === 'Zorunlu' ? '#1976d2' : '#f57c00'
+                          }}>
+                            {course.type}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -442,7 +743,9 @@ const CourseSchedule = () => {
                   className="btn btn-primary"
                   style={{ flex: 1 }}
                 >
-                  Ekle
+                  {selectedCourse && splitCourseIntoSessions(selectedCourse).length > 1 
+                    ? `Ekle (${splitCourseIntoSessions(selectedCourse)[0].duration} saat)` 
+                    : 'Ekle'}
                 </button>
                 <button 
                   onClick={() => setShowAddCourseModal(false)}

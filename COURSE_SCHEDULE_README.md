@@ -9,11 +9,17 @@ Ders Programı modülü, öğrencilerin haftalık ders programlarını oluşturm
 ### Öğrenci Özellikleri
 - ✅ Haftalık ders programı görüntüleme (Pazartesi-Pazar)
 - ✅ Mevcut derslerden seçim yaparak programa ders ekleme
-- ✅ Programdan ders çıkarma
+- ✅ **Çakışma kontrolü**: Aynı saatte birden fazla ders eklenemez
+- ✅ **Otomatik ders bölme**: Uzun dersler (4+ saat) otomatik olarak oturumlara bölünür
+  - 4 saat → 2 + 2 saat
+  - 5 saat → 3 + 2 saat
+  - 6+ saat → 3'lük gruplara bölünür
+- ✅ Programdan ders çıkarma (tek oturum veya tüm oturumlar)
 - ✅ Ders bilgilerini görüntüleme (Kod, İsim, Teori/Uygulama saatleri, Kredi, AKTS)
-- ✅ Toplam istatistikler (Ders sayısı, Kredi, AKTS, Haftalık saat)
-- ✅ Önkoşul kontrolü
+- ✅ **Akıllı istatistikler**: Aynı dersin birden fazla oturumu tek ders olarak sayılır
+- ✅ Önkoşul bilgisi gösterimi
 - ✅ Ders türü gösterimi (Zorunlu, Seçmeli, vb.)
+- ✅ **Çakışma uyarıları**: Modal'da çakışan dersler kırmızı gösterilir
 
 ### Danışman Özellikleri
 - ✅ Danışmanlık yapılan öğrencilerin listesi
@@ -26,15 +32,20 @@ Ders Programı modülü, öğrencilerin haftalık ders programlarını oluşturm
 
 #### Ders Ekleme
 1. Menüden "Ders Programı" sekmesine gidin
-2. "+ Ders Ekle" butonuna tıklayın
-3. Açılan listeden bir ders seçin
-4. Takvimde boş bir zaman dilimi seçin
-5. "Ekle" butonuna tıklayın
+2. Takvimde boş bir zaman dilimini seçin (+ işaretli hücrelere tıklayın)
+3. Açılan modal'da bir ders seçin
+4. **Çakışma kontrolü**: Eğer seçilen saatte başka bir ders varsa, çakışan ders kırmızı gösterilir
+5. **Uzun dersler**: 4+ saatlik dersler otomatik olarak oturumlara bölünür
+   - Örnek: 4 saatlik ders → İlk 2 saat eklenir, ardından 2. oturum için soru sorulur
+6. "Ekle" butonuna tıklayın
+7. Birden fazla oturuma bölünen dersler için ikinci zaman dilimini seçin
 
 #### Ders Çıkarma
 1. Programdaki bir dersin üzerine gelin
 2. Sağ üst köşedeki "×" butonuna tıklayın
-3. Onay mesajını kabul edin
+3. **Çoklu oturum**: Ders birden fazla oturuma bölünmüşse:
+   - "OK": Sadece bu oturumu kaldır
+   - "İptal": Tüm oturumları kaldır
 
 ### Danışman Kullanımı
 
@@ -45,15 +56,24 @@ Ders Programı modülü, öğrencilerin haftalık ders programlarını oluşturm
 ## 📊 İstatistikler
 
 Dashboard'da görüntülenen istatistikler:
-- **Toplam Ders**: Programdaki ders sayısı
-- **Toplam Kredi**: Tüm derslerin toplam kredisi
-- **Toplam AKTS**: Tüm derslerin toplam AKTS değeri
-- **Haftalık Saat**: Haftalık toplam ders saati
+- **Toplam Ders**: Programdaki benzersiz ders sayısı (aynı dersin birden fazla oturumu varsa bir kez sayılır)
+- **Toplam Kredi**: Tüm derslerin toplam kredisi (benzersiz dersler için)
+- **Toplam AKTS**: Tüm derslerin toplam AKTS değeri (benzersiz dersler için)
+- **Haftalık Saat**: Haftalık toplam ders saati (tüm oturumlar dahil)
+
+### Örnek
+- **BİL101** (4 saat) → 2 oturum (2+2 saat) → İstatistikte 1 ders, 3 kredi, 5 AKTS, 4 haftalık saat
+- **MAT151** (5 saat) → 2 oturum (3+2 saat) → İstatistikte 1 ders, 4 kredi, 6 AKTS, 5 haftalık saat
 
 ## 🎨 Görünüm
 
 - **Haftalık Takvim**: 7 gün × 11 saat (08:00-18:00)
 - **Renk Kodları**: Her ders için farklı renk
+- **Oturum Gösterimi**: Çoklu oturumlar "(1/2)", "(2/2)" şeklinde etiketlenir
+- **Çakışma Gösterimi**: 
+  - Disabled slotlar gri ve soluk gösterilir (○ işareti)
+  - Çakışan dersler modal'da kırmızı border ile gösterilir
+  - Çakışma uyarı mesajı görüntülenir
 - **Responsive Tasarım**: Mobil uyumlu
 
 ## 🔧 Teknik Detaylar
@@ -110,21 +130,42 @@ POST   /api/courses/{courseId}/validate      - Ders uygunluk kontrolü
 
 ## 🚀 Gelecek Özellikler
 
-- [ ] Çakışma kontrolü (Aynı saatte birden fazla ders eklemeyi engelleme)
+- [x] Çakışma kontrolü (Aynı saatte birden fazla ders eklemeyi engelleme)
+- [x] Otomatik ders bölme (4+ saatlik dersler için)
 - [ ] PDF/Excel olarak dışa aktarma
-- [ ] Ders önkoşul doğrulama
+- [ ] Ders önkoşul doğrulama (backend entegrasyonu)
 - [ ] Sürükle-bırak ile ders taşıma
 - [ ] Ders notları ve açıklamaları
 - [ ] Farklı görünüm modları (Günlük, Haftalık)
 - [ ] Ders arama ve filtreleme
 - [ ] Program şablonları (Hazır programlar)
+- [ ] Önerilen ders programı (AI destekli)
 
 ## 📝 Notlar
 
 - Şu anda örnek ders verileri kullanılmaktadır
+- **Çakışma kontrolü aktif**: Aynı saate ders eklenemez
+- **Otomatik bölme**: 4+ saatlik dersler otomatik oturumlara ayrılır
 - Backend entegrasyonu için `courseScheduleService.js` hazır
 - Ders listesi veritabanından güncellenmelidir
 - Önkoşul kontrolü backend tarafında yapılmalıdır
+
+### Çakışma Kontrolü Nasıl Çalışır?
+
+1. **Ders eklerken**: Modal'da çakışan dersler kırmızı gösterilir ve tıklanamaz
+2. **Disabled slotlar**: Başka bir dersin içinde kalan saatler gri ve disabled gösterilir
+3. **Uyarı mesajları**: Çakışma durumunda detaylı uyarı mesajı gösterilir
+4. **Çoklu oturum desteği**: Uzun dersler farklı günlere/saatlere yerleştirilebilir
+
+### Ders Bölme Algoritması
+
+```
+1-2 saat  → Bölünmez
+3 saat    → 2 + 1 saat (2 oturum)
+4 saat    → 2 + 2 saat (2 oturum)
+5 saat    → 3 + 2 saat (2 oturum)
+6+ saat   → 3'lük gruplara bölünür
+```
 
 ## 🎓 Ders Türleri
 
