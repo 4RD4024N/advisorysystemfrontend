@@ -15,6 +15,7 @@ import Students from './pages/Students';
 import SystemMonitoring from './pages/SystemMonitoring';
 import StudentProfile from './pages/StudentProfile';
 import Courses from './pages/Courses';
+import CourseSchedule from './pages/CourseSchedule';
 import AssignAdvisor from './pages/AssignAdvisor'; // v3.0 - Admin Öğretmen Atama Sistemi
 import AdvisorRequests from './pages/AdvisorRequests'; // YENİ - Öğrenci-Advisor istek sistemi
 import CreateSubmission from './pages/CreateSubmission';
@@ -44,6 +45,9 @@ function App() {
           
           {/* Courses - All authenticated users */}
           <Route path="/courses" element={<Courses />} />
+          
+          {/* Course Schedule - All authenticated users */}
+          <Route path="/course-schedule" element={<CourseSchedule />} />
           
           {/* Students page - Admin and Advisor only */}
           <Route 

@@ -35,7 +35,10 @@ const DocumentDetail = () => {
       if (limitedVersions.length > 0) {
         setSelectedVersion(limitedVersions[0].id);
         loadComments(limitedVersions[0].id);
-        loadRatings(limitedVersions[0].id);
+        // Only load ratings if user is Advisor or Admin
+        if (isAdvisorOrAdmin) {
+          loadRatings(limitedVersions[0].id);
+        }
         loadMetadata(limitedVersions[0].id);
       }
     } catch (error) {
@@ -55,11 +58,19 @@ const DocumentDetail = () => {
   };
 
   const loadRatings = async (versionId) => {
+    // Only Advisors and Admins can view ratings
+    if (!isAdvisorOrAdmin) {
+      return;
+    }
+    
     try {
       const data = await ratingService.getRatingsByVersion(versionId);
       setRatings(prev => ({ ...prev, [versionId]: data }));
     } catch (error) {
-      console.error('Error loading ratings:', error);
+      // Silently handle 403 errors for role-based access
+      if (error.response?.status !== 403) {
+        console.error('Error loading ratings:', error);
+      }
     }
   };
 
@@ -245,7 +256,9 @@ const DocumentDetail = () => {
                       onClick={() => {
                         setSelectedVersion(version.id);
                         loadComments(version.id);
-                        loadRatings(version.id);
+                        if (isAdvisorOrAdmin) {
+                          loadRatings(version.id);
+                        }
                         loadMetadata(version.id);
                       }}
                       className="btn btn-primary btn-sm"
@@ -279,21 +292,20 @@ const DocumentDetail = () => {
             </div>
           )}
 
-          {/* Ratings Section */}
-          <div className="card">
-            <div className="flex-between mb-3">
-              <h2 className="card-header" style={{ marginBottom: 0 }}>
-                Ratings for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
-              </h2>
-              {isAdvisorOrAdmin && (
+          {/* Ratings Section - Only for Advisors and Admins */}
+          {isAdvisorOrAdmin && (
+            <div className="card">
+              <div className="flex-between mb-3">
+                <h2 className="card-header" style={{ marginBottom: 0 }}>
+                  Ratings for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
+                </h2>
                 <button 
                   onClick={() => setShowRatingModal(true)}
                   className="btn btn-primary btn-sm"
                 >
                   Rate Document
                 </button>
-              )}
-            </div>
+              </div>
 
             {ratings[selectedVersion]?.hasRating ? (
               <div>
@@ -363,7 +375,8 @@ const DocumentDetail = () => {
                 <div className="empty-state-text">No ratings yet</div>
               </div>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Comments Section */}
           <div className="card">

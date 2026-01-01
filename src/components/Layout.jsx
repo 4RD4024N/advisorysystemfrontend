@@ -107,6 +107,11 @@ const Layout = () => {
             <span className="nav-text">Courses</span>
           </NavLink>
 
+          <NavLink to="/course-schedule" className="nav-item">
+            <span className="nav-icon">📅</span>
+            <span className="nav-text">Ders Programı</span>
+          </NavLink>
+
           {/* Admin & Advisor Section */}
           {(userRole === 'Admin' || userRole === 'Advisor') && (
             <>
