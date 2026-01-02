@@ -1,576 +1,191 @@
 import React, { useState, useEffect } from 'react';
-import { authService, courseScheduleService, studentService, courseService } from '../services';
+import { authService, courseService } from '../services';
 import './CourseSchedule.css';
 
 const CourseSchedule = () => {
-  const userInfo = authService.getUserInfo();
-  const isAdvisor = authService.isAdvisor();
-  const isAdmin = authService.isAdmin();
-  
-  const [schedule, setSchedule] = useState({});
+  const [mySchedule, setMySchedule] = useState(null);
   const [availableCourses, setAvailableCourses] = useState([]);
-  const [showAddCourseModal, setShowAddCourseModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [selectedSemester, setSelectedSemester] = useState(1);
   const [loading, setLoading] = useState(true);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
 
-  // localStorage key'i kullanıcıya özgü oluştur
-  const getStorageKey = (userId) => {
-    if (!userId) return 'courseSchedule';
-    return `courseSchedule_${userId}`;
+  // Günler (Türkçe)
+  const dayNames = {
+    'Monday': 'Pazartesi',
+    'Tuesday': 'Salı',
+    'Wednesday': 'Çarşamba',
+    'Thursday': 'Perşembe',
+    'Friday': 'Cuma'
   };
-
-  // Mevcut kullanıcı için storage key
-  const currentUserStorageKey = getStorageKey(userInfo?.sub);
-
-  // Seçili öğrenci için storage key
-  const getSelectedStudentStorageKey = () => {
-    if (selectedStudent) {
-      return getStorageKey(selectedStudent);
-    }
-    return currentUserStorageKey;
-  };
-
-  // Zaman dilimleri (08:00 - 18:00 arası)
+  
+  const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'];
+  
+  // Zaman dilimleri (08:00 - 18:00)
   const timeSlots = [
     '08:00', '09:00', '10:00', '11:00', '12:00', 
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'
+    '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
-  // Günler
-  const days = [
-    { key: 'monday', label: 'Pazartesi' },
-    { key: 'tuesday', label: 'Salı' },
-    { key: 'wednesday', label: 'Çarşamba' },
-    { key: 'thursday', label: 'Perşembe' },
-    { key: 'friday', label: 'Cuma' },
-    { key: 'saturday', label: 'Cumartesi' },
-    { key: 'sunday', label: 'Pazar' }
-  ];
+  // İlk yüklemede programı ve dersleri getir
+  useEffect(() => {
+    loadMySchedule();
+    loadAvailableCourses();
+  }, [selectedSemester]);
 
-  // Dersleri backend'den yükle
-  const loadCourses = async () => {
+  // Backend'den öğrencinin programını yükle
+  const loadMySchedule = async () => {
     try {
-      const response = await courseService.getAllCourses();
-      const rawCourses = response.courses || response || [];
+      setLoading(true);
+      const response = await courseService.getMySchedule(selectedSemester);
+      setMySchedule(response);
+      console.log('✅ Ders programı yüklendi:', response);
+    } catch (error) {
+      console.error('❌ Ders programı yüklenirken hata:', error);
+      setMySchedule({ weeklySchedule: {}, courses: [], totalCourses: 0, totalCredits: 0, totalECTS: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Ders seçimi için mevcut dersleri yükle
+  const loadAvailableCourses = async () => {
+    try {
+      console.log('🔄 Dersler yükleniyor... Yarıyıl:', selectedSemester);
       
-      // Debug: İlk dersin ham verisini kontrol et
-      if (rawCourses.length > 0) {
-        console.log('🔍 CourseSchedule - HAM Backend Yanıtı:', rawCourses[0]);
+      // Önce yeni course-selection endpoint'ini dene
+      try {
+        const response = await courseService.getAvailableCourses(selectedSemester);
+        console.log('🔍 Backend Response (course-selection):', response);
+        console.log('🔍 Courses Array:', response.courses);
+        console.log('🔍 Courses Length:', response.courses?.length);
+        
+        if (response.courses && response.courses.length > 0) {
+          setAvailableCourses(response.courses);
+          console.log('✅ Seçilebilir dersler yüklendi (course-selection):', response.courses.length, 'ders');
+          return;
+        }
+      } catch (apiError) {
+        console.warn('⚠️ /course-selection/available endpoint mevcut değil, fallback kullanılıyor:', apiError.response?.status);
       }
       
-      const courses = rawCourses.map(course => {
-        // Backend'den gelen schedule slot'larını kontrol et
-        const scheduleSlots = course.scheduleSlots || [];
-        
-        return {
-          code: course.courseCode || course.code,
-          name: course.courseName || course.name,
-          theory: course.theoryHours || course.theory || 0,
-          practice: course.practiceHours || course.practice || 0,
-          credit: course.credit || course.credits || 0,
-          ects: course.ects || course.akts || 0,
-          semester: course.semester || 1,
-          type: course.isElective === true ? 'Seçmeli' : 'Zorunlu',
-          description: course.description || 'Bu ders için henüz açıklama eklenmemiş.',
-          scheduleSlots: scheduleSlots
-        };
-      });
+      // Fallback: /api/courses endpoint'ini kullan
+      console.log('🔄 Fallback: /courses endpoint kullanılıyor...');
+      const coursesResponse = await courseService.getAllCourses();
+      const allCourses = coursesResponse.courses || coursesResponse || [];
       
-      setAvailableCourses(courses);
-      console.log('✅ Dersler program için yüklendi:', courses.length, 'ders');
+      console.log('🔍 All Courses Response:', coursesResponse);
+      console.log('🔍 All Courses Length:', allCourses.length);
+      
+      // Backend formatına uygun hale getir
+      const formattedCourses = allCourses.map(course => ({
+        courseId: course.id,
+        courseCode: course.courseCode || course.code,
+        courseName: course.courseName || course.name,
+        description: course.description || 'Bu ders için henüz açıklama eklenmemiş.',
+        credits: course.credits || course.credit || 0,
+        ects: course.ects || 0,
+        theoryHours: course.theoryHours || course.theory || 0,
+        practiceHours: course.practiceHours || course.practice || 0,
+        isElective: course.isElective === true,
+        category: course.category || { name: 'Genel' },
+        sectionCode: 'A', // Default section
+        semester: course.semester || selectedSemester,
+        instructor: 'Atanmadı',
+        maxCapacity: 50,
+        enrolledCount: 0,
+        availableSeats: 50,
+        isFull: false,
+        isEnrolled: false,
+        schedule: [] // Boş schedule - manuel ekleme gerekecek
+      }));
+      
+      setAvailableCourses(formattedCourses);
+      console.log('✅ Dersler fallback ile yüklendi:', formattedCourses.length, 'ders');
+      
     } catch (error) {
       console.error('❌ Dersler yüklenirken hata:', error);
-      // Hata durumunda boş liste
+      console.error('❌ Error Response:', error.response?.data);
       setAvailableCourses([]);
     }
   };
 
-  // Örnek ders listesi - FALLBACK (Backend bağlantısı yoksa kullanılır)
-  // Her dersin önceden belirlenmiş saatleri var (scheduleSlots)
-  const courseList = [
-    // Zorunlu Dersler
-    { 
-      code: 'KRY100', 
-      name: 'KARİYER PLANLAMA', 
-      theory: 1, 
-      practice: 0, 
-      credit: 1, 
-      ects: 2, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'monday', time: '09:00', duration: 1 }
-      ]
-    },
-    { 
-      code: 'ORY100', 
-      name: 'ÜNİVERSİTE HAYATINA GİRİŞ', 
-      theory: 1, 
-      practice: 0, 
-      credit: 1, 
-      ects: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'tuesday', time: '14:00', duration: 1 }
-      ]
-    },
-    
-    // 1. Yarıyıl - 4 saatlik dersler 2+2 olarak bölünmüş
-    { 
-      code: 'BİL101', 
-      name: 'BİLGİSAYAR YAZILIMI I', 
-      theory: 3, 
-      practice: 1, 
-      credit: 3, 
-      ects: 5, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'monday', time: '09:00', duration: 2 },
-        { day: 'thursday', time: '09:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'BİL105', 
-      name: 'PROGRAMLAMA LABORATUVARI I', 
-      theory: 0, 
-      practice: 2, 
-      credit: 1, 
-      ects: 2, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'tuesday', time: '10:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'BİL110', 
-      name: 'BİLGİSAYAR MÜHENDİSLİĞİNE GİRİŞ', 
-      theory: 2, 
-      practice: 0, 
-      credit: 2, 
-      ects: 4, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'wednesday', time: '13:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'ENG199', 
-      name: 'ADVANCED ENGLISH I', 
-      theory: 4, 
-      practice: 0, 
-      credit: 4, 
-      ects: 4, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'monday', time: '11:00', duration: 2 },
-        { day: 'wednesday', time: '11:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'FİZ103', 
-      name: 'MEKANİK LABORATUVARI', 
-      theory: 0, 
-      practice: 2, 
-      credit: 1, 
-      ects: 2, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'friday', time: '09:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'FİZ105', 
-      name: 'GENEL FİZİK I', 
-      theory: 3, 
-      practice: 1, 
-      credit: 3, 
-      ects: 5, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'wednesday', time: '10:00', duration: 2 },
-        { day: 'friday', time: '14:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'MAT151', 
-      name: 'MATEMATİKSEL ANALİZ I', 
-      theory: 4, 
-      practice: 1, 
-      credit: 4, 
-      ects: 6, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'monday', time: '14:00', duration: 3 },
-        { day: 'friday', time: '11:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'TÜRK101', 
-      name: 'TÜRK DİLİ I', 
-      theory: 2, 
-      practice: 0, 
-      credit: 2, 
-      ects: 2, 
-      semester: 1, 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'thursday', time: '13:00', duration: 2 }
-      ]
-    },
-    
-    // 2. Yarıyıl
-    { 
-      code: 'BİL122', 
-      name: 'İLERİ PROGRAMLAMA', 
-      theory: 3, 
-      practice: 1, 
-      credit: 3, 
-      ects: 5, 
-      semester: 2, 
-      prerequisite: 'BİL101', 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'tuesday', time: '09:00', duration: 2 },
-        { day: 'thursday', time: '11:00', duration: 2 }
-      ]
-    },
-    { 
-      code: 'BİL124', 
-      name: 'İLERİ PROGRAMLAMA UYGULAMALARI', 
-      theory: 0, 
-      practice: 2, 
-      credit: 1, 
-      ects: 2, 
-      semester: 2, 
-      prerequisite: 'BİL101', 
-      type: 'Zorunlu',
-      scheduleSlots: [
-        { day: 'wednesday', time: '14:00', duration: 2 }
-      ]
-    },
-    
-    // Teknik Seçmeli Dersler
-    { 
-      code: 'BİL321', 
-      name: 'HESAPLAMALI GRAFİK', 
-      theory: 3, 
-      practice: 0, 
-      credit: 3, 
-      ects: 5, 
-      type: 'Teknik Seçmeli',
-      scheduleSlots: [
-        { day: 'tuesday', time: '13:00', duration: 3 }
-      ]
-    },
-    { 
-      code: 'BİL480', 
-      name: 'YAPAY ZEKA', 
-      theory: 3, 
-      practice: 0, 
-      credit: 3, 
-      ects: 5, 
-      type: 'Teknik Seçmeli',
-      scheduleSlots: [
-        { day: 'friday', time: '10:00', duration: 3 }
-      ]
-    },
-    { 
-      code: 'BİL477', 
-      name: 'VERİ MADENCİLİĞİNE GİRİŞ', 
-      theory: 3, 
-      practice: 0, 
-      credit: 3, 
-      ects: 5, 
-      type: 'Teknik Seçmeli',
-      scheduleSlots: [
-        { day: 'monday', time: '13:00', duration: 3 }
-      ]
-    },
-  ];
-
-  useEffect(() => {
-    loadSchedule();
-    loadCourses(); // Backend'den dersleri yükle
-    if (isAdvisor || isAdmin) {
-      loadStudents();
-    }
-    setLoading(false);
-  }, []);
-
-  // Seçili öğrenci değiştiğinde programı yeniden yükle
-  useEffect(() => {
-    if (selectedStudent) {
-      loadSchedule(selectedStudent);
-    } else if (isAdvisor || isAdmin) {
-      // Advisor veya admin ise ve öğrenci seçilmemişse boş göster
-      setSchedule({});
-    } else {
-      // Öğrenci ise kendi programını göster
-      loadSchedule();
-    }
-  }, [selectedStudent]);
-
-  const loadSchedule = async (studentId = null) => {
-    try {
-      // Hangi kullanıcının programını yükleyeceğimizi belirle
-      const storageKey = studentId ? getStorageKey(studentId) : currentUserStorageKey;
-      
-      // localStorage'dan ders programını yükle
-      const savedSchedule = localStorage.getItem(storageKey);
-      
-      if (savedSchedule) {
-        setSchedule(JSON.parse(savedSchedule));
-        console.log(`✅ Ders programı localStorage'dan yüklendi (${storageKey})`);
-      } else {
-        // İlk kullanımda boş program
-        setSchedule({});
-        console.log(`ℹ️ Henüz kayıtlı ders programı yok (${storageKey})`);
-      }
-      
-      // TODO: Backend'den ders programını yükle
-      // const data = await courseScheduleService.getSchedule(studentId);
-      // setSchedule(data);
-    } catch (error) {
-      console.error('❌ Ders programı yüklenirken hata:', error);
-      setSchedule({});
-    }
-  };
-
-  const loadStudents = async () => {
-    try {
-      // Backend'den danışman öğrencilerini yükle
-      const response = await studentService.getMyStudents();
-      
-      // students array'ini al
-      const studentList = response.students || [];
-      
-      // Her öğrenci için gerekli bilgileri çıkar
-      const formattedStudents = studentList.map(student => ({
-        id: student.id,
-        studentNo: student.studentNo || 'N/A',
-        fullName: student.fullName || `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.username,
-        email: student.email || student.username
-      }));
-      
-      setStudents(formattedStudents);
-      console.log('✅ Öğrenci listesi yüklendi:', formattedStudents.length, 'öğrenci');
-    } catch (error) {
-      console.error('❌ Öğrenci listesi yüklenirken hata:', error);
-      setStudents([]);
-    }
-  };
-
-  // Ders seçimi - önceden tanımlı saatlere yerleştirilecek
-  const handleSelectCourse = (course) => {
-    // Aynı ders zaten programda var mı kontrol et
-    const isCourseAlreadyAdded = Object.values(schedule).some(day => 
-      Object.values(day).some(slot => slot.code === course.code)
-    );
-
-    if (isCourseAlreadyAdded) {
-      alert(`⚠️ ${course.code} - ${course.name} zaten programınızda mevcut!`);
+  // Derse kayıt ol
+  const handleEnrollCourse = async (course) => {
+    if (course.isEnrolled) {
+      alert('Bu derse zaten kayıtlısınız!');
       return;
     }
 
-    // Önceden tanımlı saatlerde çakışma kontrolü
-    for (const slot of course.scheduleSlots) {
-      const conflict = checkConflict(slot.day, slot.time, slot.duration);
-      if (conflict) {
-        alert(`⚠️ Çakışma tespit edildi!\n\n${course.code} dersi ${days.find(d => d.key === slot.day)?.label} günü ${slot.time} saatinde başlıyor.\n\nBu saatte ${conflict.code} - ${conflict.name} dersi mevcut.\n\nLütfen çakışan dersleri kaldırın veya farklı bir ders seçin.`);
-        return;
-      }
+    if (course.isFull) {
+      alert('Bu ders şubesi dolu!');
+      return;
     }
 
-    // Çakışma yoksa dersi programa ekle
-    const newSchedule = { ...schedule };
-    
-    course.scheduleSlots.forEach((slot, index) => {
-      if (!newSchedule[slot.day]) {
-        newSchedule[slot.day] = {};
-      }
+    try {
+      const result = await courseService.enrollCourse(
+        course.courseId,
+        course.sectionCode,
+        course.semester
+      );
       
-      newSchedule[slot.day][slot.time] = {
-        ...course,
-        duration: slot.duration,
-        sessionLabel: course.scheduleSlots.length > 1 ? `(${index + 1}/${course.scheduleSlots.length})` : '',
-        sessionNumber: index + 1,
-        totalSessions: course.scheduleSlots.length
-      };
-    });
-
-    setSchedule(newSchedule);
-    
-    // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
-    if (!selectedStudent) {
-      try {
-        localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
-        console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
-      } catch (error) {
-        console.error('❌ localStorage kaydetme hatası:', error);
-      }
-    }
-    
-    setShowAddCourseModal(false);
-    
-    // Başarı mesajı
-    alert(`✅ ${course.code} - ${course.name} programınıza eklendi!`);
-    
-    // TODO: Backend'e kaydet
-    // await courseScheduleService.addCourseToSchedule(course.code);
-  };
-
-  // Çakışma kontrolü - verilen zaman diliminde çakışan ders var mı kontrol et
-  const checkConflict = (day, startTime, duration) => {
-    if (!schedule[day]) return null;
-
-    const startHour = parseInt(startTime.split(':')[0]);
-    const endHour = startHour + duration;
-
-    for (let hour = startHour; hour < endHour; hour++) {
-      const timeKey = `${hour.toString().padStart(2, '0')}:00`;
-      if (schedule[day][timeKey]) {
-        return schedule[day][timeKey];
-      }
-    }
-    return null;
-  };
-
-  // Dersin toplam saatini hesapla
-  const getTotalHours = (course) => {
-    return course.theory + course.practice;
-  };
-
-  const handleRemoveCourse = (day, time) => {
-    const courseToRemove = schedule[day]?.[time];
-    if (!courseToRemove) return;
-
-    let confirmMessage = 'Bu dersi programdan kaldırmak istediğinize emin misiniz?';
-    
-    // Eğer ders birden fazla oturuma bölünmüşse, tüm oturumları kaldırma seçeneği sun
-    if (courseToRemove.totalSessions > 1) {
-      confirmMessage = `${courseToRemove.code} dersi ${courseToRemove.totalSessions} oturuma bölünmüş.\n\n`;
-      confirmMessage += `Sadece bu oturumu mu (${courseToRemove.sessionNumber}/${courseToRemove.totalSessions}) yoksa TÜM oturumları mı kaldırmak istersiniz?\n\n`;
-      confirmMessage += `OK: Sadece bu oturum\nİptal: Tüm oturumlar`;
+      alert(`✅ ${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
       
-      const removeOnlyThis = confirm(confirmMessage);
+      // Programı ve mevcut dersleri yeniden yükle
+      await loadMySchedule();
+      await loadAvailableCourses();
       
-      const newSchedule = { ...schedule };
+      setShowCourseModal(false);
+    } catch (error) {
+      console.error('❌ Kayıt hatası:', error);
       
-      if (removeOnlyThis) {
-        // Sadece bu oturumu kaldır
-        if (newSchedule[day]) {
-          delete newSchedule[day][time];
-        }
+      // Hata mesajını göster
+      if (error.response?.data?.conflictingCourse) {
+        const conflict = error.response.data.conflictingCourse;
+        alert(`❌ Zaman Çakışması!\n\n${conflict.courseCode} dersi ile ${conflict.day} günü ${conflict.time} saatinde çakışıyor.`);
+      } else if (error.response?.data?.error) {
+        alert(`❌ Hata: ${error.response.data.error}`);
       } else {
-        // Aynı ders koduna sahip tüm oturumları kaldır
-        Object.keys(newSchedule).forEach(dayKey => {
-          Object.keys(newSchedule[dayKey]).forEach(timeKey => {
-            if (newSchedule[dayKey][timeKey].code === courseToRemove.code) {
-              delete newSchedule[dayKey][timeKey];
-            }
-          });
-        });
-      }
-      
-      setSchedule(newSchedule);
-      
-      // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
-      if (!selectedStudent) {
-        try {
-          localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
-          console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
-        } catch (error) {
-          console.error('❌ localStorage kaydetme hatası:', error);
-        }
-      }
-    } else {
-      // Tek oturumluk ders, direkt kaldır
-      if (!confirm(confirmMessage)) return;
-      
-      const newSchedule = { ...schedule };
-      if (newSchedule[day]) {
-        delete newSchedule[day][time];
-      }
-      setSchedule(newSchedule);
-      
-      // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
-      if (!selectedStudent) {
-        try {
-          localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
-          console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
-        } catch (error) {
-          console.error('❌ localStorage kaydetme hatası:', error);
-        }
+        alert('❌ Derse kayıt olurken bir hata oluştu.');
       }
     }
-    
-    // TODO: Backend'den sil
-    // await courseScheduleService.removeCourseFromSchedule(courseToRemove.code);
   };
 
-  // Tüm programı temizle
-  const handleClearSchedule = () => {
-    if (!confirm('⚠️ Tüm ders programınızı silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!')) return;
-    
-    setSchedule({});
-    
-    // localStorage'ı temizle - Sadece kendi programı için
-    if (!selectedStudent) {
-      try {
-        localStorage.removeItem(currentUserStorageKey);
-        console.log(`✅ Ders programı temizlendi (${currentUserStorageKey})`);
-        alert('✅ Ders programınız temizlendi!');
-      } catch (error) {
-        console.error('❌ localStorage temizleme hatası:', error);
-      }
+  // Dersten çık
+  const handleUnenrollCourse = async (course) => {
+    if (!confirm(`${course.courseCode} - ${course.courseName} dersinden çıkmak istediğinize emin misiniz?`)) {
+      return;
     }
-    
-    // TODO: Backend'den tüm dersleri sil
-    // await courseScheduleService.clearSchedule();
+
+    try {
+      await courseService.unenrollCourse(
+        course.courseId,
+        course.sectionCode,
+        course.semester
+      );
+      
+      alert(`✅ ${course.courseCode} dersinden çıkıldı.`);
+      
+      // Programı ve mevcut dersleri yeniden yükle
+      await loadMySchedule();
+      await loadAvailableCourses();
+    } catch (error) {
+      console.error('❌ Çıkış hatası:', error);
+      alert(error.response?.data?.error || 'Dersten çıkarken bir hata oluştu.');
+    }
   };
 
+  // Belirli bir gün ve saatte hangi ders var
   const getCourseAtSlot = (day, time) => {
-    return schedule[day]?.[time];
+    if (!mySchedule?.weeklySchedule?.[day]) return null;
+    
+    return mySchedule.weeklySchedule[day].find(session => {
+      return session.startTime <= time && time < session.endTime;
+    });
   };
 
-  // Belirli bir zaman diliminde ders olup olmadığını kontrol et (çakışma için)
-  const isSlotOccupied = (day, time) => {
-    return schedule[day]?.[time] !== undefined;
-  };
-
-  // Slot'un disabled olup olmadığını kontrol et (başka bir dersin içinde kaldıysa)
-  const isSlotDisabled = (day, time) => {
-    if (!schedule[day]) return false;
-    
-    const currentHour = parseInt(time.split(':')[0]);
-    
-    // Önceki saatleri kontrol et - eğer orada başlayan bir ders bu saati kapsıyorsa
-    for (let i = 1; i < 6; i++) {
-      const prevHour = currentHour - i;
-      if (prevHour < 8) break;
-      
-      const prevTime = `${prevHour.toString().padStart(2, '0')}:00`;
-      const prevCourse = schedule[day][prevTime];
-      
-      if (prevCourse && prevCourse.duration > i) {
-        return true;
-      }
-    }
-    
-    return false;
-  };
-
+  // Ders rengi (courseCode'a göre)
   const getCourseColor = (courseCode) => {
-    // Ders koduna göre renk ata
     const colors = [
       '#667eea', '#764ba2', '#f093fb', '#4facfe',
       '#43e97b', '#fa709a', '#fee140', '#30cfd0'
@@ -592,59 +207,30 @@ const CourseSchedule = () => {
       <div className="flex-between mb-4">
         <div>
           <h1>Ders Programı</h1>
-          {selectedStudent && (
-            <div style={{ 
-              fontSize: '0.9rem', 
-              color: 'var(--text-muted)', 
-              marginTop: '0.5rem',
-              padding: '0.5rem 1rem',
-              background: '#e3f2fd',
-              borderRadius: '8px',
-              display: 'inline-block'
-            }}>
-              👨‍🎓 {students.find(s => s.id === selectedStudent)?.fullName} ({students.find(s => s.id === selectedStudent)?.studentNo}) - {students.find(s => s.id === selectedStudent)?.email}
-            </div>
-          )}
+          <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            Yarıyıl {selectedSemester} - {mySchedule?.totalCourses || 0} Ders
+          </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          {(isAdvisor || isAdmin) && (
-            <select
-              value={selectedStudent || ''}
-              onChange={(e) => setSelectedStudent(e.target.value || null)}
-              className="input"
-              style={{ width: '450px' }}
-            >
-              <option value="">Öğrenci Seçin</option>
-              {students.map(student => (
-                <option key={student.id} value={student.id}>
-                  {student.fullName} ({student.studentNo}) - {student.email}
-                </option>
-              ))}
-            </select>
-          )}
-          {!selectedStudent && (
-            <>
-              <button
-                onClick={() => {
-                  setSelectedCourse(null);
-                  setCourseSearchTerm(''); // Arama terimini sıfırla
-                  setShowAddCourseModal(true);
-                }}
-                className="btn btn-primary"
-              >
-                + Ders Ekle
-              </button>
-              {Object.keys(schedule).length > 0 && (
-                <button
-                  onClick={handleClearSchedule}
-                  className="btn btn-danger"
-                  style={{ marginLeft: '0.5rem' }}
-                >
-                  🗑️ Programı Temizle
-                </button>
-              )}
-            </>
-          )}
+          <select
+            value={selectedSemester}
+            onChange={(e) => setSelectedSemester(Number(e.target.value))}
+            className="input"
+            style={{ width: '150px' }}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+              <option key={sem} value={sem}>Yarıyıl {sem}</option>
+            ))}
+          </select>
+          <button
+            onClick={() => {
+              setCourseSearchTerm('');
+              setShowCourseModal(true);
+            }}
+            className="btn btn-primary"
+          >
+            + Ders Seç
+          </button>
         </div>
       </div>
 
@@ -653,59 +239,32 @@ const CourseSchedule = () => {
         <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam Ders</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {(() => {
-              // Benzersiz ders kodlarını say (aynı dersin birden fazla oturumu varsa bir kez say)
-              const uniqueCourses = new Set();
-              Object.values(schedule).forEach(day => {
-                Object.values(day).forEach(course => {
-                  uniqueCourses.add(course.code);
-                });
-              });
-              return uniqueCourses.size;
-            })()}
+            {mySchedule?.totalCourses || 0}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam Kredi</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {(() => {
-              // Benzersiz derslerin kredilerini topla
-              const courseCredits = {};
-              Object.values(schedule).forEach(day => {
-                Object.values(day).forEach(course => {
-                  courseCredits[course.code] = course.credit || 0;
-                });
-              });
-              return Object.values(courseCredits).reduce((sum, credit) => sum + credit, 0);
-            })()}
+            {mySchedule?.totalCredits || 0}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-          <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam AKTS</div>
+          <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Toplam ECTS</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {(() => {
-              // Benzersiz derslerin AKTS değerlerini topla
-              const courseEcts = {};
-              Object.values(schedule).forEach(day => {
-                Object.values(day).forEach(course => {
-                  courseEcts[course.code] = course.ects || 0;
-                });
-              });
-              return Object.values(courseEcts).reduce((sum, ects) => sum + ects, 0);
-            })()}
+            {mySchedule?.totalECTS || 0}
           </div>
         </div>
         <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Haftalık Saat</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {Object.values(schedule).reduce((acc, day) => {
-              return acc + Object.values(day).reduce((sum, course) => sum + (course.duration || 0), 0);
-            }, 0)}
+            {mySchedule?.courses?.reduce((sum, course) => 
+              sum + course.sessions.reduce((s, session) => s + (session.durationMinutes / 60), 0), 0
+            ) || 0}
           </div>
         </div>
       </div>
 
-      {/* Haftalık Takvim */}
+      {/* Haftalık Program */}
       <div className="card">
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
@@ -722,13 +281,13 @@ const CourseSchedule = () => {
                   Saat
                 </th>
                 {days.map(day => (
-                  <th key={day.key} style={{ 
+                  <th key={day} style={{ 
                     padding: '1rem', 
                     borderBottom: '2px solid var(--border-color)',
                     background: 'var(--bg-secondary)',
                     textAlign: 'center'
                   }}>
-                    {day.label}
+                    {day}
                   </th>
                 ))}
               </tr>
@@ -748,77 +307,38 @@ const CourseSchedule = () => {
                     {time}
                   </td>
                   {days.map(day => {
-                    const course = getCourseAtSlot(day.key, time);
-                    const isDisabled = isSlotDisabled(day.key, time);
-                    const isOccupied = isSlotOccupied(day.key, time);
+                    const session = getCourseAtSlot(day, time);
                     
                     return (
                       <td 
-                        key={`${day.key}-${time}`}
+                        key={`${day}-${time}`}
                         style={{ 
                           padding: '0.5rem', 
                           borderBottom: '1px solid var(--border-color)',
                           borderRight: '1px solid var(--border-color)',
                           minHeight: '60px',
                           verticalAlign: 'top',
-                          background: course ? getCourseColor(course.code) : isDisabled ? '#f5f5f5' : 'transparent',
-                          color: course ? 'white' : 'inherit',
-                          opacity: isDisabled ? 0.5 : 1,
+                          background: session ? getCourseColor(session.courseCode) : 'transparent',
+                          color: session ? 'white' : 'inherit',
                           position: 'relative'
                         }}
-                        title={isDisabled ? 'Bu saat başka bir ders ile dolu' : ''}
                       >
-                        {course ? (
+                        {session && session.startTime === time && (
                           <div style={{ position: 'relative' }}>
                             <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
-                              {course.code} {course.sessionLabel}
+                              {session.courseCode}
                             </div>
                             <div style={{ fontSize: '0.75rem', opacity: 0.95, marginBottom: '4px' }}>
-                              {course.name}
+                              {session.courseName}
                             </div>
                             <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                              {course.duration} saat
-                              {course.totalSessions > 1 && (
-                                <span> • Oturum {course.sessionNumber}/{course.totalSessions}</span>
-                              )}
+                              {session.timeSlot}
                             </div>
-                            {!selectedStudent && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRemoveCourse(day.key, time);
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  top: '4px',
-                                  right: '4px',
-                                  background: 'rgba(255,255,255,0.3)',
-                                  border: 'none',
-                                  borderRadius: '50%',
-                                  width: '20px',
-                                  height: '20px',
-                                  cursor: 'pointer',
-                                  fontSize: '0.8rem',
-                                  color: 'white',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                              >
-                                ×
-                              </button>
-                            )}
+                            <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>
+                              📍 {session.roomNumber} • {session.sessionType}
+                            </div>
                           </div>
-                        ) : isDisabled ? (
-                          <div style={{ 
-                            textAlign: 'center', 
-                            color: 'var(--text-muted)',
-                            fontSize: '0.7rem',
-                            padding: '1rem 0'
-                          }}>
-                            ○
-                          </div>
-                        ) : null}
+                        )}
                       </td>
                     );
                   })}
@@ -829,8 +349,65 @@ const CourseSchedule = () => {
         </div>
       </div>
 
-      {/* Ders Ekleme Modal */}
-      {showAddCourseModal && (
+      {/* Kayıtlı Derslerim */}
+      {mySchedule?.courses && mySchedule.courses.length > 0 && (
+        <div className="card" style={{ marginTop: '2rem' }}>
+          <h2>Kayıtlı Derslerim</h2>
+          <div style={{ marginTop: '1rem' }}>
+            {mySchedule.courses.map(course => (
+              <div key={`${course.courseId}-${course.sectionCode}`} style={{
+                padding: '1rem',
+                marginBottom: '1rem',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                background: '#f9f9f9'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.5rem 0' }}>
+                      {course.courseCode} - {course.courseName}
+                    </h3>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                      Şube: {course.sectionCode} | {course.credits} Kredi | {course.ects} ECTS
+                    </div>
+                    {course.description && (
+                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.75rem' }}>
+                        {course.description}
+                      </p>
+                    )}
+                    <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                      {course.sessions.map((session, idx) => (
+                        <div key={idx} style={{ 
+                          padding: '0.5rem',
+                          background: 'white',
+                          borderRadius: '4px',
+                          marginBottom: '0.5rem',
+                          border: '1px solid #e0e0e0'
+                        }}>
+                          <strong>{session.dayName}:</strong> {session.timeSlot} | 
+                          📍 {session.roomNumber} | 
+                          {session.sessionType} | 
+                          👨‍🏫 {session.instructorName}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleUnenrollCourse(course)}
+                    className="btn btn-danger"
+                    style={{ marginLeft: '1rem' }}
+                  >
+                    Dersten Çık
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Ders Seçimi Modal */}
+      {showCourseModal && (
         <div 
           style={{
             position: 'fixed',
@@ -844,15 +421,15 @@ const CourseSchedule = () => {
             justifyContent: 'center',
             zIndex: 1000
           }}
-          onClick={() => setShowAddCourseModal(false)}
+          onClick={() => setShowCourseModal(false)}
         >
           <div 
             style={{
               background: 'white',
               borderRadius: '16px',
-              maxWidth: '600px',
+              maxWidth: '800px',
               width: '90%',
-              maxHeight: '80vh',
+              maxHeight: '85vh',
               overflow: 'auto',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
             }}
@@ -863,11 +440,15 @@ const CourseSchedule = () => {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '1.5rem 2rem',
-              borderBottom: '2px solid var(--border-color)'
+              borderBottom: '2px solid var(--border-color)',
+              position: 'sticky',
+              top: 0,
+              background: 'white',
+              zIndex: 1
             }}>
-              <h2 style={{ margin: 0 }}>Ders Seç</h2>
+              <h2 style={{ margin: 0 }}>Ders Seç - Yarıyıl {selectedSemester}</h2>
               <button
-                onClick={() => setShowAddCourseModal(false)}
+                onClick={() => setShowCourseModal(false)}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -880,166 +461,158 @@ const CourseSchedule = () => {
             </div>
 
             <div style={{ padding: '1.5rem 2rem' }}>
-              <div style={{
-                padding: '1rem',
-                background: '#e8f5e9',
-                borderRadius: '8px',
-                marginBottom: '1rem',
-                border: '1px solid #81c784'
-              }}>
-                <div style={{ fontSize: '0.9rem', color: '#2e7d32' }}>
-                  ℹ️ Her ders önceden belirlenmiş saatlere sahiptir. Dersi seçtiğinizde otomatik olarak programınıza eklenecektir.
-                </div>
-              </div>
+              {/* Arama */}
+              <input
+                type="text"
+                placeholder="🔍 Ders kodu veya ismi ile ara..."
+                value={courseSearchTerm}
+                onChange={(e) => setCourseSearchTerm(e.target.value)}
+                className="input"
+                style={{ 
+                  marginBottom: '1.5rem',
+                  padding: '0.75rem',
+                  fontSize: '1rem'
+                }}
+              />
 
-              <div className="input-group">
-                <label className="input-label">Mevcut Dersler</label>
-                
-                {/* Arama kutusu */}
-                <input
-                  type="text"
-                  placeholder="🔍 Ders kodu veya ismi ile ara..."
-                  value={courseSearchTerm}
-                  onChange={(e) => setCourseSearchTerm(e.target.value)}
-                  className="input"
-                  style={{ 
-                    marginBottom: '1rem',
-                    padding: '0.75rem',
-                    fontSize: '1rem',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '8px'
-                  }}
-                />
-                
-                <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
-                  {availableCourses
-                    .filter(course => {
-                      // Arama filtresi
-                      if (!courseSearchTerm) return true;
-                      const searchLower = courseSearchTerm.toLowerCase();
-                      return course.code.toLowerCase().includes(searchLower) ||
-                             course.name.toLowerCase().includes(searchLower);
-                    })
-                    .map(course => {
-                    const totalHours = getTotalHours(course);
-                    const isAlreadyAdded = Object.values(schedule).some(day => 
-                      Object.values(day).some(slot => slot.code === course.code)
-                    );
-                    
-                    // Çakışma kontrolü
-                    let hasConflict = null;
-                    if (!isAlreadyAdded) {
-                      for (const slot of course.scheduleSlots) {
-                        const conflict = checkConflict(slot.day, slot.time, slot.duration);
-                        if (conflict) {
-                          hasConflict = conflict;
-                          break;
-                        }
-                      }
-                    }
-                    
-                    return (
-                      <div
-                        key={course.code}
-                        onClick={() => !hasConflict && !isAlreadyAdded && handleSelectCourse(course)}
-                        style={{
-                          padding: '1rem',
-                          marginBottom: '0.75rem',
-                          border: isAlreadyAdded ? '2px solid #4caf50' : hasConflict ? '2px solid #f44336' : '1px solid var(--border-color)',
-                          borderRadius: '8px',
-                          cursor: hasConflict || isAlreadyAdded ? 'not-allowed' : 'pointer',
-                          background: isAlreadyAdded ? '#e8f5e9' : hasConflict ? '#ffebee' : 'transparent',
-                          opacity: hasConflict || isAlreadyAdded ? 0.7 : 1,
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
-                          <div style={{ fontWeight: 'bold' }}>
-                            {course.code} - {course.name}
-                          </div>
-                          {isAlreadyAdded && (
-                            <div style={{
-                              padding: '2px 8px',
-                              background: '#4caf50',
-                              color: 'white',
-                              borderRadius: '4px',
-                              fontSize: '0.7rem',
-                              fontWeight: 'bold'
+              {/* Dersler */}
+              <div>
+                {availableCourses
+                  .filter(course => {
+                    if (!courseSearchTerm) return true;
+                    const searchLower = courseSearchTerm.toLowerCase();
+                    return course.courseCode.toLowerCase().includes(searchLower) ||
+                           course.courseName.toLowerCase().includes(searchLower);
+                  })
+                  .map(course => (
+                    <div
+                      key={`${course.courseId}-${course.sectionCode}`}
+                      style={{
+                        padding: '1.25rem',
+                        marginBottom: '1rem',
+                        border: course.isEnrolled ? '2px solid #4caf50' : '1px solid var(--border-color)',
+                        borderRadius: '12px',
+                        background: course.isEnrolled ? '#e8f5e9' : course.isFull ? '#f5f5f5' : 'white'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <h3 style={{ margin: 0 }}>
+                              {course.courseCode} - {course.courseName}
+                            </h3>
+                            <span style={{
+                              padding: '4px 12px',
+                              background: course.isElective ? '#fff3e0' : '#e3f2fd',
+                              color: course.isElective ? '#f57c00' : '#1976d2',
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600'
                             }}>
-                              ✓ EKLENDİ
-                            </div>
-                          )}
-                        </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-                          T: {course.theory} | U: {course.practice} | K: {course.credit} | AKTS: {course.ects}
-                          {course.prerequisite && <span> | Önkoşul: {course.prerequisite}</span>}
-                        </div>
-                        
-                        {/* Ders saatleri bilgisi */}
-                        <div style={{ 
-                          fontSize: '0.8rem', 
-                          color: '#666', 
-                          marginBottom: '0.5rem',
-                          padding: '0.5rem',
-                          background: '#f5f5f5',
-                          borderRadius: '4px'
-                        }}>
-                          <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
-                            📅 Ders Saatleri:
-                          </div>
-                          {course.scheduleSlots.map((slot, idx) => (
-                            <div key={idx} style={{ fontSize: '0.75rem', marginLeft: '1rem' }}>
-                              • {days.find(d => d.key === slot.day)?.label} {slot.time} ({slot.duration} saat)
-                            </div>
-                          ))}
-                          <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#f57c00' }}>
-                            ⏱️ Toplam: {totalHours} saat
-                            {course.scheduleSlots.length > 1 && (
-                              <span> • {course.scheduleSlots.length} oturum</span>
+                              {course.isElective ? 'Seçmeli' : 'Zorunlu'}
+                            </span>
+                            {course.isEnrolled && (
+                              <span style={{
+                                padding: '4px 12px',
+                                background: '#4caf50',
+                                color: 'white',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600'
+                              }}>
+                                ✓ Kayıtlı
+                              </span>
                             )}
                           </div>
+                          
+                          <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
+                            Şube: {course.sectionCode} | {course.credits} Kredi | {course.ects} ECTS | 
+                            T:{course.theoryHours} U:{course.practiceHours}
+                          </div>
+
+                          {course.description && (
+                            <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.75rem' }}>
+                              {course.description}
+                            </p>
+                          )}
+
+                          <div style={{ fontSize: '0.85rem', color: '#444', marginBottom: '0.75rem' }}>
+                            👨‍🏫 {course.instructor}
+                          </div>
+
+                          {/* Schedule */}
+                          <div style={{ 
+                            background: course.schedule && course.schedule.length > 0 ? '#f5f5f5' : '#fff3e0', 
+                            padding: '0.75rem', 
+                            borderRadius: '8px',
+                            marginBottom: '0.75rem',
+                            border: course.schedule && course.schedule.length > 0 ? 'none' : '1px solid #ff9800'
+                          }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
+                              📅 Ders Saatleri:
+                            </div>
+                            {course.schedule && course.schedule.length > 0 ? (
+                              course.schedule.map((session, idx) => (
+                                <div key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.25rem', marginLeft: '1rem' }}>
+                                  • <strong>{dayNames[session.dayOfWeek]}:</strong> {session.startTime} - {session.endTime} 
+                                  | 📍 {session.roomNumber} 
+                                  | {session.sessionType}
+                                </div>
+                              ))
+                            ) : (
+                              <div style={{ fontSize: '0.85rem', color: '#f57c00', fontStyle: 'italic', marginLeft: '1rem' }}>
+                                ⚠️ Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
+                                <br />
+                                <code style={{ fontSize: '0.75rem', background: '#fff', padding: '2px 6px', borderRadius: '4px', marginTop: '4px', display: 'inline-block' }}>
+                                  POST /api/schedule/generate/{selectedSemester}
+                                </code>
+                              </div>
+                            )}
+                          </div>
+
+                          <div style={{ fontSize: '0.85rem', color: course.isFull ? '#f44336' : '#4caf50' }}>
+                            👥 {course.enrolledCount}/{course.maxCapacity} - 
+                            {course.isFull ? ' ⛔ Kapasite Dolu' : ` ✅ ${course.availableSeats} Boş Yer`}
+                          </div>
                         </div>
 
-                        {hasConflict && (
-                          <div style={{
-                            fontSize: '0.75rem',
-                            color: '#d32f2f',
-                            marginTop: '0.5rem',
-                            padding: '0.5rem',
-                            background: 'white',
-                            borderRadius: '4px',
-                            border: '1px solid #f44336'
-                          }}>
-                            ⚠️ Çakışma: {hasConflict.code} - {hasConflict.name}
-                          </div>
-                        )}
-                        {course.type && (
-                          <div style={{ 
-                            display: 'inline-block',
-                            marginTop: '0.5rem',
-                            padding: '2px 8px',
-                            background: course.type === 'Zorunlu' ? '#e3f2fd' : '#fff3e0',
-                            borderRadius: '4px',
-                            fontSize: '0.75rem',
-                            color: course.type === 'Zorunlu' ? '#1976d2' : '#f57c00'
-                          }}>
-                            {course.type}
-                          </div>
-                        )}
+                        <div style={{ marginLeft: '1rem' }}>
+                          {course.isEnrolled ? (
+                            <button
+                              onClick={() => handleUnenrollCourse(course)}
+                              className="btn btn-danger"
+                            >
+                              Dersten Çık
+                            </button>
+                          ) : course.isFull ? (
+                            <button
+                              className="btn btn-secondary"
+                              disabled
+                              style={{ cursor: 'not-allowed', opacity: 0.6 }}
+                            >
+                              Kapasite Dolu
+                            </button>
+                          ) : !course.schedule || course.schedule.length === 0 ? (
+                            <button
+                              className="btn btn-secondary"
+                              disabled
+                              style={{ cursor: 'not-allowed', opacity: 0.6 }}
+                              title="Bu ders için henüz program oluşturulmamış"
+                            >
+                              ⚠️ Program Yok
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleEnrollCourse(course)}
+                              className="btn btn-primary"
+                            >
+                              Kayıt Ol
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                <button 
-                  onClick={() => setShowAddCourseModal(false)}
-                  className="btn btn-secondary"
-                  style={{ flex: 1 }}
-                >
-                  Kapat
-                </button>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

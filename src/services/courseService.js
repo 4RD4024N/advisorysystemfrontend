@@ -35,6 +35,44 @@ const courseService = {
   getAllCourses: async () => {
     const response = await api.get('/courses');
     return response.data;
+  },
+
+  // 📚 Ders Seçimi API'leri (Yeni Backend)
+  
+  // Ders seçimi için mevcut dersler (schedule bilgisiyle)
+  getAvailableCourses: async (semester = null) => {
+    const url = semester ? `/course-selection/available?semester=${semester}` : '/course-selection/available';
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  // Derse kayıt ol
+  enrollCourse: async (courseId, sectionCode, semester) => {
+    const response = await api.post('/course-selection/enroll', {
+      courseId,
+      sectionCode,
+      semester
+    });
+    return response.data;
+  },
+
+  // Dersten çık
+  unenrollCourse: async (courseId, sectionCode, semester) => {
+    const response = await api.delete('/course-selection/unenroll', {
+      data: {
+        courseId,
+        sectionCode,
+        semester
+      }
+    });
+    return response.data;
+  },
+
+  // Öğrencinin ders programını getir
+  getMySchedule: async (semester = null) => {
+    const url = semester ? `/student-courses/my-schedule?semester=${semester}` : '/student-courses/my-schedule';
+    const response = await api.get(url);
+    return response.data;
   }
 };
 
