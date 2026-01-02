@@ -17,7 +17,6 @@ import StudentProfile from './pages/StudentProfile';
 import Courses from './pages/Courses';
 import CourseSchedule from './pages/CourseSchedule';
 import AssignAdvisor from './pages/AssignAdvisor'; // v3.0 - Admin Öğretmen Atama Sistemi
-import AdvisorRequests from './pages/AdvisorRequests'; // YENİ - Öğrenci-Advisor istek sistemi
 import CreateSubmission from './pages/CreateSubmission';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleBasedRoute from './components/RoleBasedRoute';
@@ -55,16 +54,6 @@ function App() {
             element={
               <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
                 <Students />
-              </RoleBasedRoute>
-            } 
-          />
-          
-          {/* Advisor Requests - Advisor only (NEW SYSTEM) */}
-          <Route 
-            path="/advisor-requests" 
-            element={
-              <RoleBasedRoute allowedRoles={['Advisor']}>
-                <AdvisorRequests />
               </RoleBasedRoute>
             } 
           />

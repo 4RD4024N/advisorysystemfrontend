@@ -39,8 +39,6 @@ const advisorService = {
     return response.data;
   },
 
-  // ==================== NEW STUDENT-ADVISOR REQUEST SYSTEM ====================
-
   /**
    * Get my advisor (Student)
    * @returns {Object} { hasAdvisor: boolean, advisor: {...} | null }

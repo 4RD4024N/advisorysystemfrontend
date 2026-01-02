@@ -29,6 +29,12 @@ const courseService = {
   updateCourseCompletion: async (id, updateData) => {
     const response = await api.patch(`/course/my-courses/${id}`, updateData);
     return response.data;
+  },
+
+  // Get all courses from database (for course catalog and schedule)
+  getAllCourses: async () => {
+    const response = await api.get('/courses');
+    return response.data;
   }
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { authService, courseScheduleService } from '../services';
+import { authService, courseScheduleService, studentService, courseService } from '../services';
 import './CourseSchedule.css';
 
 const CourseSchedule = () => {
@@ -14,6 +14,24 @@ const CourseSchedule = () => {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
+
+  // localStorage key'i kullanıcıya özgü oluştur
+  const getStorageKey = (userId) => {
+    if (!userId) return 'courseSchedule';
+    return `courseSchedule_${userId}`;
+  };
+
+  // Mevcut kullanıcı için storage key
+  const currentUserStorageKey = getStorageKey(userInfo?.sub);
+
+  // Seçili öğrenci için storage key
+  const getSelectedStudentStorageKey = () => {
+    if (selectedStudent) {
+      return getStorageKey(selectedStudent);
+    }
+    return currentUserStorageKey;
+  };
 
   // Zaman dilimleri (08:00 - 18:00 arası)
   const timeSlots = [
@@ -32,7 +50,45 @@ const CourseSchedule = () => {
     { key: 'sunday', label: 'Pazar' }
   ];
 
-  // Örnek ders listesi - Backend'den gelecek
+  // Dersleri backend'den yükle
+  const loadCourses = async () => {
+    try {
+      const response = await courseService.getAllCourses();
+      const rawCourses = response.courses || response || [];
+      
+      // Debug: İlk dersin ham verisini kontrol et
+      if (rawCourses.length > 0) {
+        console.log('🔍 CourseSchedule - HAM Backend Yanıtı:', rawCourses[0]);
+      }
+      
+      const courses = rawCourses.map(course => {
+        // Backend'den gelen schedule slot'larını kontrol et
+        const scheduleSlots = course.scheduleSlots || [];
+        
+        return {
+          code: course.courseCode || course.code,
+          name: course.courseName || course.name,
+          theory: course.theoryHours || course.theory || 0,
+          practice: course.practiceHours || course.practice || 0,
+          credit: course.credit || course.credits || 0,
+          ects: course.ects || course.akts || 0,
+          semester: course.semester || 1,
+          type: course.isElective === true ? 'Seçmeli' : 'Zorunlu',
+          description: course.description || 'Bu ders için henüz açıklama eklenmemiş.',
+          scheduleSlots: scheduleSlots
+        };
+      });
+      
+      setAvailableCourses(courses);
+      console.log('✅ Dersler program için yüklendi:', courses.length, 'ders');
+    } catch (error) {
+      console.error('❌ Dersler yüklenirken hata:', error);
+      // Hata durumunda boş liste
+      setAvailableCourses([]);
+    }
+  };
+
+  // Örnek ders listesi - FALLBACK (Backend bağlantısı yoksa kullanılır)
   // Her dersin önceden belirlenmiş saatleri var (scheduleSlots)
   const courseList = [
     // Zorunlu Dersler
@@ -243,29 +299,45 @@ const CourseSchedule = () => {
 
   useEffect(() => {
     loadSchedule();
+    loadCourses(); // Backend'den dersleri yükle
     if (isAdvisor || isAdmin) {
       loadStudents();
     }
-    setAvailableCourses(courseList);
     setLoading(false);
   }, []);
 
-  const loadSchedule = async () => {
+  // Seçili öğrenci değiştiğinde programı yeniden yükle
+  useEffect(() => {
+    if (selectedStudent) {
+      loadSchedule(selectedStudent);
+    } else if (isAdvisor || isAdmin) {
+      // Advisor veya admin ise ve öğrenci seçilmemişse boş göster
+      setSchedule({});
+    } else {
+      // Öğrenci ise kendi programını göster
+      loadSchedule();
+    }
+  }, [selectedStudent]);
+
+  const loadSchedule = async (studentId = null) => {
     try {
+      // Hangi kullanıcının programını yükleyeceğimizi belirle
+      const storageKey = studentId ? getStorageKey(studentId) : currentUserStorageKey;
+      
       // localStorage'dan ders programını yükle
-      const savedSchedule = localStorage.getItem('courseSchedule');
+      const savedSchedule = localStorage.getItem(storageKey);
       
       if (savedSchedule) {
         setSchedule(JSON.parse(savedSchedule));
-        console.log('✅ Ders programı localStorage\'dan yüklendi');
+        console.log(`✅ Ders programı localStorage'dan yüklendi (${storageKey})`);
       } else {
         // İlk kullanımda boş program
         setSchedule({});
-        console.log('ℹ️ Henüz kayıtlı ders programı yok');
+        console.log(`ℹ️ Henüz kayıtlı ders programı yok (${storageKey})`);
       }
       
       // TODO: Backend'den ders programını yükle
-      // const data = await courseScheduleService.getSchedule();
+      // const data = await courseScheduleService.getSchedule(studentId);
       // setSchedule(data);
     } catch (error) {
       console.error('❌ Ders programı yüklenirken hata:', error);
@@ -274,11 +346,27 @@ const CourseSchedule = () => {
   };
 
   const loadStudents = async () => {
-    // TODO: Backend'den danışman öğrencilerini yükle
-    setStudents([
-      { id: 1, name: 'Ahmet Yılmaz', studentNo: '20210001' },
-      { id: 2, name: 'Ayşe Demir', studentNo: '20210002' }
-    ]);
+    try {
+      // Backend'den danışman öğrencilerini yükle
+      const response = await studentService.getMyStudents();
+      
+      // students array'ini al
+      const studentList = response.students || [];
+      
+      // Her öğrenci için gerekli bilgileri çıkar
+      const formattedStudents = studentList.map(student => ({
+        id: student.id,
+        studentNo: student.studentNo || 'N/A',
+        fullName: student.fullName || `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.username,
+        email: student.email || student.username
+      }));
+      
+      setStudents(formattedStudents);
+      console.log('✅ Öğrenci listesi yüklendi:', formattedStudents.length, 'öğrenci');
+    } catch (error) {
+      console.error('❌ Öğrenci listesi yüklenirken hata:', error);
+      setStudents([]);
+    }
   };
 
   // Ders seçimi - önceden tanımlı saatlere yerleştirilecek
@@ -321,12 +409,14 @@ const CourseSchedule = () => {
 
     setSchedule(newSchedule);
     
-    // localStorage'a kaydet
-    try {
-      localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
-      console.log('✅ Ders programı localStorage\'a kaydedildi');
-    } catch (error) {
-      console.error('❌ localStorage kaydetme hatası:', error);
+    // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
+    if (!selectedStudent) {
+      try {
+        localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
+        console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
+      } catch (error) {
+        console.error('❌ localStorage kaydetme hatası:', error);
+      }
     }
     
     setShowAddCourseModal(false);
@@ -393,12 +483,14 @@ const CourseSchedule = () => {
       
       setSchedule(newSchedule);
       
-      // localStorage'a kaydet
-      try {
-        localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
-        console.log('✅ Ders programı localStorage\'a kaydedildi');
-      } catch (error) {
-        console.error('❌ localStorage kaydetme hatası:', error);
+      // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
+      if (!selectedStudent) {
+        try {
+          localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
+          console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
+        } catch (error) {
+          console.error('❌ localStorage kaydetme hatası:', error);
+        }
       }
     } else {
       // Tek oturumluk ders, direkt kaldır
@@ -410,17 +502,40 @@ const CourseSchedule = () => {
       }
       setSchedule(newSchedule);
       
-      // localStorage'a kaydet
-      try {
-        localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
-        console.log('✅ Ders programı localStorage\'a kaydedildi');
-      } catch (error) {
-        console.error('❌ localStorage kaydetme hatası:', error);
+      // localStorage'a kaydet - Sadece kendi programını düzenleyen kullanıcı için
+      if (!selectedStudent) {
+        try {
+          localStorage.setItem(currentUserStorageKey, JSON.stringify(newSchedule));
+          console.log(`✅ Ders programı localStorage'a kaydedildi (${currentUserStorageKey})`);
+        } catch (error) {
+          console.error('❌ localStorage kaydetme hatası:', error);
+        }
       }
     }
     
     // TODO: Backend'den sil
     // await courseScheduleService.removeCourseFromSchedule(courseToRemove.code);
+  };
+
+  // Tüm programı temizle
+  const handleClearSchedule = () => {
+    if (!confirm('⚠️ Tüm ders programınızı silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz!')) return;
+    
+    setSchedule({});
+    
+    // localStorage'ı temizle - Sadece kendi programı için
+    if (!selectedStudent) {
+      try {
+        localStorage.removeItem(currentUserStorageKey);
+        console.log(`✅ Ders programı temizlendi (${currentUserStorageKey})`);
+        alert('✅ Ders programınız temizlendi!');
+      } catch (error) {
+        console.error('❌ localStorage temizleme hatası:', error);
+      }
+    }
+    
+    // TODO: Backend'den tüm dersleri sil
+    // await courseScheduleService.clearSchedule();
   };
 
   const getCourseAtSlot = (day, time) => {
@@ -475,33 +590,60 @@ const CourseSchedule = () => {
   return (
     <div>
       <div className="flex-between mb-4">
-        <h1>Ders Programı</h1>
+        <div>
+          <h1>Ders Programı</h1>
+          {selectedStudent && (
+            <div style={{ 
+              fontSize: '0.9rem', 
+              color: 'var(--text-muted)', 
+              marginTop: '0.5rem',
+              padding: '0.5rem 1rem',
+              background: '#e3f2fd',
+              borderRadius: '8px',
+              display: 'inline-block'
+            }}>
+              👨‍🎓 {students.find(s => s.id === selectedStudent)?.fullName} ({students.find(s => s.id === selectedStudent)?.studentNo}) - {students.find(s => s.id === selectedStudent)?.email}
+            </div>
+          )}
+        </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           {(isAdvisor || isAdmin) && (
             <select
               value={selectedStudent || ''}
-              onChange={(e) => setSelectedStudent(e.target.value)}
+              onChange={(e) => setSelectedStudent(e.target.value || null)}
               className="input"
-              style={{ width: '250px' }}
+              style={{ width: '450px' }}
             >
-              <option value="">Kendi Programım</option>
+              <option value="">Öğrenci Seçin</option>
               {students.map(student => (
                 <option key={student.id} value={student.id}>
-                  {student.name} ({student.studentNo})
+                  {student.fullName} ({student.studentNo}) - {student.email}
                 </option>
               ))}
             </select>
           )}
           {!selectedStudent && (
-            <button
-              onClick={() => {
-                setSelectedCourse(null);
-                setShowAddCourseModal(true);
-              }}
-              className="btn btn-primary"
-            >
-              + Ders Ekle
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setSelectedCourse(null);
+                  setCourseSearchTerm(''); // Arama terimini sıfırla
+                  setShowAddCourseModal(true);
+                }}
+                className="btn btn-primary"
+              >
+                + Ders Ekle
+              </button>
+              {Object.keys(schedule).length > 0 && (
+                <button
+                  onClick={handleClearSchedule}
+                  className="btn btn-danger"
+                  style={{ marginLeft: '0.5rem' }}
+                >
+                  🗑️ Programı Temizle
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -752,8 +894,33 @@ const CourseSchedule = () => {
 
               <div className="input-group">
                 <label className="input-label">Mevcut Dersler</label>
+                
+                {/* Arama kutusu */}
+                <input
+                  type="text"
+                  placeholder="🔍 Ders kodu veya ismi ile ara..."
+                  value={courseSearchTerm}
+                  onChange={(e) => setCourseSearchTerm(e.target.value)}
+                  className="input"
+                  style={{ 
+                    marginBottom: '1rem',
+                    padding: '0.75rem',
+                    fontSize: '1rem',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px'
+                  }}
+                />
+                
                 <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
-                  {availableCourses.map(course => {
+                  {availableCourses
+                    .filter(course => {
+                      // Arama filtresi
+                      if (!courseSearchTerm) return true;
+                      const searchLower = courseSearchTerm.toLowerCase();
+                      return course.code.toLowerCase().includes(searchLower) ||
+                             course.name.toLowerCase().includes(searchLower);
+                    })
+                    .map(course => {
                     const totalHours = getTotalHours(course);
                     const isAlreadyAdded = Object.values(schedule).some(day => 
                       Object.values(day).some(slot => slot.code === course.code)

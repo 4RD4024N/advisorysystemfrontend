@@ -124,14 +124,6 @@ const Layout = () => {
                 </NavLink>
               )}
 
-              {userRole === 'Advisor' && (
-                <NavLink to="/advisor-requests" className="nav-item">
-                  <span className="nav-icon">📨</span>
-                  <span className="nav-text">Student Requests</span>
-                </NavLink>
-              )}
-
-              {/* v3.0: Yeni basitleştirilmiş admin öğretmen atama sistemi */}
               {userRole === 'Admin' && (
                 <NavLink to="/assign-advisor" className="nav-item">
                   <span className="nav-icon">👨‍🏫</span>
