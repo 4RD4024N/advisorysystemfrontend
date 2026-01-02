@@ -10,7 +10,6 @@ const CourseSchedule = () => {
   const [schedule, setSchedule] = useState({});
   const [availableCourses, setAvailableCourses] = useState([]);
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -34,38 +33,212 @@ const CourseSchedule = () => {
   ];
 
   // Örnek ders listesi - Backend'den gelecek
+  // Her dersin önceden belirlenmiş saatleri var (scheduleSlots)
   const courseList = [
     // Zorunlu Dersler
-    { code: 'KRY100', name: 'KARİYER PLANLAMA', theory: 1, practice: 0, credit: 1, ects: 2, type: 'Zorunlu' },
-    { code: 'ORY100', name: 'ÜNİVERSİTE HAYATINA GİRİŞ', theory: 1, practice: 0, credit: 1, ects: 1, type: 'Zorunlu' },
+    { 
+      code: 'KRY100', 
+      name: 'KARİYER PLANLAMA', 
+      theory: 1, 
+      practice: 0, 
+      credit: 1, 
+      ects: 2, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'monday', time: '09:00', duration: 1 }
+      ]
+    },
+    { 
+      code: 'ORY100', 
+      name: 'ÜNİVERSİTE HAYATINA GİRİŞ', 
+      theory: 1, 
+      practice: 0, 
+      credit: 1, 
+      ects: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'tuesday', time: '14:00', duration: 1 }
+      ]
+    },
     
-    // 1. Yarıyıl
-    { code: 'BİL101', name: 'BİLGİSAYAR YAZILIMI I', theory: 3, practice: 1, credit: 3, ects: 5, semester: 1, type: 'Zorunlu' },
-    { code: 'BİL105', name: 'PROGRAMLAMA LABORATUVARI I', theory: 0, practice: 2, credit: 1, ects: 2, semester: 1, type: 'Zorunlu' },
-    { code: 'BİL110', name: 'BİLGİSAYAR MÜHENDİSLİĞİNE GİRİŞ', theory: 2, practice: 0, credit: 2, ects: 4, semester: 1, type: 'Zorunlu' },
-    { code: 'ENG199', name: 'ADVANCED ENGLISH I', theory: 4, practice: 0, credit: 4, ects: 4, semester: 1, type: 'Zorunlu' },
-    { code: 'FİZ103', name: 'MEKANİK LABORATUVARI', theory: 0, practice: 2, credit: 1, ects: 2, semester: 1, type: 'Zorunlu' },
-    { code: 'FİZ105', name: 'GENEL FİZİK I', theory: 3, practice: 1, credit: 3, ects: 5, semester: 1, type: 'Zorunlu' },
-    { code: 'MAT151', name: 'MATEMATİKSEL ANALİZ I', theory: 4, practice: 1, credit: 4, ects: 6, semester: 1, type: 'Zorunlu' },
-    { code: 'TÜRK101', name: 'TÜRK DİLİ I', theory: 2, practice: 0, credit: 2, ects: 2, semester: 1, type: 'Zorunlu' },
+    // 1. Yarıyıl - 4 saatlik dersler 2+2 olarak bölünmüş
+    { 
+      code: 'BİL101', 
+      name: 'BİLGİSAYAR YAZILIMI I', 
+      theory: 3, 
+      practice: 1, 
+      credit: 3, 
+      ects: 5, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'monday', time: '09:00', duration: 2 },
+        { day: 'thursday', time: '09:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'BİL105', 
+      name: 'PROGRAMLAMA LABORATUVARI I', 
+      theory: 0, 
+      practice: 2, 
+      credit: 1, 
+      ects: 2, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'tuesday', time: '10:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'BİL110', 
+      name: 'BİLGİSAYAR MÜHENDİSLİĞİNE GİRİŞ', 
+      theory: 2, 
+      practice: 0, 
+      credit: 2, 
+      ects: 4, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'wednesday', time: '13:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'ENG199', 
+      name: 'ADVANCED ENGLISH I', 
+      theory: 4, 
+      practice: 0, 
+      credit: 4, 
+      ects: 4, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'monday', time: '11:00', duration: 2 },
+        { day: 'wednesday', time: '11:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'FİZ103', 
+      name: 'MEKANİK LABORATUVARI', 
+      theory: 0, 
+      practice: 2, 
+      credit: 1, 
+      ects: 2, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'friday', time: '09:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'FİZ105', 
+      name: 'GENEL FİZİK I', 
+      theory: 3, 
+      practice: 1, 
+      credit: 3, 
+      ects: 5, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'wednesday', time: '10:00', duration: 2 },
+        { day: 'friday', time: '14:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'MAT151', 
+      name: 'MATEMATİKSEL ANALİZ I', 
+      theory: 4, 
+      practice: 1, 
+      credit: 4, 
+      ects: 6, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'monday', time: '14:00', duration: 3 },
+        { day: 'friday', time: '11:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'TÜRK101', 
+      name: 'TÜRK DİLİ I', 
+      theory: 2, 
+      practice: 0, 
+      credit: 2, 
+      ects: 2, 
+      semester: 1, 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'thursday', time: '13:00', duration: 2 }
+      ]
+    },
     
     // 2. Yarıyıl
-    { code: 'BİL122', name: 'İLERİ PROGRAMLAMA', theory: 3, practice: 1, credit: 3, ects: 5, semester: 2, prerequisite: 'BİL101', type: 'Zorunlu' },
-    { code: 'BİL124', name: 'İLERİ PROGRAMLAMA UYGULAMALARI', theory: 0, practice: 2, credit: 1, ects: 2, semester: 2, prerequisite: 'BİL101', type: 'Zorunlu' },
-    { code: 'BİL172', name: 'YAŞAM BİLİMLERİ VE BİLGİSAYAR MÜHENDİSLİĞİ', theory: 2, practice: 1, credit: 2, ects: 4, semester: 2, type: 'Zorunlu' },
-    { code: 'FİZ104', name: 'ELEKTRİK LABORATUVARI', theory: 0, practice: 2, credit: 1, ects: 2, semester: 2, type: 'Zorunlu' },
-    { code: 'FİZ110', name: 'GENEL FİZİK II', theory: 3, practice: 1, credit: 3, ects: 5, semester: 2, type: 'Zorunlu' },
-    { code: 'MAT152', name: 'MATEMATİKSEL ANALİZ II', theory: 4, practice: 1, credit: 4, ects: 6, semester: 2, prerequisite: 'MAT151', type: 'Zorunlu' },
-    { code: 'MAT210', name: 'DOĞRUSAL CEBİR', theory: 3, practice: 1, credit: 3, ects: 4, semester: 2, type: 'Zorunlu' },
-    { code: 'TÜRK102', name: 'TÜRK DİLİ II', theory: 2, practice: 0, credit: 2, ects: 2, semester: 2, type: 'Zorunlu' },
+    { 
+      code: 'BİL122', 
+      name: 'İLERİ PROGRAMLAMA', 
+      theory: 3, 
+      practice: 1, 
+      credit: 3, 
+      ects: 5, 
+      semester: 2, 
+      prerequisite: 'BİL101', 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'tuesday', time: '09:00', duration: 2 },
+        { day: 'thursday', time: '11:00', duration: 2 }
+      ]
+    },
+    { 
+      code: 'BİL124', 
+      name: 'İLERİ PROGRAMLAMA UYGULAMALARI', 
+      theory: 0, 
+      practice: 2, 
+      credit: 1, 
+      ects: 2, 
+      semester: 2, 
+      prerequisite: 'BİL101', 
+      type: 'Zorunlu',
+      scheduleSlots: [
+        { day: 'wednesday', time: '14:00', duration: 2 }
+      ]
+    },
     
     // Teknik Seçmeli Dersler
-    { code: 'BİL321', name: 'HESAPLAMALI GRAFİK', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
-    { code: 'BİL328', name: 'OTOMATA TEORİSİ', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
-    { code: 'BİL345', name: 'SİSTEM MÜHENDİSLİĞİ', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
-    { code: 'BİL363', name: 'İNSAN BİLGİSAYAR ETKİLEŞİMİ', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
-    { code: 'BİL480', name: 'YAPAY ZEKA', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
-    { code: 'BİL477', name: 'VERİ MADENCİLİĞİNE GİRİŞ', theory: 3, practice: 0, credit: 3, ects: 5, type: 'Teknik Seçmeli' },
+    { 
+      code: 'BİL321', 
+      name: 'HESAPLAMALI GRAFİK', 
+      theory: 3, 
+      practice: 0, 
+      credit: 3, 
+      ects: 5, 
+      type: 'Teknik Seçmeli',
+      scheduleSlots: [
+        { day: 'tuesday', time: '13:00', duration: 3 }
+      ]
+    },
+    { 
+      code: 'BİL480', 
+      name: 'YAPAY ZEKA', 
+      theory: 3, 
+      practice: 0, 
+      credit: 3, 
+      ects: 5, 
+      type: 'Teknik Seçmeli',
+      scheduleSlots: [
+        { day: 'friday', time: '10:00', duration: 3 }
+      ]
+    },
+    { 
+      code: 'BİL477', 
+      name: 'VERİ MADENCİLİĞİNE GİRİŞ', 
+      theory: 3, 
+      practice: 0, 
+      credit: 3, 
+      ects: 5, 
+      type: 'Teknik Seçmeli',
+      scheduleSlots: [
+        { day: 'monday', time: '13:00', duration: 3 }
+      ]
+    },
   ];
 
   useEffect(() => {
@@ -78,78 +251,26 @@ const CourseSchedule = () => {
   }, []);
 
   const loadSchedule = async () => {
-    // TODO: Backend'den ders programını yükle
-    // Şimdilik örnek veri - 4 saatlik ders 2+2 şeklinde bölünmüş
-    setSchedule({
-      monday: {
-        '09:00': { 
-          code: 'BİL101', 
-          name: 'BİLGİSAYAR YAZILIMI I', 
-          duration: 2,
-          credit: 3,
-          ects: 5,
-          sessionLabel: '(1/2)',
-          sessionNumber: 1,
-          totalSessions: 2
-        },
-        '14:00': { 
-          code: 'MAT151', 
-          name: 'MATEMATİKSEL ANALİZ I', 
-          duration: 3,
-          credit: 4,
-          ects: 6,
-          sessionLabel: '(1/2)',
-          sessionNumber: 1,
-          totalSessions: 2
-        }
-      },
-      wednesday: {
-        '10:00': { 
-          code: 'FİZ105', 
-          name: 'GENEL FİZİK I', 
-          duration: 2,
-          credit: 3,
-          ects: 5,
-          sessionLabel: '(1/2)',
-          sessionNumber: 1,
-          totalSessions: 2
-        }
-      },
-      thursday: {
-        '09:00': { 
-          code: 'BİL101', 
-          name: 'BİLGİSAYAR YAZILIMI I', 
-          duration: 2,
-          credit: 3,
-          ects: 5,
-          sessionLabel: '(2/2)',
-          sessionNumber: 2,
-          totalSessions: 2
-        }
-      },
-      friday: {
-        '11:00': { 
-          code: 'MAT151', 
-          name: 'MATEMATİKSEL ANALİZ I', 
-          duration: 2,
-          credit: 4,
-          ects: 6,
-          sessionLabel: '(2/2)',
-          sessionNumber: 2,
-          totalSessions: 2
-        },
-        '14:00': { 
-          code: 'FİZ105', 
-          name: 'GENEL FİZİK I', 
-          duration: 2,
-          credit: 3,
-          ects: 5,
-          sessionLabel: '(2/2)',
-          sessionNumber: 2,
-          totalSessions: 2
-        }
+    try {
+      // localStorage'dan ders programını yükle
+      const savedSchedule = localStorage.getItem('courseSchedule');
+      
+      if (savedSchedule) {
+        setSchedule(JSON.parse(savedSchedule));
+        console.log('✅ Ders programı localStorage\'dan yüklendi');
+      } else {
+        // İlk kullanımda boş program
+        setSchedule({});
+        console.log('ℹ️ Henüz kayıtlı ders programı yok');
       }
-    });
+      
+      // TODO: Backend'den ders programını yükle
+      // const data = await courseScheduleService.getSchedule();
+      // setSchedule(data);
+    } catch (error) {
+      console.error('❌ Ders programı yüklenirken hata:', error);
+      setSchedule({});
+    }
   };
 
   const loadStudents = async () => {
@@ -160,9 +281,61 @@ const CourseSchedule = () => {
     ]);
   };
 
-  const handleAddCourse = (day, time) => {
-    setSelectedSlot({ day, time });
-    setShowAddCourseModal(true);
+  // Ders seçimi - önceden tanımlı saatlere yerleştirilecek
+  const handleSelectCourse = (course) => {
+    // Aynı ders zaten programda var mı kontrol et
+    const isCourseAlreadyAdded = Object.values(schedule).some(day => 
+      Object.values(day).some(slot => slot.code === course.code)
+    );
+
+    if (isCourseAlreadyAdded) {
+      alert(`⚠️ ${course.code} - ${course.name} zaten programınızda mevcut!`);
+      return;
+    }
+
+    // Önceden tanımlı saatlerde çakışma kontrolü
+    for (const slot of course.scheduleSlots) {
+      const conflict = checkConflict(slot.day, slot.time, slot.duration);
+      if (conflict) {
+        alert(`⚠️ Çakışma tespit edildi!\n\n${course.code} dersi ${days.find(d => d.key === slot.day)?.label} günü ${slot.time} saatinde başlıyor.\n\nBu saatte ${conflict.code} - ${conflict.name} dersi mevcut.\n\nLütfen çakışan dersleri kaldırın veya farklı bir ders seçin.`);
+        return;
+      }
+    }
+
+    // Çakışma yoksa dersi programa ekle
+    const newSchedule = { ...schedule };
+    
+    course.scheduleSlots.forEach((slot, index) => {
+      if (!newSchedule[slot.day]) {
+        newSchedule[slot.day] = {};
+      }
+      
+      newSchedule[slot.day][slot.time] = {
+        ...course,
+        duration: slot.duration,
+        sessionLabel: course.scheduleSlots.length > 1 ? `(${index + 1}/${course.scheduleSlots.length})` : '',
+        sessionNumber: index + 1,
+        totalSessions: course.scheduleSlots.length
+      };
+    });
+
+    setSchedule(newSchedule);
+    
+    // localStorage'a kaydet
+    try {
+      localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
+      console.log('✅ Ders programı localStorage\'a kaydedildi');
+    } catch (error) {
+      console.error('❌ localStorage kaydetme hatası:', error);
+    }
+    
+    setShowAddCourseModal(false);
+    
+    // Başarı mesajı
+    alert(`✅ ${course.code} - ${course.name} programınıza eklendi!`);
+    
+    // TODO: Backend'e kaydet
+    // await courseScheduleService.addCourseToSchedule(course.code);
   };
 
   // Çakışma kontrolü - verilen zaman diliminde çakışan ders var mı kontrol et
@@ -181,102 +354,9 @@ const CourseSchedule = () => {
     return null;
   };
 
-  // Dersi birden fazla oturuma böl (örn: 4 saatlik ders -> 2 saat + 2 saat)
-  const splitCourseIntoSessions = (course) => {
-    const totalDuration = course.theory + course.practice;
-    
-    if (totalDuration <= 2) {
-      return [{ duration: totalDuration, label: '' }];
-    } else if (totalDuration === 3) {
-      return [{ duration: 2, label: '(1/2)' }, { duration: 1, label: '(2/2)' }];
-    } else if (totalDuration === 4) {
-      return [{ duration: 2, label: '(1/2)' }, { duration: 2, label: '(2/2)' }];
-    } else if (totalDuration === 5) {
-      return [{ duration: 3, label: '(1/2)' }, { duration: 2, label: '(2/2)' }];
-    } else {
-      // 6+ saat için 3'lü gruplara böl
-      const sessions = [];
-      let remaining = totalDuration;
-      let sessionNum = 1;
-      while (remaining > 0) {
-        const sessionDuration = Math.min(3, remaining);
-        sessions.push({ duration: sessionDuration, label: `(${sessionNum}/${Math.ceil(totalDuration / 3)})` });
-        remaining -= sessionDuration;
-        sessionNum++;
-      }
-      return sessions;
-    }
-  };
-
-  const handleSaveCourse = () => {
-    if (!selectedCourse) return;
-
-    // Dersin toplam saatini hesapla
-    const totalDuration = selectedCourse.theory + selectedCourse.practice;
-    
-    // Eğer slot seçili değilse (genel ekleme), kullanıcıya bilgi ver
-    if (!selectedSlot) {
-      alert('Lütfen takvimden bir zaman dilimi seçin veya derse tıklayın.');
-      return;
-    }
-
-    // Dersi oturumlara böl
-    const sessions = splitCourseIntoSessions(selectedCourse);
-    
-    // İlk oturum için çakışma kontrolü
-    const conflict = checkConflict(selectedSlot.day, selectedSlot.time, sessions[0].duration);
-    if (conflict) {
-      alert(`⚠️ Çakışma tespit edildi!\n\n${selectedSlot.time} saatinde ${conflict.code} - ${conflict.name} dersi mevcut.\n\nLütfen farklı bir zaman dilimi seçin.`);
-      return;
-    }
-
-    const newSchedule = { ...schedule };
-    if (!newSchedule[selectedSlot.day]) {
-      newSchedule[selectedSlot.day] = {};
-    }
-    
-    // İlk oturumu ekle
-    const startHour = parseInt(selectedSlot.time.split(':')[0]);
-    const firstSessionTime = selectedSlot.time;
-    
-    newSchedule[selectedSlot.day][firstSessionTime] = {
-      ...selectedCourse,
-      duration: sessions[0].duration,
-      sessionLabel: sessions.length > 1 ? sessions[0].label : '',
-      sessionNumber: 1,
-      totalSessions: sessions.length
-    };
-
-    // Eğer birden fazla oturum varsa, kullanıcıya ikinci oturum için soru sor
-    if (sessions.length > 1) {
-      setSchedule(newSchedule);
-      setShowAddCourseModal(false);
-      
-      // 2. oturumu eklemek için modal tekrar aç
-      setTimeout(() => {
-        const secondSessionNeeded = sessions.length > 1;
-        if (secondSessionNeeded && confirm(`${selectedCourse.code} dersi ${totalDuration} saatlik.\n\nİlk ${sessions[0].duration} saat eklendi.\n\nİkinci oturum (${sessions[1].duration} saat) için zaman dilimi seçmek ister misiniz?`)) {
-          // Kullanıcı ikinci oturumu eklemek isterse, modalı kapat ve bekleme moduna geç
-          alert('Takvimden ikinci oturum için bir zaman dilimi seçin.');
-          setSelectedCourse({
-            ...selectedCourse,
-            remainingSessions: sessions.slice(1),
-            sessionNumber: 2
-          });
-          // Modal'ı kapatmıyoruz, devam ediyoruz
-        } else {
-          setSelectedCourse(null);
-          setSelectedSlot(null);
-        }
-      }, 100);
-    } else {
-      setSchedule(newSchedule);
-      setShowAddCourseModal(false);
-      setSelectedCourse(null);
-      setSelectedSlot(null);
-    }
-    
-    // TODO: Backend'e kaydet
+  // Dersin toplam saatini hesapla
+  const getTotalHours = (course) => {
+    return course.theory + course.practice;
   };
 
   const handleRemoveCourse = (day, time) => {
@@ -312,6 +392,14 @@ const CourseSchedule = () => {
       }
       
       setSchedule(newSchedule);
+      
+      // localStorage'a kaydet
+      try {
+        localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
+        console.log('✅ Ders programı localStorage\'a kaydedildi');
+      } catch (error) {
+        console.error('❌ localStorage kaydetme hatası:', error);
+      }
     } else {
       // Tek oturumluk ders, direkt kaldır
       if (!confirm(confirmMessage)) return;
@@ -321,9 +409,18 @@ const CourseSchedule = () => {
         delete newSchedule[day][time];
       }
       setSchedule(newSchedule);
+      
+      // localStorage'a kaydet
+      try {
+        localStorage.setItem('courseSchedule', JSON.stringify(newSchedule));
+        console.log('✅ Ders programı localStorage\'a kaydedildi');
+      } catch (error) {
+        console.error('❌ localStorage kaydetme hatası:', error);
+      }
     }
     
     // TODO: Backend'den sil
+    // await courseScheduleService.removeCourseFromSchedule(courseToRemove.code);
   };
 
   const getCourseAtSlot = (day, time) => {
@@ -397,7 +494,10 @@ const CourseSchedule = () => {
           )}
           {!selectedStudent && (
             <button
-              onClick={() => setShowAddCourseModal(true)}
+              onClick={() => {
+                setSelectedCourse(null);
+                setShowAddCourseModal(true);
+              }}
               className="btn btn-primary"
             >
               + Ders Ekle
@@ -519,13 +619,11 @@ const CourseSchedule = () => {
                           borderRight: '1px solid var(--border-color)',
                           minHeight: '60px',
                           verticalAlign: 'top',
-                          cursor: !selectedStudent && !isOccupied && !isDisabled ? 'pointer' : 'default',
                           background: course ? getCourseColor(course.code) : isDisabled ? '#f5f5f5' : 'transparent',
                           color: course ? 'white' : 'inherit',
                           opacity: isDisabled ? 0.5 : 1,
                           position: 'relative'
                         }}
-                        onClick={() => !selectedStudent && !course && !isDisabled && handleAddCourse(day.key, time)}
                         title={isDisabled ? 'Bu saat başka bir ders ile dolu' : ''}
                       >
                         {course ? (
@@ -578,18 +676,7 @@ const CourseSchedule = () => {
                           }}>
                             ○
                           </div>
-                        ) : (
-                          !selectedStudent && (
-                            <div style={{ 
-                              textAlign: 'center', 
-                              color: 'var(--text-muted)',
-                              fontSize: '0.8rem',
-                              padding: '1rem 0'
-                            }}>
-                              +
-                            </div>
-                          )
-                        )}
+                        ) : null}
                       </td>
                     );
                   })}
@@ -651,60 +738,101 @@ const CourseSchedule = () => {
             </div>
 
             <div style={{ padding: '1.5rem 2rem' }}>
-              {selectedSlot && (
-                <div style={{
-                  padding: '1rem',
-                  background: '#e3f2fd',
-                  borderRadius: '8px',
-                  marginBottom: '1rem',
-                  border: '1px solid #90caf9'
-                }}>
-                  <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                    📅 Seçili Zaman Dilimi
-                  </div>
-                  <div style={{ fontSize: '0.9rem' }}>
-                    {days.find(d => d.key === selectedSlot.day)?.label} - {selectedSlot.time}
-                  </div>
+              <div style={{
+                padding: '1rem',
+                background: '#e8f5e9',
+                borderRadius: '8px',
+                marginBottom: '1rem',
+                border: '1px solid #81c784'
+              }}>
+                <div style={{ fontSize: '0.9rem', color: '#2e7d32' }}>
+                  ℹ️ Her ders önceden belirlenmiş saatlere sahiptir. Dersi seçtiğinizde otomatik olarak programınıza eklenecektir.
                 </div>
-              )}
+              </div>
 
               <div className="input-group">
                 <label className="input-label">Mevcut Dersler</label>
-                <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                <div style={{ maxHeight: '450px', overflowY: 'auto' }}>
                   {availableCourses.map(course => {
-                    const totalHours = course.theory + course.practice;
-                    const sessions = splitCourseIntoSessions(course);
-                    const hasConflict = selectedSlot ? checkConflict(selectedSlot.day, selectedSlot.time, sessions[0].duration) : null;
+                    const totalHours = getTotalHours(course);
+                    const isAlreadyAdded = Object.values(schedule).some(day => 
+                      Object.values(day).some(slot => slot.code === course.code)
+                    );
+                    
+                    // Çakışma kontrolü
+                    let hasConflict = null;
+                    if (!isAlreadyAdded) {
+                      for (const slot of course.scheduleSlots) {
+                        const conflict = checkConflict(slot.day, slot.time, slot.duration);
+                        if (conflict) {
+                          hasConflict = conflict;
+                          break;
+                        }
+                      }
+                    }
                     
                     return (
                       <div
                         key={course.code}
-                        onClick={() => !hasConflict && setSelectedCourse(course)}
+                        onClick={() => !hasConflict && !isAlreadyAdded && handleSelectCourse(course)}
                         style={{
                           padding: '1rem',
-                          marginBottom: '0.5rem',
-                          border: selectedCourse?.code === course.code ? '2px solid var(--primary)' : hasConflict ? '2px solid #f44336' : '1px solid var(--border-color)',
+                          marginBottom: '0.75rem',
+                          border: isAlreadyAdded ? '2px solid #4caf50' : hasConflict ? '2px solid #f44336' : '1px solid var(--border-color)',
                           borderRadius: '8px',
-                          cursor: hasConflict ? 'not-allowed' : 'pointer',
-                          background: selectedCourse?.code === course.code ? 'var(--primary-light)' : hasConflict ? '#ffebee' : 'transparent',
-                          opacity: hasConflict ? 0.6 : 1
+                          cursor: hasConflict || isAlreadyAdded ? 'not-allowed' : 'pointer',
+                          background: isAlreadyAdded ? '#e8f5e9' : hasConflict ? '#ffebee' : 'transparent',
+                          opacity: hasConflict || isAlreadyAdded ? 0.7 : 1,
+                          transition: 'all 0.2s'
                         }}
                       >
-                        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                          {course.code} - {course.name}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                          <div style={{ fontWeight: 'bold' }}>
+                            {course.code} - {course.name}
+                          </div>
+                          {isAlreadyAdded && (
+                            <div style={{
+                              padding: '2px 8px',
+                              background: '#4caf50',
+                              color: 'white',
+                              borderRadius: '4px',
+                              fontSize: '0.7rem',
+                              fontWeight: 'bold'
+                            }}>
+                              ✓ EKLENDİ
+                            </div>
+                          )}
                         </div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
                           T: {course.theory} | U: {course.practice} | K: {course.credit} | AKTS: {course.ects}
                           {course.prerequisite && <span> | Önkoşul: {course.prerequisite}</span>}
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.5rem' }}>
-                          ⏱️ Toplam: {totalHours} saat
-                          {sessions.length > 1 && (
-                            <span style={{ marginLeft: '0.5rem', color: '#f57c00' }}>
-                              • {sessions.length} oturuma bölünecek ({sessions.map(s => s.duration).join(' + ')} saat)
-                            </span>
-                          )}
+                        
+                        {/* Ders saatleri bilgisi */}
+                        <div style={{ 
+                          fontSize: '0.8rem', 
+                          color: '#666', 
+                          marginBottom: '0.5rem',
+                          padding: '0.5rem',
+                          background: '#f5f5f5',
+                          borderRadius: '4px'
+                        }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}>
+                            📅 Ders Saatleri:
+                          </div>
+                          {course.scheduleSlots.map((slot, idx) => (
+                            <div key={idx} style={{ fontSize: '0.75rem', marginLeft: '1rem' }}>
+                              • {days.find(d => d.key === slot.day)?.label} {slot.time} ({slot.duration} saat)
+                            </div>
+                          ))}
+                          <div style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#f57c00' }}>
+                            ⏱️ Toplam: {totalHours} saat
+                            {course.scheduleSlots.length > 1 && (
+                              <span> • {course.scheduleSlots.length} oturum</span>
+                            )}
+                          </div>
                         </div>
+
                         {hasConflict && (
                           <div style={{
                             fontSize: '0.75rem',
@@ -712,7 +840,8 @@ const CourseSchedule = () => {
                             marginTop: '0.5rem',
                             padding: '0.5rem',
                             background: 'white',
-                            borderRadius: '4px'
+                            borderRadius: '4px',
+                            border: '1px solid #f44336'
                           }}>
                             ⚠️ Çakışma: {hasConflict.code} - {hasConflict.name}
                           </div>
@@ -738,21 +867,11 @@ const CourseSchedule = () => {
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button 
-                  onClick={handleSaveCourse}
-                  disabled={!selectedCourse}
-                  className="btn btn-primary"
-                  style={{ flex: 1 }}
-                >
-                  {selectedCourse && splitCourseIntoSessions(selectedCourse).length > 1 
-                    ? `Ekle (${splitCourseIntoSessions(selectedCourse)[0].duration} saat)` 
-                    : 'Ekle'}
-                </button>
-                <button 
                   onClick={() => setShowAddCourseModal(false)}
                   className="btn btn-secondary"
                   style={{ flex: 1 }}
                 >
-                  İptal
+                  Kapat
                 </button>
               </div>
             </div>
