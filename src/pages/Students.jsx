@@ -14,7 +14,6 @@ function Students() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    // Get user role
     const userInfo = authService.getUserInfo();
     setUserRole(userInfo?.role);
     loadStudents();
@@ -27,14 +26,11 @@ function Students() {
       
       if (filter === 'without-advisor') {
         data = await studentService.getStudentsWithoutAdvisor();
-        // These endpoints return array directly
         setStudents(Array.isArray(data) ? data : []);
       } else if (filter === 'pending') {
         data = await studentService.getStudentsWithPendingSubmissions();
-        // These endpoints return array directly
         setStudents(Array.isArray(data) ? data : []);
       } else {
-        // getAllStudents returns paginated response: { students, totalCount, page, ... }
         data = await studentService.getAllStudents();
         setStudents(Array.isArray(data.students) ? data.students : []);
       }
@@ -87,7 +83,6 @@ function Students() {
         ...notificationData
       });
       
-      // Show success/error details if available
       if (response.errors && response.errors.length > 0) {
         alert(`Sent to ${response.successCount} students. Failed: ${response.failedCount}\n${response.errors.join('\n')}`);
       } else {
@@ -138,27 +133,27 @@ function Students() {
 
   const getStatusBadge = (student) => {
     if (filter === 'without-advisor') {
-      return <span className="badge badge-warning">No Advisor</span>;
+      return <span className="badge badge-warning">Danışmanı Yok</span>;
     }
     if (filter === 'pending' && student.pendingSubmissions > 0) {
-      return <span className="badge badge-danger">{student.pendingSubmissions} Pending</span>;
+      return <span className="badge badge-danger">{student.pendingSubmissions} Bekleyen</span>;
     }
-    return <span className="badge badge-success">Active</span>;
+    return <span className="badge badge-success">Aktif</span>;
   };
 
   return (
     <div className="students-page">
       <div className="students-header">
         <div>
-          <h1>Students Management</h1>
-          <p>Manage students, advisors, and notifications</p>
+          <h1>Öğrenci Yönetimi</h1>
+          <p>Öğrencileri, danışmanları ve bildirimleri yönetin</p>
         </div>
         
         <button 
           className="btn-primary"
           onClick={() => setShowBulkModal(true)}
         >
-          📨 Send Notification
+          📨 Bildirim Yolla
         </button>
       </div>
 
@@ -174,23 +169,23 @@ function Students() {
             className={`filter-btn ${filter === 'without-advisor' ? 'active' : ''}`}
             onClick={() => setFilter('without-advisor')}
           >
-            Without Advisor
+            Danışmanı Olmayan
           </button>
         )}
         <button 
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
         >
-          Pending Submissions
+          Bekleyen Gönderimler
         </button>
       </div>
 
       {loading ? (
-        <div className="loading">Loading students...</div>
+        <div className="loading">Öğrenciler yükleniyor...</div>
       ) : students.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">👨‍🎓</div>
-          <h3>No students found</h3>
+          <h3>Öğrenci bulunamadı</h3>
           <p>
             {filter === 'without-advisor' 
               ? 'All students have advisors assigned' 
@@ -203,18 +198,18 @@ function Students() {
         <>
           {selectedStudents.length > 0 && (
             <div className="selection-toolbar">
-              <span>{selectedStudents.length} students selected</span>
+              <span>{selectedStudents.length} öğrenci seçildi</span>
               <button 
                 className="btn-secondary"
                 onClick={() => setShowBulkModal(true)}
               >
-                Send Notification to Selected
+                Seçilenlere Bildirim Yolla
               </button>
               <button 
                 className="btn-text"
                 onClick={() => setSelectedStudents([])}
               >
-                Clear Selection
+                Seçimi Temizle
               </button>
             </div>
           )}
@@ -238,22 +233,22 @@ function Students() {
 
                 <div className="student-details">
                   <div className="detail-item">
-                    <span className="detail-label">Registration No:</span>
+                    <span className="detail-label">Kayıt No:</span>
                     <span className="detail-value">{student.registrationNo || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Department:</span>
+                    <span className="detail-label">Bölüm:</span>
                     <span className="detail-value">{student.department || 'N/A'}</span>
                   </div>
                   <div className="detail-item">
-                    <span className="detail-label">Joined:</span>
+                    <span className="detail-label">Oluşturulma Tarihi:</span>
                     <span className="detail-value">
                       {new Date(student.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                   {/* ✨ NEW v2.1: Display advisor information */}
                   <div className="detail-item">
-                    <span className="detail-label">👨‍🏫 Advisor:</span>
+                    <span className="detail-label">👨‍🏫 Danışman:</span>
                     {student.hasAdvisor && student.advisor ? (
                       <span className="detail-value" style={{ color: '#10b981', fontWeight: '600' }}>
                         {student.advisor.userName}
@@ -274,7 +269,7 @@ function Students() {
                       setShowNotificationModal(true);
                     }}
                   >
-                    📨 Send Notification
+                    📨 Bildirim yolla
                   </button>
                 </div>
               </div>
@@ -288,12 +283,12 @@ function Students() {
         </>
       )}
 
-      {/* Single Student Notification Modal */}
+
       {showNotificationModal && (
         <div className="modal-overlay" onClick={() => setShowNotificationModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Send Notification</h2>
+              <h2>Bildirim Yolla</h2>
               <button 
                 className="modal-close"
                 onClick={() => setShowNotificationModal(false)}
@@ -308,7 +303,7 @@ function Students() {
               </p>
 
               <div className="form-group">
-                <label>Title</label>
+                <label>Başlık</label>
                 <input
                   type="text"
                   value={notificationData.title}
@@ -318,7 +313,7 @@ function Students() {
               </div>
 
               <div className="form-group">
-                <label>Message</label>
+                <label>Metin</label>
                 <textarea
                   value={notificationData.message}
                   onChange={e => setNotificationData({...notificationData, message: e.target.value})}
@@ -333,20 +328,19 @@ function Students() {
                 className="btn-secondary"
                 onClick={() => setShowNotificationModal(false)}
               >
-                Cancel
+                İptal
               </button>
               <button 
                 className="btn-primary"
                 onClick={() => handleSendNotification(selectedStudent.id)}
               >
-                Send Notification
+                Bildirim Yolla
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Bulk Notification Modal */}
       {showBulkModal && (
         <div className="modal-overlay" onClick={() => setShowBulkModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>

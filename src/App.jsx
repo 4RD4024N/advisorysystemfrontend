@@ -24,17 +24,14 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected Routes */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:id" element={<DocumentDetail />} />
           
-          {/* Submissions - Student only */}
           <Route 
             path="/submissions" 
             element={
@@ -48,7 +45,6 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/notifications" element={<Notifications />} />
           
-          {/* Student Profile - Student only */}
           <Route 
             path="/student-profile" 
             element={
@@ -58,10 +54,8 @@ function App() {
             } 
           />
           
-          {/* Courses - All authenticated users */}
           <Route path="/courses" element={<Courses />} />
           
-          {/* Course Schedule - Student only */}
           <Route 
             path="/course-schedule" 
             element={
@@ -71,7 +65,6 @@ function App() {
             } 
           />
           
-          {/* Students page - Admin and Advisor only */}
           <Route 
             path="/students" 
             element={
@@ -81,7 +74,6 @@ function App() {
             } 
           />
           
-          /* Assign Advisor - Admin only (v3.0 - Student-based assignment) */
           <Route 
             path="/assign-advisor" 
             element={
@@ -91,7 +83,6 @@ function App() {
             } 
           />
           
-          {/* Create Submission - Advisor only */}
           <Route 
             path="/create-submission" 
             element={
@@ -104,7 +95,6 @@ function App() {
           <Route path="/profile" element={<Profile />} />
         </Route>
 
-        {/* Default Route */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

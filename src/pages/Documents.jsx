@@ -12,7 +12,6 @@ const Documents = () => {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
   
-  // Filter states
   const [filters, setFilters] = useState({
     title: '',
     startDate: '',
@@ -29,6 +28,7 @@ const Documents = () => {
 
   const loadDocuments = async () => {
     try {
+      // Backend'den dökümanları getir
       const data = await documentService.getMyDocuments();
       setDocuments(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -45,21 +45,18 @@ const Documents = () => {
   const applyFilters = () => {
     let filtered = [...documents];
 
-    // Title filter
     if (filters.title.trim()) {
       filtered = filtered.filter(doc => 
         doc.title.toLowerCase().includes(filters.title.toLowerCase())
       );
     }
 
-    // Start date filter
     if (filters.startDate) {
       filtered = filtered.filter(doc => 
         new Date(doc.createdAt) >= new Date(filters.startDate)
       );
     }
 
-    // End date filter
     if (filters.endDate) {
       filtered = filtered.filter(doc => 
         new Date(doc.createdAt) <= new Date(filters.endDate + 'T23:59:59')
@@ -205,7 +202,6 @@ const Documents = () => {
         )}
       </div>
 
-      {/* Documents List */}
       {filteredDocuments.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
           <div className="text-center">
@@ -277,7 +273,6 @@ const Documents = () => {
         </div>
       )}
 
-      {/* Create Modal */}
       {showCreateModal && (
         <div 
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"

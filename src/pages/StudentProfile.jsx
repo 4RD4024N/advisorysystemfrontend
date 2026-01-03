@@ -56,9 +56,6 @@ function StudentProfile() {
     }
   };
 
-  /**
-   * ✨ NEW v2.1: Load my advisor information
-   */
   const loadAdvisor = async () => {
     try {
       const data = await advisorService.getMyAdvisor();
@@ -78,6 +75,7 @@ function StudentProfile() {
     setMessage({ type: '', text: '' });
 
     try {
+      // Form verilerini hazırla
       const dataToSend = {
         ...formData,
         gpa: formData.gpa ? parseFloat(formData.gpa) : null,
@@ -138,7 +136,6 @@ function StudentProfile() {
         </div>
       )}
 
-      {/* ✨ NEW v2.1: Display Advisor Information */}
       {advisor && (
         <div className={`advisor-card ${advisor.hasAdvisor ? 'has-advisor' : 'no-advisor'}`}>
           <h2>👨‍🏫 My Advisor</h2>

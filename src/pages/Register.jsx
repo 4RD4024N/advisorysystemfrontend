@@ -49,9 +49,9 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo" style={{ color: '#ffffff' }}>📚 Advisory System</h1>
-          <h2 className="auth-title">Create Account</h2>
-          <p className="auth-subtitle">Sign up to get started</p>
+          <h1 className="auth-logo" style={{ color: '#ffffff' }}>BEDES</h1>
+          <h2 className="auth-title">Hesap oluştur</h2>
+          <p className="auth-subtitle">Kayıt olarak başlayın</p>
         </div>
 
         {error && (
@@ -68,7 +68,7 @@ const Register = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
-            <label className="input-label">Full Name</label>
+            <label className="input-label">Ad Soyad</label>
             <input
               type="text"
               name="fullName"
@@ -81,7 +81,7 @@ const Register = () => {
           </div>
 
           <div className="input-group">
-            <label className="input-label">Email</label>
+            <label className="input-label">E posta</label>
             <input
               type="email"
               name="email"
@@ -94,7 +94,7 @@ const Register = () => {
           </div>
 
           <div className="input-group">
-            <label className="input-label">Password</label>
+            <label className="input-label">Şifre</label>
             <input
               type="password"
               name="password"
@@ -105,7 +105,7 @@ const Register = () => {
               required
               minLength="6"
             />
-            <p className="text-xs text-muted mt-1">Minimum 6 characters</p>
+            <p className="text-xs text-muted mt-1">Minimum 6 karakter</p>
           </div>
 
           <button 
@@ -113,12 +113,12 @@ const Register = () => {
             className="btn btn-primary btn-lg w-full"
             disabled={loading || success}
           >
-            {loading ? <span className="loading"></span> : 'Create Account'}
+            {loading ? <span className="loading"></span> : 'Hesap Oluştur'}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Already have an account? <Link to="/login" className="auth-link">Sign in</Link></p>
+          <p>Zaten bir hesabınız var mı? <Link to="/login" className="auth-link">Giriş Yap</Link></p>
         </div>
       </div>
     </div>

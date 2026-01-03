@@ -23,13 +23,8 @@ const CreateSubmission = () => {
   const loadInitialData = async () => {
     try {
       setLoadingData(true);
-      // Load documents
       const docsData = await documentService.getMyDocuments();
       setDocuments(Array.isArray(docsData) ? docsData : []);
-      
-      // TODO: Load students list from students service
-      // const studentsData = await studentsService.getAll();
-      // setStudents(studentsData);
     } catch (error) {
       setMessage({
         type: 'error',
@@ -51,7 +46,7 @@ const CreateSubmission = () => {
       return;
     }
 
-    // Validate date is in future
+    // Tarih geçmişte olamaz
     const selectedDate = new Date(formData.dueDate);
     const now = new Date();
     if (selectedDate <= now) {
@@ -78,7 +73,6 @@ const CreateSubmission = () => {
         text: '✅ Teslim talebi başarıyla oluşturuldu! Öğrenciye bildirim gönderildi.'
       });
       
-      // Reset form
       setFormData({
         studentEmail: '',
         documentId: '',

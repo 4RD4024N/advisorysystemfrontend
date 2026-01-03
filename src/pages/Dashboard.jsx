@@ -6,8 +6,8 @@ const Dashboard = () => {
   const userInfo = authService.getUserInfo();
   const [stats, setStats] = useState(null);
   const [recentDocs, setRecentDocs] = useState([]);
-  const [advisor, setAdvisor] = useState(null); // ✨ NEW v2.1: For students
-  const [myStudents, setMyStudents] = useState(null); // ✨ NEW v2.1: For advisors
+  const [advisor, setAdvisor] = useState(null);
+  const [myStudents, setMyStudents] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,12 +21,10 @@ const Dashboard = () => {
         documentService.getMyDocuments().catch(() => [])
       ];
 
-      // ✨ NEW v2.1: Load advisor info for students
       if (userInfo?.role === 'Student') {
         promises.push(advisorService.getMyAdvisor().catch(() => null));
       }
 
-      // ✨ NEW v2.1: Load student list for advisors
       if (userInfo?.role === 'Advisor') {
         promises.push(advisorService.getMyStudents().catch(() => null));
       }
@@ -67,7 +65,6 @@ const Dashboard = () => {
         </Link>
       </div>
 
-      {/* ✨ NEW v2.1: Advisor Card for Students */}
       {userInfo?.role === 'Student' && advisor && (
         <div className="card mb-4" style={{ 
           background: advisor.hasAdvisor 
@@ -117,7 +114,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Stats Cards */}
+
       <div className="grid grid-3 mb-4">
         <div className="card">
           <div className="text-muted text-sm mb-1">Total Documents</div>
@@ -141,7 +138,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Documents */}
+
       <div className="card">
         <div className="flex-between mb-3">
           <h2 className="card-header" style={{ marginBottom: 0 }}>Recent Documents</h2>

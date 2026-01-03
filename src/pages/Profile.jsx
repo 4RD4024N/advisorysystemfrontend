@@ -62,10 +62,9 @@ const Profile = () => {
           </button>
         </div>
 
-        {/* Advisor Section - Only for Students */}
         {userInfo?.role === 'Student' && (
           <div className="card">
-            <h2 className="card-header">👨‍🏫 My Advisor</h2>
+            <h2 className="card-header">Danışmanım</h2>
             
             {myAdvisor ? (
               <div>
@@ -104,7 +103,6 @@ const Profile = () => {
           </div>
         )}
 
-        {/* Settings card for non-students or second column */}
         {userInfo?.role !== 'Student' && (
           <div className="card">
             <h2 className="card-header">Settings</h2>
@@ -134,7 +132,7 @@ const Profile = () => {
       {/* Settings card for students - full width below */}
       {userInfo?.role === 'Student' && (
         <div className="card mt-3">
-          <h2 className="card-header">Settings</h2>
+          <h2 className="card-header">Ayarlar</h2>
           
           <div className="grid grid-2">
             <div className="mb-3">
@@ -145,9 +143,9 @@ const Profile = () => {
             </div>
 
             <div className="mb-3">
-              <div className="text-sm text-muted mb-1">Token Status</div>
+              <div className="text-sm text-muted mb-1">Token Durumu</div>
               <span className={`badge ${authService.isAuthenticated() ? 'badge-success' : 'badge-danger'}`}>
-                {authService.isAuthenticated() ? 'Valid' : 'Invalid'}
+                {authService.isAuthenticated() ? 'Geçerli' : 'Geçersiz'}
               </span>
             </div>
           </div>
@@ -155,22 +153,22 @@ const Profile = () => {
       )}
 
       <div className="card mt-3">
-        <h2 className="card-header">Help & Documentation</h2>
+        <h2 className="card-header">Yardım & Dokümantasyon</h2>
         <div className="grid grid-3">
           <div>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>📚</div>
-            <div style={{ fontWeight: '500', marginBottom: '4px' }}>Documentation</div>
-            <div className="text-sm text-muted">Check README.md for detailed guides</div>
+            <div style={{ fontWeight: '500', marginBottom: '4px' }}>Dokümantasyon</div>
+            <div className="text-sm text-muted">Detaylı rehberler için README.md dosyasına bakın</div>
           </div>
           <div>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔧</div>
-            <div style={{ fontWeight: '500', marginBottom: '4px' }}>API Reference</div>
-            <div className="text-sm text-muted">See API_QUICK_REFERENCE.md</div>
+            <div style={{ fontWeight: '500', marginBottom: '4px' }}>API Referansı</div>
+            <div className="text-sm text-muted">API_QUICK_REFERENCE.md dosyasına bakın</div>
           </div>
           <div>
             <div style={{ fontSize: '32px', marginBottom: '8px' }}>💡</div>
-            <div style={{ fontWeight: '500', marginBottom: '4px' }}>Support</div>
-            <div className="text-sm text-muted">Contact your administrator</div>
+            <div style={{ fontWeight: '500', marginBottom: '4px' }}>Destek</div>
+            <div className="text-sm text-muted">Danışmanla iletişim</div>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ const Statistics = () => {
 
   const loadStatistics = async () => {
     try {
+      // Kullanıcı istatistiklerini getir
       const data = await statisticsService.getStudentSummary();
       setStats(data);
     } catch (error) {

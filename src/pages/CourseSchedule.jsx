@@ -6,11 +6,9 @@ const CourseSchedule = () => {
   const [mySchedule, setMySchedule] = useState(null);
   const [availableCourses, setAvailableCourses] = useState([]);
   const [showCourseModal, setShowCourseModal] = useState(false);
-  const [selectedSemester, setSelectedSemester] = useState(1);
   const [loading, setLoading] = useState(true);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
 
-  // Günler (Türkçe)
   const dayNames = {
     'Monday': 'Pazartesi',
     'Tuesday': 'Salı',
@@ -21,32 +19,22 @@ const CourseSchedule = () => {
   
   const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'];
   
-  // Zaman dilimleri (08:00 - 18:00)
   const timeSlots = [
     '08:00', '09:00', '10:00', '11:00', '12:00', 
     '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
-  // İlk yüklemede programı ve dersleri getir
   useEffect(() => {
-    console.log('🎯 useEffect triggered, semester:', selectedSemester);
     loadMySchedule();
     loadAvailableCourses();
-  }, [selectedSemester]);
+  }, []);
 
-  // Backend'den öğrencinin programını yükle
   const loadMySchedule = async () => {
-    console.log('🚀 loadMySchedule BAŞLADI');
     try {
       setLoading(true);
-      console.log('🔄 loadMySchedule çağrıldı, semester:', selectedSemester);
+      const response = await courseService.getMySchedule();
       
-      const response = await courseService.getMySchedule(selectedSemester);
-      
-      console.log('✅ Backend Response:', response);
-      console.log('📋 Courses:', response?.courses);
-      
-      // Backend weeklySchedule boş gönderiyor - courses'dan kendimiz oluşturalım
+      // Haftalık programı oluştur
       const weeklySchedule = {
         'Pazartesi': [],
         'Salı': [],
@@ -55,7 +43,6 @@ const CourseSchedule = () => {
         'Cuma': []
       };
       
-      // Her course'un sessions'ını ilgili güne ekle
       response.courses?.forEach(course => {
         course.sessions?.forEach(session => {
           const scheduleEntry = {
@@ -78,9 +65,6 @@ const CourseSchedule = () => {
         });
       });
       
-      console.log('🔨 Oluşturulan Weekly Schedule:', JSON.stringify(weeklySchedule, null, 2));
-      
-      // Backend response'a oluşturduğumuz weeklySchedule'ı ekle
       const updatedResponse = {
         ...response,
         weeklySchedule: weeklySchedule
@@ -95,9 +79,7 @@ const CourseSchedule = () => {
       });
       
     } catch (error) {
-      console.error('❌ Ders programı yüklenirken hata:', error);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ Error status:', error.response?.status);
+      console.error('Ders programı yüklenirken hata:', error);
       console.error('❌ Error data:', error.response?.data);
       console.error('❌ Full error:', JSON.stringify(error, null, 2));
       
@@ -117,61 +99,52 @@ const CourseSchedule = () => {
   // Ders seçimi için mevcut dersleri yükle
   const loadAvailableCourses = async () => {
     try {
-      console.log('🔄 Dersler yükleniyor... Yarıyıl:', selectedSemester);
+      console.log('🔄 Tüm dersler yükleniyor...');
       
-      // Önce yeni course-selection endpoint'ini dene
+      // Önce course-selection/available endpoint'ini dene
       try {
-        const response = await courseService.getAvailableCourses(selectedSemester);
-        console.log('🔍 Backend Response (course-selection):', response);
-        console.log('🔍 Courses Array:', response.courses);
-        console.log('🔍 Courses Length:', response.courses?.length);
-        
+        const response = await courseService.getAvailableCourses();
         if (response.courses && response.courses.length > 0) {
+          console.log('✅ Seçilebilir dersler yüklendi:', response.courses.length, 'ders');
           setAvailableCourses(response.courses);
-          console.log('✅ Seçilebilir dersler yüklendi (course-selection):', response.courses.length, 'ders');
           return;
         }
       } catch (apiError) {
-        console.warn('⚠️ /course-selection/available endpoint mevcut değil, fallback kullanılıyor:', apiError.response?.status);
+        console.warn('⚠️ course-selection/available başarısız, getAllCourses deneniyor...');
       }
       
-      // Fallback: /api/courses endpoint'ini kullan
-      console.log('🔄 Fallback: /courses endpoint kullanılıyor...');
-      const coursesResponse = await courseService.getAllCourses();
-      const allCourses = coursesResponse.courses || coursesResponse || [];
-      
-      console.log('🔍 All Courses Response:', coursesResponse);
-      console.log('🔍 All Courses Length:', allCourses.length);
+      // Fallback: Tüm dersleri getir
+      const allCoursesResponse = await courseService.getAllCourses();
+      const allCourses = allCoursesResponse.courses || allCoursesResponse || [];
       
       // Backend formatına uygun hale getir
       const formattedCourses = allCourses.map(course => ({
         courseId: course.id,
         courseCode: course.courseCode || course.code,
         courseName: course.courseName || course.name,
-        description: course.description || 'Bu ders için henüz açıklama eklenmemiş.',
-        credits: course.credits || course.credit || 0,
+        description: course.description || '',
+        credits: course.credits || 0,
         ects: course.ects || 0,
-        theoryHours: course.theoryHours || course.theory || 0,
-        practiceHours: course.practiceHours || course.practice || 0,
+        theoryHours: course.theoryHours || 0,
+        practiceHours: course.practiceHours || 0,
         isElective: course.isElective === true,
-        category: course.category || { name: 'Genel' },
-        sectionCode: 'A', // Default section
-        semester: course.semester || selectedSemester,
-        instructor: 'Atanmadı',
-        maxCapacity: 50,
-        enrolledCount: 0,
-        availableSeats: 50,
+        category: course.category?.name || course.category || 'Genel',
+        sectionCode: 'A',
+        semester: course.semester || 1,
+        instructor: course.instructor || 'Atanmadı',
+        maxCapacity: course.maxCapacity || 50,
+        enrolledCount: course.enrolledCount || 0,
+        availableSeats: course.availableSeats || 50,
         isFull: false,
         isEnrolled: false,
-        schedule: [] // Boş schedule - manuel ekleme gerekecek
+        schedule: course.schedule || []
       }));
       
+      console.log('✅ Tüm dersler yüklendi (getAllCourses):', formattedCourses.length, 'ders');
       setAvailableCourses(formattedCourses);
-      console.log('✅ Dersler fallback ile yüklendi:', formattedCourses.length, 'ders');
       
     } catch (error) {
       console.error('❌ Dersler yüklenirken hata:', error);
-      console.error('❌ Error Response:', error.response?.data);
       setAvailableCourses([]);
     }
   };
@@ -205,30 +178,33 @@ const CourseSchedule = () => {
     } catch (error) {
       console.error('❌ Kayıt hatası:', error);
       
-      // Hata mesajını göster
-      if (error.response?.data?.conflictingCourse) {
-        const conflict = error.response.data.conflictingCourse;
-        alert(`❌ Zaman Çakışması!\n\n${conflict.courseCode} dersi ile ${conflict.day} günü ${conflict.time} saatinde çakışıyor.`);
-      } else if (error.response?.data?.error) {
-        alert(`❌ Hata: ${error.response.data.error}`);
+      const errorData = error.response?.data;
+      
+      if (errorData?.conflictDetails) {
+        // Çakışma detaylarını göster
+        const conflicts = errorData.conflictDetails
+          .map(c => `• ${c.courseCode}: ${c.day} ${c.existingTime}`)
+          .join('\n');
+        
+        alert(`❌ ${errorData.error}\n\n${errorData.message}\n\nÇakışan Dersler:\n${conflicts}`);
+      } else if (errorData?.message) {
+        alert(`❌ ${errorData.error}\n\n${errorData.message}`);
+      } else if (errorData?.error) {
+        alert(`❌ ${errorData.error}`);
       } else {
         alert('❌ Derse kayıt olurken bir hata oluştu.');
       }
     }
   };
 
-  // Dersten çık
+
   const handleUnenrollCourse = async (course) => {
     if (!confirm(`${course.courseCode} - ${course.courseName} dersinden çıkmak istediğinize emin misiniz?`)) {
       return;
     }
 
     try {
-      await courseService.unenrollCourse(
-        course.courseId,
-        course.sectionCode,
-        course.semester
-      );
+      await courseService.unenrollCourse(course.courseId);
       
       alert(`✅ ${course.courseCode} dersinden çıkıldı.`);
       
@@ -256,7 +232,6 @@ const CourseSchedule = () => {
     return session;
   };
 
-  // Ders rengi (courseCode'a göre)
   const getCourseColor = (courseCode) => {
     const colors = [
       '#667eea', '#764ba2', '#f093fb', '#4facfe',
@@ -280,20 +255,10 @@ const CourseSchedule = () => {
         <div>
           <h1>Ders Programı</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-            Yarıyıl {selectedSemester} - {mySchedule?.totalCourses || 0} Ders
+            {mySchedule?.totalCourses || 0} Ders
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <select
-            value={selectedSemester}
-            onChange={(e) => setSelectedSemester(Number(e.target.value))}
-            className="input"
-            style={{ width: '150px' }}
-          >
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
-              <option key={sem} value={sem}>Yarıyıl {sem}</option>
-            ))}
-          </select>
           <button
             onClick={() => {
               setCourseSearchTerm('');
@@ -518,7 +483,7 @@ const CourseSchedule = () => {
               background: 'white',
               zIndex: 1
             }}>
-              <h2 style={{ margin: 0 }}>Ders Seç - Yarıyıl {selectedSemester}</h2>
+              <h2 style={{ margin: 0 }}>Ders Seç</h2>
               <button
                 onClick={() => setShowCourseModal(false)}
                 style={{
@@ -636,7 +601,7 @@ const CourseSchedule = () => {
                                 ⚠️ Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
                                 <br />
                                 <code style={{ fontSize: '0.75rem', background: '#fff', padding: '2px 6px', borderRadius: '4px', marginTop: '4px', display: 'inline-block' }}>
-                                  POST /api/schedule/generate/{selectedSemester}
+                                  POST /api/schedule/generate/{'{semester}'}
                                 </code>
                               </div>
                             )}

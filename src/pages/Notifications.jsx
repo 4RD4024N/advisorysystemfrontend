@@ -18,6 +18,7 @@ function Notifications() {
       setLoading(true);
       const params = {};
       
+      // Filtreye göre bildirimleri getir
       if (filter === 'unread') {
         params.isRead = false;
       } else if (filter === 'read') {

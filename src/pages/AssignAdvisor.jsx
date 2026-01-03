@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { advisorService, studentService, authService } from '../services';
 
-/**
- * Advisor Assignment Page (v3.0)
- * Simplified admin-only interface for assigning advisors to students
- */
 const AssignAdvisor = () => {
   const userInfo = authService.getUserInfo();
   const [students, setStudents] = useState([]);
@@ -36,15 +32,12 @@ const AssignAdvisor = () => {
         advisorService.getAllAdvisors()
       ]);
       
-      // Handle paginated response for students
       const studentsList = Array.isArray(studentsData?.students) ? studentsData.students : [];
       setStudents(studentsList);
       
-      // Handle new v3.0 advisors format: { totalAdvisors, advisors }
       const advisorsList = Array.isArray(advisorsData?.advisors) ? advisorsData.advisors : [];
       setAdvisors(advisorsList);
       
-      // Calculate stats
       const assigned = studentsList.filter(s => s.hasAdvisor).length;
       const unassigned = studentsList.filter(s => !s.hasAdvisor).length;
       setStats({
@@ -90,6 +83,7 @@ const AssignAdvisor = () => {
     try {
       setLoading(true);
       
+      // Danışman atama işlemini yap
       const result = await advisorService.assignAdvisorToStudent(
         selectedStudent.id,
         selectedAdvisor
@@ -149,12 +143,10 @@ const AssignAdvisor = () => {
   };
 
   const filteredStudents = students.filter(student => {
-    // Filter by type
     if (filterType === 'unassigned' && student.hasAdvisor) {
       return false;
     }
-    
-    // Filter by search
+
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -189,7 +181,7 @@ const AssignAdvisor = () => {
   return (
     <div className="max-w-full mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">👨‍🏫 Öğretmen Atama Yönetimi v3.0</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2"> Öğretmen Atama Yönetimi </h1>
         <p className="text-gray-600">Tüm öğrencileri görüntüleyin ve öğretmen ataması yapın</p>
       </div>
 
@@ -270,7 +262,6 @@ const AssignAdvisor = () => {
           📊 {filteredStudents.length} öğrenci gösteriliyor
         </div>
 
-        {/* Student List Table */}
         {loadingData ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -356,7 +347,6 @@ const AssignAdvisor = () => {
         )}
       </div>
 
-      {/* Advisor Selection Modal */}
       {showModal && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"

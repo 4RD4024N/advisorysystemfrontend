@@ -17,6 +17,7 @@ const Login = () => {
     setError('');
     setLoading(true);
 
+    // Kullanıcıyı sisteme giriş yaptır
     try {
       await authService.login(formData);
       navigate('/dashboard');
@@ -38,9 +39,9 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo" style={{ color: '#ffffff' }}>📚 Advisory System</h1>
-          <h2 className="auth-title">Welcome Back</h2>
-          <p className="auth-subtitle">Sign in to your account</p>
+          <h1 className="auth-logo" style={{ color: '#ffffff' }}> BEDES</h1>
+          <h2 className="auth-title">Hoşgeldiniz</h2>
+          <p className="auth-subtitle">Hesabınıza giriş yapınız</p>
         </div>
 
         {error && (
@@ -51,7 +52,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="input-group">
-            <label className="input-label">Email</label>
+            <label className="input-label">E posta</label>
             <input
               type="email"
               name="email"
@@ -64,7 +65,7 @@ const Login = () => {
           </div>
 
           <div className="input-group">
-            <label className="input-label">Password</label>
+            <label className="input-label">Şifre</label>
             <input
               type="password"
               name="password"
@@ -81,19 +82,19 @@ const Login = () => {
             className="btn btn-primary btn-lg w-full"
             disabled={loading}
           >
-            {loading ? <span className="loading"></span> : 'Sign In'}
+            {loading ? <span className="loading"></span> : 'Giriş Yap'}
           </button>
         </form>
 
         <div className="auth-footer">
-          <p>Don't have an account? <Link to="/register" className="auth-link">Sign up</Link></p>
+          <p>Hesabın yok mu?<Link to="/register" className="auth-link">Kayıt Ol</Link></p>
         </div>
 
         <div className="auth-demo">
-          <p className="text-xs text-muted">Demo Accounts:</p>
-          <p className="text-xs text-muted">Student: studentnumarası@local / Student123!</p>
-          <p className="text-xs text-muted">Admin: admin@local / Admin123!</p>
-          <p className="text-xs text-muted">Admin: advisornumarası@local / Advisor123!</p>
+          <p className="text-xs text-muted">Demo Hesaplar:</p>
+          <p className="text-xs text-muted">Öğrenci: studentnumarası@local / Student123!</p>
+          <p className="text-xs text-muted">admin: admin@local / Admin123!</p>
+          <p className="text-xs text-muted">Danışman: advisornumarası@local / Advisor123!</p>
         </div>
       </div>
     </div>

@@ -28,14 +28,13 @@ const DocumentDetail = () => {
 
   const loadVersions = async () => {
     try {
+      // Son 2 versiyonu göster
       const data = await documentService.getVersions(id);
-      // Only show last 2 versions (current + 1 previous)
       const limitedVersions = Array.isArray(data) ? data.slice(0, 2) : [];
       setVersions(limitedVersions);
       if (limitedVersions.length > 0) {
         setSelectedVersion(limitedVersions[0].id);
         loadComments(limitedVersions[0].id);
-        // Only load ratings if user is Advisor or Admin
         if (isAdvisorOrAdmin) {
           loadRatings(limitedVersions[0].id);
         }
@@ -58,7 +57,6 @@ const DocumentDetail = () => {
   };
 
   const loadRatings = async (versionId) => {
-    // Only Advisors and Admins can view ratings
     if (!isAdvisorOrAdmin) {
       return;
     }
@@ -67,7 +65,6 @@ const DocumentDetail = () => {
       const data = await ratingService.getRatingsByVersion(versionId);
       setRatings(prev => ({ ...prev, [versionId]: data }));
     } catch (error) {
-      // Silently handle 403 errors for role-based access
       if (error.response?.status !== 403) {
         console.error('Error loading ratings:', error);
       }
@@ -92,7 +89,6 @@ const DocumentDetail = () => {
     e.preventDefault();
     if (!selectedFile) return;
 
-    // Validate file
     const validation = validateFile(selectedFile);
     if (!validation.valid) {
       alert(validation.error);
@@ -215,7 +211,6 @@ const DocumentDetail = () => {
           </form>
         </div>
 
-        {/* Versions List */}
         <div className="card">
           <h2 className="card-header">Versions ({versions.length})</h2>
           {versions.length === 0 ? (
@@ -292,7 +287,6 @@ const DocumentDetail = () => {
             </div>
           )}
 
-          {/* Ratings Section - Only for Advisors and Admins */}
           {isAdvisorOrAdmin && (
             <div className="card">
               <div className="flex-between mb-3">
@@ -378,7 +372,7 @@ const DocumentDetail = () => {
             </div>
           )}
 
-          {/* Comments Section */}
+
           <div className="card">
             <h2 className="card-header">
               Comments for Version {versions.find(v => v.id === selectedVersion)?.versionNo}

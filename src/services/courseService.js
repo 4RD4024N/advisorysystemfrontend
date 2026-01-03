@@ -57,14 +57,8 @@ const courseService = {
   },
 
   // Dersten çık
-  unenrollCourse: async (courseId, sectionCode, semester) => {
-    const response = await api.delete('/course-selection/unenroll', {
-      data: {
-        courseId,
-        sectionCode,
-        semester
-      }
-    });
+  unenrollCourse: async (courseId) => {
+    const response = await api.delete(`/course-selection/unenroll/${courseId}`);
     return response.data;
   },
 

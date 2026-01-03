@@ -10,14 +10,11 @@ const Layout = () => {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    // Get user role
     const userInfo = authService.getUserInfo();
     setUserRole(userInfo?.role);
 
-    // Load unread count on mount
     loadUnreadCount();
     
-    // Poll for new notifications every 30 seconds
     const interval = setInterval(loadUnreadCount, 30000);
     
     return () => clearInterval(interval);
@@ -43,7 +40,7 @@ const Layout = () => {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
-          <h2 className="sidebar-logo">📚 Advisory</h2>
+          <h2 className="sidebar-logo">BEDES</h2>
           {authService.getUserInfo() && (
             <div className="user-info">
               <div className="user-avatar">
@@ -68,7 +65,6 @@ const Layout = () => {
             <span className="nav-text">Documents</span>
           </NavLink>
 
-          {/* Student Only: Submissions */}
           {userRole === 'Student' && (
             <NavLink to="/submissions" className="nav-item">
               <span className="nav-icon">📅</span>
@@ -121,7 +117,6 @@ const Layout = () => {
             </NavLink>
           )}
 
-          {/* Admin & Advisor Section */}
           {(userRole === 'Admin' || userRole === 'Advisor') && (
             <>
               <div className="nav-divider"></div>
@@ -135,7 +130,7 @@ const Layout = () => {
 
               {userRole === 'Admin' && (
                 <NavLink to="/assign-advisor" className="nav-item">
-                  <span className="nav-icon">👨‍🏫</span>
+                  <span className="nav-icon">👨</span>
                   <span className="nav-text">Öğretmen Atama</span>
                 </NavLink>
               )}
@@ -166,7 +161,6 @@ const Layout = () => {
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="main-content">
         <header className="header">
           <button 
@@ -176,7 +170,7 @@ const Layout = () => {
             ☰
           </button>
           <div className="header-title">
-            <h1>Advisory System</h1>
+            <h1>BEDES</h1>
           </div>
         </header>
 

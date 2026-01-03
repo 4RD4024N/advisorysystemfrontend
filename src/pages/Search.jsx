@@ -14,6 +14,7 @@ const Search = () => {
     setLoading(true);
 
     try {
+      // Arama sonuçlarını getir
       const data = await searchService.searchDocuments({ query, page: 1, pageSize: 20 });
       setResults(data);
     } catch (error) {

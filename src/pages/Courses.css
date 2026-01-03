@@ -28,7 +28,7 @@
 }
 
 .stat-card {
-  background: #667eea;
+  background: #576bc2;
   padding: 1.5rem;
   border-radius: 12px;
   display: flex;
@@ -180,7 +180,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   padding: 1rem;
-  background: #f8f9fa;
+  background: #ffffff;
   border-radius: 8px;
   margin-bottom: 0.75rem;
 }

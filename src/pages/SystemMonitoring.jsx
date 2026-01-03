@@ -6,12 +6,10 @@ function SystemMonitoring() {
   const [activeTab, setActiveTab] = useState('storage');
   const [loading, setLoading] = useState(true);
   
-  // Storage state
   const [storageInfo, setStorageInfo] = useState(null);
   const [storageStats, setStorageStats] = useState(null);
   const [filesList, setFilesList] = useState([]);
   
-  // Health state
   const [healthStatus, setHealthStatus] = useState(null);
   const [systemInfo, setSystemInfo] = useState(null);
   const [metrics, setMetrics] = useState(null);
@@ -47,7 +45,6 @@ function SystemMonitoring() {
       
       setStorageInfo(info);
       setStorageStats(stats);
-      // API returns { count, files: [] } - extract files array
       setFilesList(Array.isArray(filesResponse?.files) ? filesResponse.files : []);
     } catch (error) {
       console.error('Failed to load storage data:', error);

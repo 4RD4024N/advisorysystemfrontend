@@ -10,7 +10,6 @@ function Courses() {
   const [loading, setLoading] = useState(true);
   const userInfo = authService.getUserInfo();
 
-  // Backend'den dersleri y�kle
   useEffect(() => {
     loadCourses();
   }, []);
@@ -18,17 +17,10 @@ function Courses() {
   const loadCourses = async () => {
     try {
       setLoading(true);
+      // Tüm dersleri backend'den al
       const response = await courseService.getAllCourses();
       
-      // Debug: Ham backend yanıtını kontrol et
       const rawCourses = response.courses || response || [];
-      if (rawCourses.length > 0) {
-        console.log('🔍 HAM Backend Yanıtı (ilk ders):', rawCourses[0]);
-        console.log('🔍 Description field:', rawCourses[0].description);
-        console.log('🔍 CourseType field:', rawCourses[0].courseType);
-      }
-      
-      // Backend'den gelen veriyi normalize et
       const courses = rawCourses.map(course => ({
         code: course.courseCode || course.code,
         name: course.courseName || course.name,
@@ -43,13 +35,7 @@ function Courses() {
         category: course.category?.name || 'Diğer'
       }));
       
-      // Debug: Normalize edilmiş veriyi kontrol et
-      if (courses.length > 0) {
-        console.log('🔍 Normalize Edilmiş (ilk ders):', courses[0]);
-      }
-      
       setAllCourses(courses);
-      console.log('✅ Dersler yüklendi:', courses.length, 'ders');
     } catch (error) {
       console.error('❌ Dersler yüklenirken hata:', error);
       setAllCourses([]);
@@ -58,7 +44,6 @@ function Courses() {
     }
   };
 
-  // Filtreleme
   const filteredCourses = allCourses.filter(course => {
     const matchesSearch = searchTerm === '' || 
                          course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -75,11 +60,10 @@ function Courses() {
     return matchesSearch && matchesSemester && matchesType;
   });
 
-  // �statistikler
   const stats = {
     total: allCourses.length,
     required: allCourses.filter(c => c.type.toLowerCase().includes('zorunlu')).length,
-    elective: allCourses.filter(c => c.type.toLowerCase().includes('se�meli') || c.type.toLowerCase().includes('elective')).length,
+    elective: allCourses.filter(c => c.type.toLowerCase().includes('seçmeli') || c.type.toLowerCase().includes('elective')).length,
     totalCredits: allCourses.reduce((sum, c) => sum + c.credit, 0)
   };
 
