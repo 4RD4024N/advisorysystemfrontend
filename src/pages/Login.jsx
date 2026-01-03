@@ -38,7 +38,7 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo">📚 Advisory System</h1>
+          <h1 className="auth-logo" style={{ color: '#ffffff' }}>📚 Advisory System</h1>
           <h2 className="auth-title">Welcome Back</h2>
           <p className="auth-subtitle">Sign in to your account</p>
         </div>
@@ -91,9 +91,9 @@ const Login = () => {
 
         <div className="auth-demo">
           <p className="text-xs text-muted">Demo Accounts:</p>
-          <p className="text-xs text-muted">Student: stu@local / Arda123!</p>
+          <p className="text-xs text-muted">Student: studentnumarası@local / Student123!</p>
           <p className="text-xs text-muted">Admin: admin@local / Admin123!</p>
-          <p className="text-xs text-muted">Admin: ad@local / ad123!</p>
+          <p className="text-xs text-muted">Admin: advisornumarası@local / Advisor123!</p>
         </div>
       </div>
     </div>

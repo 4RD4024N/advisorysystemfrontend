@@ -68,10 +68,13 @@ const Layout = () => {
             <span className="nav-text">Documents</span>
           </NavLink>
 
-          <NavLink to="/submissions" className="nav-item">
-            <span className="nav-icon">📅</span>
-            <span className="nav-text">Submissions</span>
-          </NavLink>
+          {/* Student Only: Submissions */}
+          {userRole === 'Student' && (
+            <NavLink to="/submissions" className="nav-item">
+              <span className="nav-icon">📅</span>
+              <span className="nav-text">Submissions</span>
+            </NavLink>
+          )}
 
           <NavLink to="/search" className="nav-item">
             <span className="nav-icon">🔍</span>
@@ -97,20 +100,26 @@ const Layout = () => {
 
           <div className="nav-divider"></div>
 
-          <NavLink to="/student-profile" className="nav-item">
-            <span className="nav-icon">📋</span>
-            <span className="nav-text">My Profile</span>
-          </NavLink>
+          {/* Student Only: My Profile */}
+          {userRole === 'Student' && (
+            <NavLink to="/student-profile" className="nav-item">
+              <span className="nav-icon">📋</span>
+              <span className="nav-text">My Profile</span>
+            </NavLink>
+          )}
 
           <NavLink to="/courses" className="nav-item">
             <span className="nav-icon">📚</span>
             <span className="nav-text">Courses</span>
           </NavLink>
 
-          <NavLink to="/course-schedule" className="nav-item">
-            <span className="nav-icon">📅</span>
-            <span className="nav-text">Ders Programı</span>
-          </NavLink>
+          {/* Student Only: Course Schedule */}
+          {userRole === 'Student' && (
+            <NavLink to="/course-schedule" className="nav-item">
+              <span className="nav-icon">📅</span>
+              <span className="nav-text">Ders Programı</span>
+            </NavLink>
+          )}
 
           {/* Admin & Advisor Section */}
           {(userRole === 'Admin' || userRole === 'Advisor') && (
@@ -131,17 +140,11 @@ const Layout = () => {
                 </NavLink>
               )}
 
-              {(userRole === 'Admin' || userRole === 'Advisor') && (
+              {/* Advisor Only: Create Submission */}
+              {userRole === 'Advisor' && (
                 <NavLink to="/create-submission" className="nav-item">
                   <span className="nav-icon">📤</span>
                   <span className="nav-text">Set Deadline</span>
-                </NavLink>
-              )}
-
-              {userRole === 'Admin' && (
-                <NavLink to="/monitoring" className="nav-item">
-                  <span className="nav-icon">⚙️</span>
-                  <span className="nav-text">Monitoring</span>
                 </NavLink>
               )}
             </>

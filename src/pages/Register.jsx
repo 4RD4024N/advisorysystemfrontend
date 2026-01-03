@@ -49,7 +49,7 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo">📚 Advisory System</h1>
+          <h1 className="auth-logo" style={{ color: '#ffffff' }}>📚 Advisory System</h1>
           <h2 className="auth-title">Create Account</h2>
           <p className="auth-subtitle">Sign up to get started</p>
         </div>

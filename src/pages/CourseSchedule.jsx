@@ -29,21 +29,87 @@ const CourseSchedule = () => {
 
   // İlk yüklemede programı ve dersleri getir
   useEffect(() => {
+    console.log('🎯 useEffect triggered, semester:', selectedSemester);
     loadMySchedule();
     loadAvailableCourses();
   }, [selectedSemester]);
 
   // Backend'den öğrencinin programını yükle
   const loadMySchedule = async () => {
+    console.log('🚀 loadMySchedule BAŞLADI');
     try {
       setLoading(true);
+      console.log('🔄 loadMySchedule çağrıldı, semester:', selectedSemester);
+      
       const response = await courseService.getMySchedule(selectedSemester);
-      setMySchedule(response);
-      console.log('✅ Ders programı yüklendi:', response);
+      
+      console.log('✅ Backend Response:', response);
+      console.log('📋 Courses:', response?.courses);
+      
+      // Backend weeklySchedule boş gönderiyor - courses'dan kendimiz oluşturalım
+      const weeklySchedule = {
+        'Pazartesi': [],
+        'Salı': [],
+        'Çarşamba': [],
+        'Perşembe': [],
+        'Cuma': []
+      };
+      
+      // Her course'un sessions'ını ilgili güne ekle
+      response.courses?.forEach(course => {
+        course.sessions?.forEach(session => {
+          const scheduleEntry = {
+            courseCode: course.courseCode,
+            courseName: course.courseName,
+            courseId: course.courseId,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            roomNumber: session.roomNumber,
+            instructorName: session.instructorName,
+            sessionType: session.sessionType,
+            isTheory: session.isTheory,
+            credits: course.credits,
+            ects: course.ects
+          };
+          
+          if (weeklySchedule[session.dayName]) {
+            weeklySchedule[session.dayName].push(scheduleEntry);
+          }
+        });
+      });
+      
+      console.log('🔨 Oluşturulan Weekly Schedule:', JSON.stringify(weeklySchedule, null, 2));
+      
+      // Backend response'a oluşturduğumuz weeklySchedule'ı ekle
+      const updatedResponse = {
+        ...response,
+        weeklySchedule: weeklySchedule
+      };
+      
+      setMySchedule(updatedResponse || { 
+        weeklySchedule: {}, 
+        courses: [], 
+        totalCourses: 0, 
+        totalCredits: 0, 
+        totalECTS: 0 
+      });
+      
     } catch (error) {
       console.error('❌ Ders programı yüklenirken hata:', error);
-      setMySchedule({ weeklySchedule: {}, courses: [], totalCourses: 0, totalCredits: 0, totalECTS: 0 });
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error data:', error.response?.data);
+      console.error('❌ Full error:', JSON.stringify(error, null, 2));
+      
+      setMySchedule({ 
+        weeklySchedule: {}, 
+        courses: [], 
+        totalCourses: 0, 
+        totalCredits: 0, 
+        totalECTS: 0 
+      });
     } finally {
+      console.log('🏁 loadMySchedule BİTTİ');
       setLoading(false);
     }
   };
@@ -175,13 +241,19 @@ const CourseSchedule = () => {
     }
   };
 
-  // Belirli bir gün ve saatte hangi ders var
+  // Belirli bir gün ve saatte hangi ders var (Backend: TAM SAAT formatı - 08:00, 09:00...)
   const getCourseAtSlot = (day, time) => {
-    if (!mySchedule?.weeklySchedule?.[day]) return null;
+    if (!mySchedule?.weeklySchedule?.[day]) {
+      return null;
+    }
     
-    return mySchedule.weeklySchedule[day].find(session => {
-      return session.startTime <= time && time < session.endTime;
+    // Backend'den gelen saatler TAM SAAT formatında (08:00, 09:00...)
+    // Her ders tam 60 dakika, startTime ile eşleşen dersi bul
+    const session = mySchedule.weeklySchedule[day].find(session => {
+      return session.startTime === time;
     });
+    
+    return session;
   };
 
   // Ders rengi (courseCode'a göre)

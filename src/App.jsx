@@ -12,7 +12,6 @@ import Search from './pages/Search';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
 import Students from './pages/Students';
-import SystemMonitoring from './pages/SystemMonitoring';
 import StudentProfile from './pages/StudentProfile';
 import Courses from './pages/Courses';
 import CourseSchedule from './pages/CourseSchedule';
@@ -34,19 +33,43 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:id" element={<DocumentDetail />} />
-          <Route path="/submissions" element={<Submissions />} />
+          
+          {/* Submissions - Student only */}
+          <Route 
+            path="/submissions" 
+            element={
+              <RoleBasedRoute allowedRoles={['Student']}>
+                <Submissions />
+              </RoleBasedRoute>
+            } 
+          />
+          
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/search" element={<Search />} />
           <Route path="/notifications" element={<Notifications />} />
           
-          {/* Student Profile - All authenticated users */}
-          <Route path="/student-profile" element={<StudentProfile />} />
+          {/* Student Profile - Student only */}
+          <Route 
+            path="/student-profile" 
+            element={
+              <RoleBasedRoute allowedRoles={['Student']}>
+                <StudentProfile />
+              </RoleBasedRoute>
+            } 
+          />
           
           {/* Courses - All authenticated users */}
           <Route path="/courses" element={<Courses />} />
           
-          {/* Course Schedule - All authenticated users */}
-          <Route path="/course-schedule" element={<CourseSchedule />} />
+          {/* Course Schedule - Student only */}
+          <Route 
+            path="/course-schedule" 
+            element={
+              <RoleBasedRoute allowedRoles={['Student']}>
+                <CourseSchedule />
+              </RoleBasedRoute>
+            } 
+          />
           
           {/* Students page - Admin and Advisor only */}
           <Route 
@@ -68,22 +91,12 @@ function App() {
             } 
           />
           
-          {/* Create Submission - Admin and Advisor only */}
+          {/* Create Submission - Advisor only */}
           <Route 
             path="/create-submission" 
             element={
-              <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
+              <RoleBasedRoute allowedRoles={['Advisor']}>
                 <CreateSubmission />
-              </RoleBasedRoute>
-            } 
-          />
-          
-          {/* System Monitoring - Admin only */}
-          <Route 
-            path="/monitoring" 
-            element={
-              <RoleBasedRoute allowedRoles={['Admin']}>
-                <SystemMonitoring />
               </RoleBasedRoute>
             } 
           />
