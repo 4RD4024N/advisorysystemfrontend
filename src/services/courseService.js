@@ -67,6 +67,13 @@ const courseService = {
     const url = semester ? `/student-courses/my-schedule?semester=${semester}` : '/student-courses/my-schedule';
     const response = await api.get(url);
     return response.data;
+  },
+
+  // Belirli bir öğrencinin ders programını getir (Advisor için)
+  getStudentSchedule: async (studentId) => {
+    // Advisor endpoint: /student-courses/student/{studentId}
+    const response = await api.get(`/student-courses/student/${studentId}`);
+    return response.data;
   }
 };
 

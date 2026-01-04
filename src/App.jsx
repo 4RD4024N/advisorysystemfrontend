@@ -59,7 +59,7 @@ function App() {
           <Route 
             path="/course-schedule" 
             element={
-              <RoleBasedRoute allowedRoles={['Student']}>
+              <RoleBasedRoute allowedRoles={['Student', 'Advisor']}>
                 <CourseSchedule />
               </RoleBasedRoute>
             } 

@@ -109,8 +109,8 @@ const Layout = () => {
             <span className="nav-text">Courses</span>
           </NavLink>
 
-          {/* Student Only: Course Schedule */}
-          {userRole === 'Student' && (
+          {/* Student & Advisor: Course Schedule */}
+          {(userRole === 'Student' || userRole === 'Advisor') && (
             <NavLink to="/course-schedule" className="nav-item">
               <span className="nav-icon">📅</span>
               <span className="nav-text">Ders Programı</span>

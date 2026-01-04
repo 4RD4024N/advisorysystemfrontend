@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { authService, courseService } from '../services';
+import { authService, courseService, studentService } from '../services';
 import './CourseSchedule.css';
 
 const CourseSchedule = () => {
@@ -8,6 +8,12 @@ const CourseSchedule = () => {
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
+  
+  // Advisor için öğrenci seçimi
+  const [userRole, setUserRole] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   const dayNames = {
     'Monday': 'Pazartesi',
@@ -25,9 +31,118 @@ const CourseSchedule = () => {
   ];
 
   useEffect(() => {
-    loadMySchedule();
-    loadAvailableCourses();
+    const userInfo = authService.getUserInfo();
+    setUserRole(userInfo?.role);
+    
+    if (userInfo?.role === 'Advisor') {
+      // Advisor: önce öğrencileri yükle
+      loadMyStudents();
+    } else {
+      // Student: kendi programını yükle
+      loadMySchedule();
+      loadAvailableCourses();
+    }
   }, []);
+
+  // Advisor için öğrencileri yükle
+  const loadMyStudents = async () => {
+    try {
+      setLoading(true);
+      const data = await studentService.getMyStudents();
+      const studentList = data.students || data || [];
+      console.log('📚 Öğrenci listesi:', studentList);
+      setStudents(Array.isArray(studentList) ? studentList : []);
+    } catch (error) {
+      console.error('Öğrenciler yüklenirken hata:', error);
+      setStudents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Advisor: seçilen öğrencinin programını yükle
+  const loadStudentSchedule = async (studentId) => {
+    try {
+      setLoading(true);
+      // courseService.getStudentSchedule kullan (doğru endpoint)
+      const response = await courseService.getStudentSchedule(studentId);
+      
+      console.log('📚 Öğrenci programı yanıtı:', response);
+      
+      // Haftalık programı oluştur
+      const weeklySchedule = {
+        'Pazartesi': [],
+        'Salı': [],
+        'Çarşamba': [],
+        'Perşembe': [],
+        'Cuma': []
+      };
+      
+      response.courses?.forEach(course => {
+        course.sessions?.forEach(session => {
+          const scheduleEntry = {
+            courseCode: course.courseCode,
+            courseName: course.courseName,
+            courseId: course.courseId,
+            startTime: session.startTime,
+            endTime: session.endTime,
+            roomNumber: session.roomNumber,
+            instructorName: session.instructorName,
+            sessionType: session.sessionType,
+            isTheory: session.isTheory,
+            credits: course.credits,
+            ects: course.ects
+          };
+          
+          if (weeklySchedule[session.dayName]) {
+            weeklySchedule[session.dayName].push(scheduleEntry);
+          }
+        });
+      });
+      
+      const updatedResponse = {
+        ...response,
+        weeklySchedule: weeklySchedule
+      };
+      
+      setMySchedule(updatedResponse || { 
+        weeklySchedule: {}, 
+        courses: [], 
+        totalCourses: 0, 
+        totalCredits: 0, 
+        totalECTS: 0 
+      });
+      
+    } catch (error) {
+      console.error('Ders programı yüklenirken hata:', error);
+      setMySchedule({ 
+        weeklySchedule: {}, 
+        courses: [], 
+        totalCourses: 0, 
+        totalCredits: 0, 
+        totalECTS: 0 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStudentSelect = (studentId) => {
+    // studentId string (GUID) olarak kalmalı, parseInt yapmıyoruz
+    const id = studentId || null;
+    setSelectedStudentId(id);
+    // students listesinde id veya odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, userId
+    const student = students.find(s => s.id === id || s.userId === id);
+    setSelectedStudent(student);
+    
+    if (id) {
+      // Backend için doğru id'yi kullan (userId varsa onu, yoksa id)
+      const backendId = student?.userId || id;
+      loadStudentSchedule(backendId);
+    } else {
+      setMySchedule(null);
+    }
+  };
 
   const loadMySchedule = async () => {
     try {
@@ -249,25 +364,106 @@ const CourseSchedule = () => {
     );
   }
 
+  // Advisor için öğrenci seçilmemişse
+  if (userRole === 'Advisor' && !selectedStudentId) {
+    return (
+      <div>
+        <div className="flex-between mb-4">
+          <div>
+            <h1>Ders Programı</h1>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+              Danışmanı olduğunuz öğrencilerin ders programlarını görüntüleyin
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <select
+              value={selectedStudentId || ''}
+              onChange={(e) => handleStudentSelect(e.target.value)}
+              className="input"
+              style={{ 
+                minWidth: '280px', 
+                padding: '0.75rem 1rem',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: '2px solid var(--primary-color)',
+                background: 'var(--bg-primary)'
+              }}
+            >
+              <option value="">-- Öğrenci Seçin --</option>
+              {students.map(student => (
+                <option key={student.id} value={student.id}>
+                  {student.fullName} ({student.registrationNo || student.email})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>👨‍🎓</div>
+          <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            Öğrenci Seçin
+          </h3>
+          <p style={{ color: 'var(--text-muted)' }}>
+            Ders programını görüntülemek için yukarıdaki listeden bir öğrenci seçin
+          </p>
+          {students.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>
+              Henüz size atanmış öğrenci bulunmuyor.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex-between mb-4">
         <div>
           <h1>Ders Programı</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            {userRole === 'Advisor' && selectedStudent ? `${selectedStudent.fullName} - ` : ''}
             {mySchedule?.totalCourses || 0} Ders
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <button
-            onClick={() => {
-              setCourseSearchTerm('');
-              setShowCourseModal(true);
-            }}
-            className="btn btn-primary"
-          >
-            + Ders Seç
-          </button>
+          {/* Advisor için öğrenci seçimi */}
+          {userRole === 'Advisor' && (
+            <select
+              value={selectedStudentId || ''}
+              onChange={(e) => handleStudentSelect(e.target.value)}
+              className="input"
+              style={{ 
+                minWidth: '280px', 
+                padding: '0.75rem 1rem',
+                fontSize: '1rem',
+                borderRadius: '8px',
+                border: '2px solid var(--primary-color)',
+                background: 'var(--bg-primary)'
+              }}
+            >
+              <option value="">-- Öğrenci Seçin --</option>
+              {students.map(student => (
+                <option key={student.id} value={student.id}>
+                  {student.fullName} ({student.registrationNo || student.email})
+                </option>
+              ))}
+            </select>
+          )}
+          
+          {/* Sadece öğrenci için ders seçme butonu */}
+          {userRole === 'Student' && (
+            <button
+              onClick={() => {
+                setCourseSearchTerm('');
+                setShowCourseModal(true);
+              }}
+              className="btn btn-primary"
+            >
+              + Ders Seç
+            </button>
+          )}
         </div>
       </div>
 
@@ -295,7 +491,7 @@ const CourseSchedule = () => {
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Haftalık Saat</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
             {mySchedule?.courses?.reduce((sum, course) => 
-              sum + course.sessions.reduce((s, session) => s + (session.durationMinutes / 60), 0), 0
+              sum + (course.sessions?.reduce((s, session) => s + ((session.durationMinutes || 60) / 60), 0) || 0), 0
             ) || 0}
           </div>
         </div>
@@ -386,10 +582,10 @@ const CourseSchedule = () => {
         </div>
       </div>
 
-      {/* Kayıtlı Derslerim */}
+      {/* Kayıtlı Dersler */}
       {mySchedule?.courses && mySchedule.courses.length > 0 && (
         <div className="card" style={{ marginTop: '2rem' }}>
-          <h2>Kayıtlı Derslerim</h2>
+          <h2>{userRole === 'Advisor' && selectedStudent ? `${selectedStudent.fullName} - Kayıtlı Dersler` : 'Kayıtlı Derslerim'}</h2>
           <div style={{ marginTop: '1rem' }}>
             {mySchedule.courses.map(course => (
               <div key={`${course.courseId}-${course.sectionCode}`} style={{
@@ -413,7 +609,7 @@ const CourseSchedule = () => {
                       </p>
                     )}
                     <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
-                      {course.sessions.map((session, idx) => (
+                      {(course.sessions || []).map((session, idx) => (
                         <div key={idx} style={{ 
                           padding: '0.5rem',
                           background: 'white',
@@ -429,13 +625,16 @@ const CourseSchedule = () => {
                       ))}
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleUnenrollCourse(course)}
-                    className="btn btn-danger"
-                    style={{ marginLeft: '1rem' }}
-                  >
-                    Dersten Çık
-                  </button>
+                  {/* Sadece öğrenci dersten çıkabilir */}
+                  {userRole === 'Student' && (
+                    <button
+                      onClick={() => handleUnenrollCourse(course)}
+                      className="btn btn-danger"
+                      style={{ marginLeft: '1rem' }}
+                    >
+                      Dersten Çık
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -443,8 +642,21 @@ const CourseSchedule = () => {
         </div>
       )}
 
-      {/* Ders Seçimi Modal */}
-      {showCourseModal && (
+      {/* Ders yoksa mesaj göster (Advisor için) */}
+      {userRole === 'Advisor' && selectedStudentId && (!mySchedule?.courses || mySchedule.courses.length === 0) && (
+        <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '3rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+          <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+            Kayıtlı Ders Yok
+          </h3>
+          <p style={{ color: 'var(--text-muted)' }}>
+            {selectedStudent?.fullName} henüz ders kaydı yapmamış.
+          </p>
+        </div>
+      )}
+
+      {/* Ders Seçimi Modal - Sadece öğrenci için */}
+      {showCourseModal && userRole === 'Student' && (
         <div 
           style={{
             position: 'fixed',
