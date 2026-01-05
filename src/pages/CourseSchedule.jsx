@@ -423,7 +423,7 @@ const CourseSchedule = () => {
         <div>
           <h1>Ders Programı</h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-            {userRole === 'Advisor' && selectedStudent ? `${selectedStudent.fullName} - ` : ''}
+            {userRole === 'Advisor' && selectedStudent ? `${selectedStudent.email} - ` : ''}
             {mySchedule?.totalCourses || 0} Ders
           </p>
         </div>
@@ -585,7 +585,7 @@ const CourseSchedule = () => {
       {/* Kayıtlı Dersler */}
       {mySchedule?.courses && mySchedule.courses.length > 0 && (
         <div className="card" style={{ marginTop: '2rem' }}>
-          <h2>{userRole === 'Advisor' && selectedStudent ? `${selectedStudent.fullName} - Kayıtlı Dersler` : 'Kayıtlı Derslerim'}</h2>
+          <h2>{userRole === 'Advisor' && selectedStudent ? `${selectedStudent.email} - Kayıtlı Dersler` : 'Kayıtlı Derslerim'}</h2>
           <div style={{ marginTop: '1rem' }}>
             {mySchedule.courses.map(course => (
               <div key={`${course.courseId}-${course.sectionCode}`} style={{
