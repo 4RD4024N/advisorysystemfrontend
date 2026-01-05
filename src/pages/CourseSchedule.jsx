@@ -30,6 +30,83 @@ const CourseSchedule = () => {
     '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
+  // Gün ismini normalize et - Türkçe/İngilizce karakter uyumsuzluğunu çözer
+  const normalizeDayName = (dayName) => {
+    if (!dayName) return null;
+    
+    // Küçük harfe çevir ve boşlukları temizle
+    const normalized = dayName.toLowerCase().trim();
+    
+    // Tüm olası gün ismi varyasyonlarını maple
+    const dayMappings = {
+      // İngilizce
+      'monday': 'Pazartesi',
+      'tuesday': 'Salı',
+      'wednesday': 'Çarşamba',
+      'thursday': 'Perşembe',
+      'friday': 'Cuma',
+      'saturday': 'Cumartesi',
+      'sunday': 'Pazar',
+      
+      // Türkçe - doğru karakterler
+      'pazartesi': 'Pazartesi',
+      'salı': 'Salı',
+      'çarşamba': 'Çarşamba',
+      'perşembe': 'Perşembe',
+      'cuma': 'Cuma',
+      'cumartesi': 'Cumartesi',
+      'pazar': 'Pazar',
+      
+      // Türkçe - ASCII karakterler (backend'den böyle gelebilir)
+      'sali': 'Salı',
+      'carsamba': 'Çarşamba',
+      'persembe': 'Perşembe',
+      
+      // Türkçe - büyük i sorunları
+      'salİ': 'Salı',
+      'çarŞamba': 'Çarşamba',
+      'perŞembe': 'Perşembe',
+      
+      // Kısaltmalar
+      'mon': 'Pazartesi',
+      'tue': 'Salı',
+      'wed': 'Çarşamba',
+      'thu': 'Perşembe',
+      'fri': 'Cuma',
+      'sat': 'Cumartesi',
+      'sun': 'Pazar',
+      
+      // Sayısal değerler (0=Pazar, 1=Pazartesi, ...)
+      '0': 'Pazar',
+      '1': 'Pazartesi',
+      '2': 'Salı',
+      '3': 'Çarşamba',
+      '4': 'Perşembe',
+      '5': 'Cuma',
+      '6': 'Cumartesi'
+    };
+    
+    // Direkt eşleşme
+    if (dayMappings[normalized]) {
+      return dayMappings[normalized];
+    }
+    
+    // Zaten doğru formatta mı kontrol et
+    if (days.includes(dayName)) {
+      return dayName;
+    }
+    
+    // Partial match dene (örn: "Salı" içinde "sal" var mı)
+    for (const [key, value] of Object.entries(dayMappings)) {
+      if (normalized.includes(key) || key.includes(normalized)) {
+        return value;
+      }
+    }
+    
+    console.warn('⚠️ Bilinmeyen gün ismi:', dayName);
+    return dayName; // Eşleşme bulunamazsa orijinali döndür
+  };
+
   useEffect(() => {
     const userInfo = authService.getUserInfo();
     setUserRole(userInfo?.role);
@@ -80,6 +157,10 @@ const CourseSchedule = () => {
       
       response.courses?.forEach(course => {
         course.sessions?.forEach(session => {
+          // Gün ismini normalize et
+          const normalizedDay = normalizeDayName(session.dayName);
+          console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
+          
           const scheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
@@ -94,11 +175,15 @@ const CourseSchedule = () => {
             ects: course.ects
           };
           
-          if (weeklySchedule[session.dayName]) {
-            weeklySchedule[session.dayName].push(scheduleEntry);
+          if (normalizedDay && weeklySchedule[normalizedDay]) {
+            weeklySchedule[normalizedDay].push(scheduleEntry);
+          } else {
+            console.warn(`⚠️ Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
           }
         });
       });
+      
+      console.log('📊 Haftalık program:', weeklySchedule);
       
       const updatedResponse = {
         ...response,
@@ -160,6 +245,10 @@ const CourseSchedule = () => {
       
       response.courses?.forEach(course => {
         course.sessions?.forEach(session => {
+          // Gün ismini normalize et
+          const normalizedDay = normalizeDayName(session.dayName);
+          console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
+          
           const scheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
@@ -174,11 +263,15 @@ const CourseSchedule = () => {
             ects: course.ects
           };
           
-          if (weeklySchedule[session.dayName]) {
-            weeklySchedule[session.dayName].push(scheduleEntry);
+          if (normalizedDay && weeklySchedule[normalizedDay]) {
+            weeklySchedule[normalizedDay].push(scheduleEntry);
+          } else {
+            console.warn(`⚠️ Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
           }
         });
       });
+      
+      console.log('📊 Haftalık program:', weeklySchedule);
       
       const updatedResponse = {
         ...response,
@@ -211,52 +304,87 @@ const CourseSchedule = () => {
     }
   };
 
-  // Ders seçimi için mevcut dersleri yükle
+  
   const loadAvailableCourses = async () => {
     try {
-      console.log('🔄 Tüm dersler yükleniyor...');
+      console.log('🔄 Tüm dersler yükleniyor (zorunlu + seçmeli)...');
       
-      // Önce course-selection/available endpoint'ini dene
+      let allCourses = [];
+      let availableCoursesData = [];
+      
+      // 1. Önce course-selection/available endpoint'ini dene (schedule bilgisiyle gelir)
       try {
-        const response = await courseService.getAvailableCourses();
-        if (response.courses && response.courses.length > 0) {
-          console.log('✅ Seçilebilir dersler yüklendi:', response.courses.length, 'ders');
-          setAvailableCourses(response.courses);
-          return;
-        }
+        const availableResponse = await courseService.getAvailableCourses();
+        availableCoursesData = availableResponse.courses || availableResponse || [];
+        console.log('📚 course-selection/available:', availableCoursesData.length, 'ders');
       } catch (apiError) {
-        console.warn('⚠️ course-selection/available başarısız, getAllCourses deneniyor...');
+        console.warn('⚠️ course-selection/available endpoint başarısız:', apiError.message);
       }
       
-      // Fallback: Tüm dersleri getir
-      const allCoursesResponse = await courseService.getAllCourses();
-      const allCourses = allCoursesResponse.courses || allCoursesResponse || [];
+      // 2. Tüm dersleri /courses endpoint'inden al
+      try {
+        const allCoursesResponse = await courseService.getAllCourses();
+        const rawCourses = allCoursesResponse.courses || allCoursesResponse || [];
+        console.log('📚 /courses endpoint:', rawCourses.length, 'ders');
+        
+        // Tüm dersleri formatla
+        allCourses = rawCourses.map(course => {
+          // Eğer availableCoursesData'da bu ders varsa, oradan schedule bilgisini al
+          const availableCourse = availableCoursesData.find(
+            ac => ac.courseId === course.id || ac.courseCode === (course.courseCode || course.code)
+          );
+          
+          return {
+            courseId: course.id || course.courseId,
+            courseCode: course.courseCode || course.code,
+            courseName: course.courseName || course.name,
+            description: course.description || '',
+            credits: course.credits || 0,
+            ects: course.ects || 0,
+            theoryHours: course.theoryHours || 0,
+            practiceHours: course.practiceHours || 0,
+            isElective: course.isElective === true,
+            category: course.category?.name || course.category || 'Genel',
+            sectionCode: availableCourse?.sectionCode || course.sectionCode || 'A',
+            semester: course.semester || 1,
+            instructor: availableCourse?.instructor || course.instructor || 'Atanmadı',
+            maxCapacity: availableCourse?.maxCapacity || course.maxCapacity || 50,
+            enrolledCount: availableCourse?.enrolledCount || course.enrolledCount || 0,
+            availableSeats: availableCourse?.availableSeats || course.availableSeats || 50,
+            isFull: availableCourse?.isFull || false,
+            isEnrolled: availableCourse?.isEnrolled || false,
+            schedule: availableCourse?.schedule || course.schedule || course.sessions || []
+          };
+        });
+      } catch (coursesError) {
+        console.warn('⚠️ /courses endpoint başarısız:', coursesError.message);
+        
+        // Fallback: Eğer /courses da başarısız olursa, availableCoursesData'yı kullan
+        if (availableCoursesData.length > 0) {
+          allCourses = availableCoursesData;
+        }
+      }
       
-      // Backend formatına uygun hale getir
-      const formattedCourses = allCourses.map(course => ({
-        courseId: course.id,
-        courseCode: course.courseCode || course.code,
-        courseName: course.courseName || course.name,
-        description: course.description || '',
-        credits: course.credits || 0,
-        ects: course.ects || 0,
-        theoryHours: course.theoryHours || 0,
-        practiceHours: course.practiceHours || 0,
-        isElective: course.isElective === true,
-        category: course.category?.name || course.category || 'Genel',
-        sectionCode: 'A',
-        semester: course.semester || 1,
-        instructor: course.instructor || 'Atanmadı',
-        maxCapacity: course.maxCapacity || 50,
-        enrolledCount: course.enrolledCount || 0,
-        availableSeats: course.availableSeats || 50,
-        isFull: false,
-        isEnrolled: false,
-        schedule: course.schedule || []
-      }));
+      // 3. Eğer hiç ders yoksa ve availableCoursesData varsa onu kullan
+      if (allCourses.length === 0 && availableCoursesData.length > 0) {
+        allCourses = availableCoursesData;
+      }
       
-      console.log('✅ Tüm dersler yüklendi (getAllCourses):', formattedCourses.length, 'ders');
-      setAvailableCourses(formattedCourses);
+      // 4. Dersleri sırala: Önce zorunlu, sonra seçmeli, alfabetik
+      allCourses.sort((a, b) => {
+        // Önce zorunlu/seçmeli sıralaması
+        if (a.isElective !== b.isElective) {
+          return a.isElective ? 1 : -1; // Zorunlu dersler önce
+        }
+        // Sonra ders koduna göre alfabetik
+        return (a.courseCode || '').localeCompare(b.courseCode || '');
+      });
+      
+      console.log('✅ Toplam yüklenen ders:', allCourses.length);
+      console.log('   📗 Zorunlu:', allCourses.filter(c => !c.isElective).length);
+      console.log('   📘 Seçmeli:', allCourses.filter(c => c.isElective).length);
+      
+      setAvailableCourses(allCourses);
       
     } catch (error) {
       console.error('❌ Dersler yüklenirken hata:', error);
@@ -264,7 +392,7 @@ const CourseSchedule = () => {
     }
   };
 
-  // Derse kayıt ol
+
   const handleEnrollCourse = async (course) => {
     if (course.isEnrolled) {
       alert('Bu derse zaten kayıtlısınız!');
@@ -285,7 +413,7 @@ const CourseSchedule = () => {
       
       alert(`✅ ${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
       
-      // Programı ve mevcut dersleri yeniden yükle
+      
       await loadMySchedule();
       await loadAvailableCourses();
       
@@ -323,7 +451,7 @@ const CourseSchedule = () => {
       
       alert(`✅ ${course.courseCode} dersinden çıkıldı.`);
       
-      // Programı ve mevcut dersleri yeniden yükle
+ 
       await loadMySchedule();
       await loadAvailableCourses();
     } catch (error) {
@@ -332,14 +460,13 @@ const CourseSchedule = () => {
     }
   };
 
-  // Belirli bir gün ve saatte hangi ders var (Backend: TAM SAAT formatı - 08:00, 09:00...)
+ 
   const getCourseAtSlot = (day, time) => {
     if (!mySchedule?.weeklySchedule?.[day]) {
       return null;
     }
     
-    // Backend'den gelen saatler TAM SAAT formatında (08:00, 09:00...)
-    // Her ders tam 60 dakika, startTime ile eşleşen dersi bul
+  
     const session = mySchedule.weeklySchedule[day].find(session => {
       return session.startTime === time;
     });
@@ -364,7 +491,7 @@ const CourseSchedule = () => {
     );
   }
 
-  // Advisor için öğrenci seçilmemişse
+
   if (userRole === 'Advisor' && !selectedStudentId) {
     return (
       <div>
@@ -452,7 +579,7 @@ const CourseSchedule = () => {
             </select>
           )}
           
-          {/* Sadece öğrenci için ders seçme butonu */}
+         
           {userRole === 'Student' && (
             <button
               onClick={() => {
@@ -500,7 +627,7 @@ const CourseSchedule = () => {
       {/* Haftalık Program */}
       <div className="card">
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px', tableLayout: 'fixed' }}>
             <thead>
               <tr>
                 <th style={{ 
@@ -509,7 +636,8 @@ const CourseSchedule = () => {
                   background: 'var(--bg-secondary)',
                   position: 'sticky',
                   left: 0,
-                  zIndex: 2
+                  zIndex: 2,
+                  width: '80px'
                 }}>
                   Saat
                 </th>
@@ -518,7 +646,8 @@ const CourseSchedule = () => {
                     padding: '1rem', 
                     borderBottom: '2px solid var(--border-color)',
                     background: 'var(--bg-secondary)',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    width: '18%'
                   }}>
                     {day}
                   </th>
@@ -550,25 +679,53 @@ const CourseSchedule = () => {
                           borderBottom: '1px solid var(--border-color)',
                           borderRight: '1px solid var(--border-color)',
                           minHeight: '60px',
+                          height: '70px',
+                          width: '18%',
+                          maxWidth: '180px',
                           verticalAlign: 'top',
                           background: session ? getCourseColor(session.courseCode) : 'transparent',
                           color: session ? 'white' : 'inherit',
-                          position: 'relative'
+                          position: 'relative',
+                          overflow: 'hidden'
                         }}
                       >
                         {session && session.startTime === time && (
-                          <div style={{ position: 'relative' }}>
-                            <div style={{ fontWeight: 'bold', fontSize: '0.9rem', marginBottom: '4px' }}>
+                          <div style={{ 
+                            position: 'relative',
+                            overflow: 'hidden',
+                            maxHeight: '100%'
+                          }}>
+                            <div style={{ 
+                              fontWeight: 'bold', 
+                              fontSize: '0.85rem', 
+                              marginBottom: '2px',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
                               {session.courseCode}
                             </div>
-                            <div style={{ fontSize: '0.75rem', opacity: 0.95, marginBottom: '4px' }}>
+                            <div style={{ 
+                              fontSize: '0.7rem', 
+                              opacity: 0.95, 
+                              marginBottom: '2px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              lineHeight: '1.2'
+                            }} title={session.courseName}>
                               {session.courseName}
                             </div>
-                            <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                              {session.timeSlot}
-                            </div>
-                            <div style={{ fontSize: '0.7rem', opacity: 0.9 }}>
-                              📍 {session.roomNumber} • {session.sessionType}
+                            <div style={{ 
+                              fontSize: '0.65rem', 
+                              opacity: 0.9,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              📍 {session.roomNumber}
                             </div>
                           </div>
                         )}
