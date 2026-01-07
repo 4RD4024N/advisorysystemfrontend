@@ -1,11 +1,17 @@
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { authService } from '../services';
+
+interface RoleBasedRouteProps {
+  children: React.ReactNode;
+  allowedRoles: string[];
+}
 
 /**
  * Role-based Route Guard
  * Only allows users with specific roles to access the route
  */
-const RoleBasedRoute = ({ children, allowedRoles }) => {
+const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles }) => {
   const userInfo = authService.getUserInfo();
   
   if (!userInfo) {
@@ -50,7 +56,7 @@ const RoleBasedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  return children;
+  return <>{children}</>;
 };
 
 export default RoleBasedRoute;

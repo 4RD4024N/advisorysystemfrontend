@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 // API Base URL - can be configured for different environments
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:44375/api';
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'https://localhost:44375/api';
 
 // Create axios instance
-const api = axios.create({
+const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
@@ -14,7 +14,7 @@ const api = axios.create({
 
 // Request interceptor to add token
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -25,7 +25,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
@@ -33,11 +33,11 @@ api.interceptors.request.use(
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => {
+  (response: AxiosResponse) => {
     console.log('✅ Response from:', response.config.url, '- Status:', response.status);
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     const status = error.response?.status;
     const url = error.config?.url;
     
