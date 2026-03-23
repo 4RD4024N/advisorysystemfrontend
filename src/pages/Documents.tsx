@@ -346,7 +346,7 @@ const Documents = () => {
                     </>
                   ) : (
                     <>
-                      <span>✅</span>
+                      <span>OK</span>
                       <span>Oluştur</span>
                     </>
                   )}

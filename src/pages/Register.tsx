@@ -49,7 +49,7 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo" style={{ color: '#ffffff' }}>BEDES</h1>
+          <h1 className="auth-logo">BEDES</h1>
           <h2 className="auth-title">Hesap oluştur</h2>
           <p className="auth-subtitle">Kayıt olarak başlayın</p>
         </div>

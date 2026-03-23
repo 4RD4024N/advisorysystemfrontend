@@ -84,7 +84,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <span className="badge badge-success" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
-                ✅ Assigned
+                Assigned
               </span>
             </div>
           ) : (
@@ -103,7 +103,7 @@ const Dashboard = () => {
           border: '2px solid #f59e0b'
         }}>
           <div className="flex-between mb-3">
-            <h2 className="card-header" style={{ marginBottom: 0 }}>👥 My Students</h2>
+            <h2 className="card-header" style={{ marginBottom: 0 }}>My Students</h2>
             <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f59e0b' }}>
               {myStudents.totalStudents || 0}
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authService, courseService } from '../services';
+import { logger } from '../utils/logger';
 import './Courses.css';
 
 function Courses() {
@@ -37,7 +38,7 @@ function Courses() {
       
       setAllCourses(courses);
     } catch (error) {
-      console.error('❌ Dersler yüklenirken hata:', error);
+      logger.error('Dersler yüklenirken hata:', error as Error);
       setAllCourses([]);
     } finally {
       setLoading(false);
@@ -71,14 +72,14 @@ function Courses() {
     <div className="courses-container">
       {loading ? (
         <div style={{ textAlign: 'center', padding: '4rem' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>Loading</div>
           <div style={{ fontSize: '1.25rem', color: '#666' }}>Dersler yükleniyor...</div>
         </div>
       ) : (
         <>
           <div className="courses-header">
             <div>
-              <h1>📚 Ders Kataloğu</h1>
+              <h1>Ders Kataloğu</h1>
               <p className="courses-subtitle">
                 Bilgisayar Mühendisliği bölümü ders programı
               </p>
@@ -88,14 +89,12 @@ function Courses() {
           {/* İstatistikler */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-icon">📊</div>
               <div className="stat-info">
                 <div className="stat-label">Toplam Ders</div>
                 <div className="stat-value">{stats.total}</div>
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">✅</div>
               <div className="stat-info">
                 <div className="stat-label">Zorunlu</div>
                 <div className="stat-value">{stats.required}</div>
@@ -122,7 +121,7 @@ function Courses() {
             <div className="search-box">
               <input
                 type="text"
-                placeholder="🔍 Ders kodu veya ismi ile ara..."
+                placeholder="Ders kodu veya ismi ile ara..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -162,7 +161,6 @@ function Courses() {
           <div className="courses-grid">
             {filteredCourses.length === 0 ? (
               <div className="no-results">
-                <div className="no-results-icon">🔍</div>
                 <div className="no-results-text">Aradığınız kriterlere uygun ders bulunamadı</div>
               </div>
             ) : (

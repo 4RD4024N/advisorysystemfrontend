@@ -159,8 +159,8 @@ export const getFileTypeIcon = (filename) => {
   const extension = getFileExtension(filename);
   const icons = {
     '.pdf': '📄',
-    '.docx': '📝',
-    '.pptx': '📊'
+    '.docx': 'DOC',
+    '.pptx': 'PPT'
   };
   return icons[extension] || '📎';
 };

@@ -191,7 +191,7 @@ const AssignAdvisor = () => {
             ? 'bg-green-50 border border-green-200 text-green-800' 
             : 'bg-red-50 border border-red-200 text-red-800'
         }`}>
-          <p className="font-semibold">{message.type === 'success' ? '✅' : '❌'} {message.text}</p>
+          <p className="font-semibold">{message.type === 'success' ? '✓' : '×'} {message.text}</p>
         </div>
       )}
 
@@ -259,7 +259,7 @@ const AssignAdvisor = () => {
         </div>
 
         <div className="text-sm text-gray-500 mb-4">
-          📊 {filteredStudents.length} öğrenci gösteriliyor
+          {filteredStudents.length} öğrenci gösteriliyor
         </div>
 
         {loadingData ? (
@@ -269,7 +269,7 @@ const AssignAdvisor = () => {
           </div>
         ) : filteredStudents.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-6xl mb-4">🔍</p>
+            <p className="text-6xl mb-4">�️</p>
             <p className="text-gray-600 text-lg">Öğrenci bulunamadı</p>
             <p className="text-gray-400 text-sm mt-2">Arama kriterlerinizi değiştirmeyi deneyin</p>
           </div>
@@ -301,11 +301,11 @@ const AssignAdvisor = () => {
                     <td className="py-4 px-4 text-center">
                       {student.hasAdvisor ? (
                         <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                          ✅ Atandı
+                          Atandı
                         </span>
                       ) : (
                         <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                          ⚠️ Atanmadı
+                          Atanmadı
                         </span>
                       )}
                     </td>
@@ -363,7 +363,7 @@ const AssignAdvisor = () => {
               </p>
               {selectedStudent?.hasAdvisor && (
                 <p className="text-sm text-yellow-600 mt-2">
-                  ⚠️ Mevcut öğretmen değiştirilecek
+                  Mevcut öğretmen değiştirilecek
                 </p>
               )}
             </div>
@@ -385,7 +385,7 @@ const AssignAdvisor = () => {
                 ))}
               </select>
               <p className="mt-2 text-sm text-gray-500">
-                👨‍🏫 {advisors.length} öğretmen mevcut
+                {advisors.length} öğretmen mevcut
               </p>
             </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { authService, courseService, studentService } from '../services';
+import { logger } from '../utils/logger';
 import './CourseSchedule.css';
 
 const CourseSchedule = () => {
@@ -103,7 +104,7 @@ const CourseSchedule = () => {
       }
     }
     
-    console.warn('⚠️ Bilinmeyen gün ismi:', dayName);
+    logger.warn('Bilinmeyen gün ismi:', dayName);
     return dayName; // Eşleşme bulunamazsa orijinali döndür
   };
 
@@ -127,7 +128,7 @@ const CourseSchedule = () => {
       setLoading(true);
       const data = await studentService.getMyStudents();
       const studentList = data.students || data || [];
-      console.log('📚 Öğrenci listesi:', studentList);
+      logger.debug('Öğrenci listesi:', studentList);
       setStudents(Array.isArray(studentList) ? studentList : []);
     } catch (error) {
       console.error('Öğrenciler yüklenirken hata:', error);
@@ -144,7 +145,7 @@ const CourseSchedule = () => {
       // courseService.getStudentSchedule kullan (doğru endpoint)
       const response = await courseService.getStudentSchedule(studentId);
       
-      console.log('📚 Öğrenci programı yanıtı:', response);
+      logger.debug('Öğrenci programı yanıtı:', response);
       
       // Haftalık programı oluştur
       const weeklySchedule = {
@@ -288,8 +289,8 @@ const CourseSchedule = () => {
       
     } catch (error) {
       console.error('Ders programı yüklenirken hata:', error);
-      console.error('❌ Error data:', error.response?.data);
-      console.error('❌ Full error:', JSON.stringify(error, null, 2));
+      logger.error('Error data:', error.response?.data);
+      logger.error('Full error:', JSON.stringify(error, null, 2));
       
       setMySchedule({ 
         weeklySchedule: {}, 
@@ -299,7 +300,7 @@ const CourseSchedule = () => {
         totalECTS: 0 
       });
     } finally {
-      console.log('🏁 loadMySchedule BİTTİ');
+      logger.debug('loadMySchedule BİTTİ');
       setLoading(false);
     }
   };
@@ -316,16 +317,16 @@ const CourseSchedule = () => {
       try {
         const availableResponse = await courseService.getAvailableCourses();
         availableCoursesData = availableResponse.courses || availableResponse || [];
-        console.log('📚 course-selection/available:', availableCoursesData.length, 'ders');
+        logger.debug('course-selection/available:', availableCoursesData.length, 'ders');
       } catch (apiError) {
-        console.warn('⚠️ course-selection/available endpoint başarısız:', apiError.message);
+        logger.warn('course-selection/available endpoint başarısız:', apiError.message);
       }
       
       // 2. Tüm dersleri /courses endpoint'inden al
       try {
         const allCoursesResponse = await courseService.getAllCourses();
         const rawCourses = allCoursesResponse.courses || allCoursesResponse || [];
-        console.log('📚 /courses endpoint:', rawCourses.length, 'ders');
+        logger.debug('/courses endpoint:', rawCourses.length, 'ders');
         
         // Tüm dersleri formatla
         allCourses = rawCourses.map(course => {
@@ -357,7 +358,7 @@ const CourseSchedule = () => {
           };
         });
       } catch (coursesError) {
-        console.warn('⚠️ /courses endpoint başarısız:', coursesError.message);
+        logger.warn('/courses endpoint başarısız:', coursesError.message);
         
         // Fallback: Eğer /courses da başarısız olursa, availableCoursesData'yı kullan
         if (availableCoursesData.length > 0) {
@@ -380,7 +381,7 @@ const CourseSchedule = () => {
         return (a.courseCode || '').localeCompare(b.courseCode || '');
       });
       
-      console.log('✅ Toplam yüklenen ders:', allCourses.length);
+      logger.debug('Toplam yüklenen ders:', allCourses.length);
       console.log('   📗 Zorunlu:', allCourses.filter(c => !c.isElective).length);
       console.log('   📘 Seçmeli:', allCourses.filter(c => c.isElective).length);
       
@@ -411,7 +412,7 @@ const CourseSchedule = () => {
         course.semester
       );
       
-      alert(`✅ ${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
+      alert(`${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
       
       
       await loadMySchedule();
@@ -449,7 +450,7 @@ const CourseSchedule = () => {
     try {
       await courseService.unenrollCourse(course.courseId);
       
-      alert(`✅ ${course.courseCode} dersinden çıkıldı.`);
+      alert(`${course.courseCode} dersinden çıkıldı.`);
       
  
       await loadMySchedule();
@@ -967,7 +968,7 @@ const CourseSchedule = () => {
                               ))
                             ) : (
                               <div style={{ fontSize: '0.85rem', color: '#f57c00', fontStyle: 'italic', marginLeft: '1rem' }}>
-                                ⚠️ Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
+                                Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
                                 <br />
                                 <code style={{ fontSize: '0.75rem', background: '#fff', padding: '2px 6px', borderRadius: '4px', marginTop: '4px', display: 'inline-block' }}>
                                   POST /api/schedule/generate/{'{semester}'}
@@ -977,8 +978,8 @@ const CourseSchedule = () => {
                           </div>
 
                           <div style={{ fontSize: '0.85rem', color: course.isFull ? '#f44336' : '#4caf50' }}>
-                            👥 {course.enrolledCount}/{course.maxCapacity} - 
-                            {course.isFull ? ' ⛔ Kapasite Dolu' : ` ✅ ${course.availableSeats} Boş Yer`}
+                            Kapasite: {course.enrolledCount}/{course.maxCapacity} - 
+                            {course.isFull ? ' Kapasite Dolu' : ` ${course.availableSeats} Boş Yer`}
                           </div>
                         </div>
 
@@ -1005,7 +1006,7 @@ const CourseSchedule = () => {
                               style={{ cursor: 'not-allowed', opacity: 0.6 }}
                               title="Bu ders için henüz program oluşturulmamış"
                             >
-                              ⚠️ Program Yok
+                              Program Yok
                             </button>
                           ) : (
                             <button

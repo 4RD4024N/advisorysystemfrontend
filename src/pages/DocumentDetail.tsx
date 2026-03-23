@@ -215,7 +215,7 @@ const DocumentDetail = () => {
           <h2 className="card-header">Versions ({versions.length})</h2>
           {versions.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">📁</div>
+              <div className="empty-state-icon">No comments</div>
               <div className="empty-state-text">No versions yet</div>
             </div>
           ) : (

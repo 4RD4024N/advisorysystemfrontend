@@ -29,7 +29,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles 
         maxWidth: '600px',
         margin: '0 auto'
       }}>
-        <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>🚫</div>
+        <div style={{ fontSize: '5rem', marginBottom: '1rem' }}>X</div>
         <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
           Access Denied
         </h2>

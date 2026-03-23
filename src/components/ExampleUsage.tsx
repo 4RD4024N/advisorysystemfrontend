@@ -167,7 +167,7 @@ const ExampleUsage = () => {
       )}
 
       <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#fff3e0' }}>
-        <h3>⚠️ Important Notes:</h3>
+        <h3>Important Notes:</h3>
         <ul>
           <li>Make sure the backend API is running on https://localhost:7175</li>
           <li>Default credentials: stu@local / Arda123! (Student) or admin@local / Admin123! (Admin)</li>

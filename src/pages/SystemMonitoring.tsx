@@ -136,7 +136,7 @@ function SystemMonitoring() {
               {/* Storage Statistics */}
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-icon">📁</div>
+                  <div className="stat-icon">Files</div>
                   <div className="stat-info">
                     <h3>Total Files</h3>
                     <p className="stat-value">{storageStats?.totalFiles || 0}</p>
@@ -152,7 +152,7 @@ function SystemMonitoring() {
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon">📊</div>
+                  <div className="stat-icon">Stats</div>
                   <div className="stat-info">
                     <h3>Average File Size</h3>
                     <p className="stat-value">{formatBytes(storageStats?.averageSize || 0)}</p>
@@ -160,7 +160,7 @@ function SystemMonitoring() {
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon">⚠️</div>
+                  <div className="stat-icon">Warning</div>
                   <div className="stat-info">
                     <h3>Orphaned Files</h3>
                     <p className="stat-value">{storageStats?.orphanedCount || 0}</p>
@@ -277,7 +277,7 @@ function SystemMonitoring() {
                 </div>
 
                 <div className="health-card">
-                  <h3>🔐 Authentication</h3>
+                  <h3>Authentication</h3>
                   <div className={`status-indicator ${getStatusColor(healthStatus?.auth)}`}>
                     {healthStatus?.auth || 'Unknown'}
                   </div>

@@ -70,7 +70,7 @@ const CreateSubmission = () => {
 
       setMessage({
         type: 'success',
-        text: '✅ Teslim talebi başarıyla oluşturuldu! Öğrenciye bildirim gönderildi.'
+        text: 'Teslim talebi başarıyla oluşturuldu! Öğrenciye bildirim gönderildi.'
       });
       
       setFormData({
@@ -144,7 +144,7 @@ const CreateSubmission = () => {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">📅 Teslim Talebi Oluştur</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Teslim Talebi Oluştur</h1>
         <p className="text-gray-600">Öğrenciye tarih belirterek belge teslimi talep edin</p>
       </div>
 
@@ -221,11 +221,11 @@ const CreateSubmission = () => {
                 daysUntil < 7 ? 'text-orange-600' : 'text-green-600'
               }`}>
                 {daysUntil > 0 ? (
-                  <>⏰ {daysUntil} gün sonra</>
+                  <>{daysUntil} gün sonra</>
                 ) : daysUntil === 0 ? (
-                  <>⚠️ Bugün</>
+                  <>Bugün</>
                 ) : (
-                  <>❌ Geçmiş tarih seçilemez</>
+                  <>Geçmiş tarih seçilemez</>
                 )}
               </div>
             )}
@@ -248,7 +248,7 @@ const CreateSubmission = () => {
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
             />
             <p className="mt-2 text-sm text-gray-500">
-              📝 Öğrenciye gönderilecek ek bilgiler
+              Öğrenciye gönderilecek ek bilgiler
             </p>
           </div>
 

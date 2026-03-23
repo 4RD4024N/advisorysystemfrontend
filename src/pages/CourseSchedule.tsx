@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { authService, courseService, studentService } from '../services';
+import { logger } from '../utils/logger';
 import './CourseSchedule.css';
 
 const CourseSchedule = () => {

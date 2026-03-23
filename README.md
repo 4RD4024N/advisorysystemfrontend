@@ -1,13 +1,8 @@
 # Advisory System Frontend
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18.2-blue)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.0-brightgreen)](https://vitejs.dev/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-
 A comprehensive web application for managing student-advisor relationships in university settings.
 
-## 🎯 Features
+## Features
 
 - **Role-Based Access Control**: Separate interfaces for Students, Advisors, and Administrators
 - **Course Management**: View and manage course schedules, enrollment, and academic planning
@@ -17,7 +12,7 @@ A comprehensive web application for managing student-advisor relationships in un
 - **Statistics & Analytics**: Visual insights into academic performance
 - **Responsive Design**: Optimized for desktop and mobile devices
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -44,7 +39,7 @@ npm run dev
 
 The application will be available at `http://localhost:5173`
 
-## 🛠️ Development
+## Development
 
 ### Available Scripts
 
@@ -71,7 +66,7 @@ This project uses:
 - **Husky** for Git hooks
 - **lint-staged** for pre-commit checks
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
@@ -98,7 +93,7 @@ src/
 └── main.tsx         # Application entry point
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -116,7 +111,7 @@ The application connects to a REST API. Configure the base URL in `.env` or it d
 
 All API calls are authenticated using JWT tokens stored in `localStorage`.
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -134,7 +129,7 @@ Tests are written using:
 - **React Testing Library** for component testing
 - **jsdom** for DOM simulation
 
-## 📦 Building for Production
+## Building for Production
 
 ```bash
 # Build the project
@@ -146,7 +141,7 @@ npm run preview
 
 The optimized production files will be in the `dist/` directory.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting a Pull Request.
 
@@ -156,11 +151,11 @@ Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTIN
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 User Roles
+## User Roles
 
 ### Student
 - View course schedules
@@ -180,14 +175,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - System-wide configuration
 - Access all features
 
-## 🔐 Security
+## Security
 
 - JWT-based authentication
 - Role-based authorization
 - Secure HTTP-only storage recommendations
 - Input validation and sanitization
 
-## 📊 Tech Stack
+## Tech Stack
 
 - **Frontend Framework**: React 18
 - **Build Tool**: Vite 5
@@ -198,23 +193,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Testing**: Vitest + React Testing Library
 - **Code Quality**: ESLint + Prettier
 
-## 🌐 Browser Support
+## Browser Support
 
 - Chrome (latest)
 - Firefox (latest)
 - Safari (latest)
 - Edge (latest)
 
-## 📞 Support
+## Support
 
 For support, please open an issue on GitHub or contact the development team.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built as a capstone project
 - Thanks to all contributors
 
 ---
 
-Made with ❤️ by the Advisory System Team
+Made by the Advisory System Team
 

@@ -71,7 +71,7 @@ function Notifications() {
       case 1: return '💬'; // NewComment
       case 2: return '👨‍🏫'; // AdvisorAssigned
       case 3: return '📄'; // DocumentUploaded
-      case 4: return '✅'; // SubmissionStatusChanged
+      case 4: return 'OK'; // SubmissionStatusChanged
       case 5: return '📢'; // General
       default: return '📬';
     }

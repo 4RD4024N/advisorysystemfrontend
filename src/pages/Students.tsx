@@ -275,7 +275,7 @@ function Students() {
               </div>
             )) : (
               <div className="empty-state">
-                <div className="empty-icon">👥</div>
+                <div className="empty-icon">No students</div>
                 <p>No students found</p>
               </div>
             )}

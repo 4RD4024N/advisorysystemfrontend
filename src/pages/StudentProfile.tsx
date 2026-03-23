@@ -146,7 +146,7 @@ function StudentProfile() {
                 <div className="advisor-email">{advisor.advisor.email}</div>
               </div>
               <div className="advisor-status">
-                <span className="status-badge assigned">✅ Assigned</span>
+                <span className="status-badge assigned">Assigned</span>
               </div>
             </div>
           ) : (
@@ -274,7 +274,7 @@ function StudentProfile() {
           <h2>Prerequisites Check</h2>
           <div className="prerequisite-status">
             <div className="status-icon">
-              {prerequisites.meetsPrerequisites ? '✅' : '❌'}
+              {prerequisites.meetsPrerequisites ? 'Yes' : 'No'}
             </div>
             <div className="status-message">
               {prerequisites.message}

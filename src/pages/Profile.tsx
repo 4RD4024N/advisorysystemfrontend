@@ -32,7 +32,7 @@ const Profile = () => {
 
       {message.text && (
         <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-3`}>
-          {message.type === 'success' ? '✅' : '❌'} {message.text}
+          {message.type === 'success' ? '✓' : '×'} {message.text}
         </div>
       )}
 
@@ -69,7 +69,7 @@ const Profile = () => {
             {myAdvisor ? (
               <div>
                 <div className="alert alert-success">
-                  <strong>✅ Danışman Atandı</strong>
+                  <strong>Danışman Atandı</strong>
                 </div>
                 
                 <div className="mb-3">
@@ -93,7 +93,7 @@ const Profile = () => {
             ) : (
               <div>
                 <div className="alert alert-warning">
-                  <strong>⚠️ Danışman Atanmamış</strong>
+                  <strong>Danışman Atanmamış</strong>
                   <p style={{ fontSize: '13px', marginTop: '8px', marginBottom: 0 }}>
                     Henüz bir danışmanınız yok. Danışman atanması için lütfen yöneticiniz ile iletişime geçin.
                   </p>
@@ -156,17 +156,17 @@ const Profile = () => {
         <h2 className="card-header">Yardım & Dokümantasyon</h2>
         <div className="grid grid-3">
           <div>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📚</div>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>Docs</div>
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>Dokümantasyon</div>
             <div className="text-sm text-muted">Detaylı rehberler için README.md dosyasına bakın</div>
           </div>
           <div>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔧</div>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>Settings</div>
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>API Referansı</div>
             <div className="text-sm text-muted">API_QUICK_REFERENCE.md dosyasına bakın</div>
           </div>
           <div>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>💡</div>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>Help</div>
             <div style={{ fontWeight: '500', marginBottom: '4px' }}>Destek</div>
             <div className="text-sm text-muted">Danışmanla iletişim</div>
           </div>
