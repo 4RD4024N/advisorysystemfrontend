@@ -1,0 +1,13 @@
+{
+  // Continue extension configuration for local LM Studio
+  "continue.telemetryEnabled": false,
+  "continue.enableTabAutocomplete": true,
+  
+  // Editor settings
+  "editor.inlineSuggest.enabled": true,
+  "editor.formatOnSave": true,
+  
+  // TypeScript settings
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
