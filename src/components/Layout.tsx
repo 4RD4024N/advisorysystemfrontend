@@ -144,7 +144,7 @@ const Layout = () => {
               )}
             </>
           )}
-
+        
           <div className="nav-divider"></div>
 
           <NavLink to="/profile" className="nav-item">
@@ -181,5 +181,4 @@ const Layout = () => {
     </div>
   );
 };
-
 export default Layout;
