@@ -23,7 +23,7 @@ function Students() {
     try {
       setLoading(true);
       let data;
-      
+
       if (filter === 'without-advisor') {
         data = await studentService.getStudentsWithoutAdvisor();
         setStudents(Array.isArray(data) ? data : []);
@@ -82,13 +82,13 @@ function Students() {
         studentIds: selectedStudents,
         ...notificationData
       });
-      
+
       if (response.errors && response.errors.length > 0) {
         alert(`Sent to ${response.successCount} students. Failed: ${response.failedCount}\n${response.errors.join('\n')}`);
       } else {
         alert(`Notification sent to ${selectedStudents.length} students!`);
       }
-      
+
       setShowBulkModal(false);
       setSelectedStudents([]);
       setNotificationData({ title: '', message: '' });
@@ -124,8 +124,8 @@ function Students() {
   };
 
   const toggleStudentSelection = (studentId) => {
-    setSelectedStudents(prev => 
-      prev.includes(studentId) 
+    setSelectedStudents(prev =>
+      prev.includes(studentId)
         ? prev.filter(id => id !== studentId)
         : [...prev, studentId]
     );
@@ -148,8 +148,8 @@ function Students() {
           <h1>Öğrenci Yönetimi</h1>
           <p>Öğrencileri, danışmanları ve bildirimleri yönetin</p>
         </div>
-        
-        <button 
+
+        <button
           className="btn-primary"
           onClick={() => setShowBulkModal(true)}
         >
@@ -158,21 +158,21 @@ function Students() {
       </div>
 
       <div className="students-filters">
-        <button 
+        <button
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           {userRole === 'Admin' ? 'All Students' : 'My Students'}
         </button>
         {userRole === 'Admin' && (
-          <button 
+          <button
             className={`filter-btn ${filter === 'without-advisor' ? 'active' : ''}`}
             onClick={() => setFilter('without-advisor')}
           >
             Danışmanı Olmayan
           </button>
         )}
-        <button 
+        <button
           className={`filter-btn ${filter === 'pending' ? 'active' : ''}`}
           onClick={() => setFilter('pending')}
         >
@@ -187,11 +187,11 @@ function Students() {
           <div className="empty-icon">👨‍🎓</div>
           <h3>Öğrenci bulunamadı</h3>
           <p>
-            {filter === 'without-advisor' 
-              ? 'All students have advisors assigned' 
+            {filter === 'without-advisor'
+              ? 'All students have advisors assigned'
               : filter === 'pending'
-              ? 'No students with pending submissions'
-              : 'No students in the system'}
+                ? 'No students with pending submissions'
+                : 'No students in the system'}
           </p>
         </div>
       ) : (
@@ -199,13 +199,13 @@ function Students() {
           {selectedStudents.length > 0 && (
             <div className="selection-toolbar">
               <span>{selectedStudents.length} öğrenci seçildi</span>
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => setShowBulkModal(true)}
               >
                 Seçilenlere Bildirim Yolla
               </button>
-              <button 
+              <button
                 className="btn-text"
                 onClick={() => setSelectedStudents([])}
               >
@@ -262,7 +262,7 @@ function Students() {
                 </div>
 
                 <div className="student-actions">
-                  <button 
+                  <button
                     className="btn-action"
                     onClick={() => {
                       setSelectedStudent(student);
@@ -289,7 +289,7 @@ function Students() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Bildirim Yolla</h2>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setShowNotificationModal(false)}
               >
@@ -307,7 +307,7 @@ function Students() {
                 <input
                   type="text"
                   value={notificationData.title}
-                  onChange={e => setNotificationData({...notificationData, title: e.target.value})}
+                  onChange={e => setNotificationData({ ...notificationData, title: e.target.value })}
                   placeholder="Notification title"
                 />
               </div>
@@ -316,7 +316,7 @@ function Students() {
                 <label>Metin</label>
                 <textarea
                   value={notificationData.message}
-                  onChange={e => setNotificationData({...notificationData, message: e.target.value})}
+                  onChange={e => setNotificationData({ ...notificationData, message: e.target.value })}
                   placeholder="Notification message"
                   rows="4"
                 />
@@ -324,13 +324,13 @@ function Students() {
             </div>
 
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => setShowNotificationModal(false)}
               >
                 İptal
               </button>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={() => handleSendNotification(selectedStudent.id)}
               >
@@ -346,7 +346,7 @@ function Students() {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Send Bulk Notification</h2>
-              <button 
+              <button
                 className="modal-close"
                 onClick={() => setShowBulkModal(false)}
               >
@@ -356,7 +356,7 @@ function Students() {
 
             <div className="modal-body">
               <p className="modal-subtitle">
-                {selectedStudents.length > 0 
+                {selectedStudents.length > 0
                   ? `To: ${selectedStudents.length} selected students`
                   : 'To: All students'}
               </p>
@@ -366,7 +366,7 @@ function Students() {
                 <input
                   type="text"
                   value={notificationData.title}
-                  onChange={e => setNotificationData({...notificationData, title: e.target.value})}
+                  onChange={e => setNotificationData({ ...notificationData, title: e.target.value })}
                   placeholder="Notification title"
                 />
               </div>
@@ -375,7 +375,7 @@ function Students() {
                 <label>Message</label>
                 <textarea
                   value={notificationData.message}
-                  onChange={e => setNotificationData({...notificationData, message: e.target.value})}
+                  onChange={e => setNotificationData({ ...notificationData, message: e.target.value })}
                   placeholder="Notification message"
                   rows="4"
                 />
@@ -383,28 +383,28 @@ function Students() {
             </div>
 
             <div className="modal-footer">
-              <button 
+              <button
                 className="btn-secondary"
                 onClick={() => setShowBulkModal(false)}
               >
                 Cancel
               </button>
               {selectedStudents.length > 0 ? (
-                <button 
+                <button
                   className="btn-primary"
                   onClick={handleSendBulkNotification}
                 >
                   Send to Selected ({selectedStudents.length})
                 </button>
               ) : userRole === 'Admin' ? (
-                <button 
+                <button
                   className="btn-danger"
                   onClick={handleSendToAll}
                 >
                   Send to All Students
                 </button>
               ) : (
-                <button 
+                <button
                   className="btn-primary"
                   onClick={handleSendBulkNotification}
                   disabled

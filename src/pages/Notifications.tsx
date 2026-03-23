@@ -17,14 +17,14 @@ function Notifications() {
     try {
       setLoading(true);
       const params = {};
-      
+
       // Filtreye göre bildirimleri getir
       if (filter === 'unread') {
         params.isRead = false;
       } else if (filter === 'read') {
         params.isRead = true;
       }
-      
+
       const data = await notificationService.getNotifications(params);
       setNotifications(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -78,8 +78,8 @@ function Notifications() {
   };
 
   const getNotificationTypeName = (type) => {
-    const types = ['Deadline Approaching', 'New Comment', 'Advisor Assigned', 
-                   'Document Uploaded', 'Submission Status Changed', 'General'];
+    const types = ['Deadline Approaching', 'New Comment', 'Advisor Assigned',
+      'Document Uploaded', 'Submission Status Changed', 'General'];
     return types[type] || 'Notification';
   };
 
@@ -90,9 +90,9 @@ function Notifications() {
           <h1>Notifications</h1>
           <p>Stay updated with your activity</p>
         </div>
-        
+
         {unreadCount > 0 && (
-          <button 
+          <button
             className="btn-mark-all"
             onClick={handleMarkAllAsRead}
           >
@@ -102,19 +102,19 @@ function Notifications() {
       </div>
 
       <div className="notifications-filters">
-        <button 
+        <button
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
           All
         </button>
-        <button 
+        <button
           className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
           onClick={() => setFilter('unread')}
         >
           Unread {unreadCount > 0 && `(${unreadCount})`}
         </button>
-        <button 
+        <button
           className={`filter-btn ${filter === 'read' ? 'active' : ''}`}
           onClick={() => setFilter('read')}
         >
@@ -129,22 +129,22 @@ function Notifications() {
           <div className="empty-icon">📬</div>
           <h3>No notifications</h3>
           <p>
-            {filter === 'unread' 
-              ? "You're all caught up!" 
+            {filter === 'unread'
+              ? "You're all caught up!"
               : 'No notifications to display'}
           </p>
         </div>
       ) : (
         <div className="notifications-list">
           {notifications.map(notification => (
-            <div 
-              key={notification.id} 
+            <div
+              key={notification.id}
               className={`notification-card ${notification.isRead ? 'read' : 'unread'}`}
             >
               <div className="notification-icon">
                 {getNotificationIcon(notification.type)}
               </div>
-              
+
               <div className="notification-content">
                 <div className="notification-header-row">
                   <h3>{notification.title}</h3>
@@ -152,16 +152,16 @@ function Notifications() {
                     {getNotificationTypeName(notification.type)}
                   </span>
                 </div>
-                
+
                 <p className="notification-message">{notification.message}</p>
-                
+
                 <div className="notification-footer">
                   <span className="notification-time">
                     {new Date(notification.createdAt).toLocaleString()}
                   </span>
-                  
+
                   {!notification.isRead && (
-                    <button 
+                    <button
                       className="btn-mark-read"
                       onClick={() => handleMarkAsRead(notification.id)}
                     >

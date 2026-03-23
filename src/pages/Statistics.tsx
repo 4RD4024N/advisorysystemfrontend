@@ -86,7 +86,7 @@ const Statistics = () => {
             <div>
               <div className="text-sm text-muted mb-1">Average versions per document</div>
               <div style={{ fontSize: '24px', fontWeight: '600' }}>
-                {stats.totalDocuments > 0 
+                {stats.totalDocuments > 0
                   ? (stats.totalVersions / stats.totalDocuments).toFixed(1)
                   : 0}
               </div>

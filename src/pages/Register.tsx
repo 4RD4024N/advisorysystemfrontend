@@ -28,9 +28,9 @@ const Register = () => {
       }, 2000);
     } catch (err) {
       console.error('Register hatası:', err.response?.data);
-      const errorMsg = err.response?.data?.message 
+      const errorMsg = err.response?.data?.message
         || err.response?.data?.title
-        || err.response?.data?.errors 
+        || err.response?.data?.errors
         || 'Registration failed. Please try again.';
       setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
@@ -108,8 +108,8 @@ const Register = () => {
             <p className="text-xs text-muted mt-1">Minimum 6 karakter</p>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-lg w-full"
             disabled={loading || success}
           >

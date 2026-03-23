@@ -9,7 +9,7 @@ const CourseSchedule = () => {
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
-  
+
   // Advisor için öğrenci seçimi
   const [userRole, setUserRole] = useState(null);
   const [students, setStudents] = useState([]);
@@ -23,21 +23,21 @@ const CourseSchedule = () => {
     'Thursday': 'Perşembe',
     'Friday': 'Cuma'
   };
-  
+
   const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'];
-  
+
   const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00', 
+    '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
   // Gün ismini normalize et - Türkçe/İngilizce karakter uyumsuzluğunu çözer
   const normalizeDayName = (dayName) => {
     if (!dayName) return null;
-    
+
     // Küçük harfe çevir ve boşlukları temizle
     const normalized = dayName.toLowerCase().trim();
-    
+
     // Tüm olası gün ismi varyasyonlarını maple
     const dayMappings = {
       // İngilizce
@@ -48,7 +48,7 @@ const CourseSchedule = () => {
       'friday': 'Cuma',
       'saturday': 'Cumartesi',
       'sunday': 'Pazar',
-      
+
       // Türkçe - doğru karakterler
       'pazartesi': 'Pazartesi',
       'salı': 'Salı',
@@ -57,17 +57,17 @@ const CourseSchedule = () => {
       'cuma': 'Cuma',
       'cumartesi': 'Cumartesi',
       'pazar': 'Pazar',
-      
+
       // Türkçe - ASCII karakterler (backend'den böyle gelebilir)
       'sali': 'Salı',
       'carsamba': 'Çarşamba',
       'persembe': 'Perşembe',
-      
+
       // Türkçe - büyük i sorunları
       'salİ': 'Salı',
       'çarŞamba': 'Çarşamba',
       'perŞembe': 'Perşembe',
-      
+
       // Kısaltmalar
       'mon': 'Pazartesi',
       'tue': 'Salı',
@@ -76,7 +76,7 @@ const CourseSchedule = () => {
       'fri': 'Cuma',
       'sat': 'Cumartesi',
       'sun': 'Pazar',
-      
+
       // Sayısal değerler (0=Pazar, 1=Pazartesi, ...)
       '0': 'Pazar',
       '1': 'Pazartesi',
@@ -86,24 +86,24 @@ const CourseSchedule = () => {
       '5': 'Cuma',
       '6': 'Cumartesi'
     };
-    
+
     // Direkt eşleşme
     if (dayMappings[normalized]) {
       return dayMappings[normalized];
     }
-    
+
     // Zaten doğru formatta mı kontrol et
     if (days.includes(dayName)) {
       return dayName;
     }
-    
+
     // Partial match dene (örn: "Salı" içinde "sal" var mı)
     for (const [key, value] of Object.entries(dayMappings)) {
       if (normalized.includes(key) || key.includes(normalized)) {
         return value;
       }
     }
-    
+
     logger.warn('Bilinmeyen gün ismi:', dayName);
     return dayName; // Eşleşme bulunamazsa orijinali döndür
   };
@@ -111,7 +111,7 @@ const CourseSchedule = () => {
   useEffect(() => {
     const userInfo = authService.getUserInfo();
     setUserRole(userInfo?.role);
-    
+
     if (userInfo?.role === 'Advisor') {
       // Advisor: önce öğrencileri yükle
       loadMyStudents();
@@ -144,9 +144,9 @@ const CourseSchedule = () => {
       setLoading(true);
       // courseService.getStudentSchedule kullan (doğru endpoint)
       const response = await courseService.getStudentSchedule(studentId);
-      
+
       logger.debug('Öğrenci programı yanıtı:', response);
-      
+
       // Haftalık programı oluştur
       const weeklySchedule = {
         'Pazartesi': [],
@@ -155,13 +155,13 @@ const CourseSchedule = () => {
         'Perşembe': [],
         'Cuma': []
       };
-      
+
       response.courses?.forEach(course => {
         course.sessions?.forEach(session => {
           // Gün ismini normalize et
           const normalizedDay = normalizeDayName(session.dayName);
           console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
-          
+
           const scheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
@@ -175,7 +175,7 @@ const CourseSchedule = () => {
             credits: course.credits,
             ects: course.ects
           };
-          
+
           if (normalizedDay && weeklySchedule[normalizedDay]) {
             weeklySchedule[normalizedDay].push(scheduleEntry);
           } else {
@@ -183,30 +183,30 @@ const CourseSchedule = () => {
           }
         });
       });
-      
+
       console.log('📊 Haftalık program:', weeklySchedule);
-      
+
       const updatedResponse = {
         ...response,
         weeklySchedule: weeklySchedule
       };
-      
-      setMySchedule(updatedResponse || { 
-        weeklySchedule: {}, 
-        courses: [], 
-        totalCourses: 0, 
-        totalCredits: 0, 
-        totalECTS: 0 
+
+      setMySchedule(updatedResponse || {
+        weeklySchedule: {},
+        courses: [],
+        totalCourses: 0,
+        totalCredits: 0,
+        totalECTS: 0
       });
-      
+
     } catch (error) {
       console.error('Ders programı yüklenirken hata:', error);
-      setMySchedule({ 
-        weeklySchedule: {}, 
-        courses: [], 
-        totalCourses: 0, 
-        totalCredits: 0, 
-        totalECTS: 0 
+      setMySchedule({
+        weeklySchedule: {},
+        courses: [],
+        totalCourses: 0,
+        totalCredits: 0,
+        totalECTS: 0
       });
     } finally {
       setLoading(false);
@@ -220,7 +220,7 @@ const CourseSchedule = () => {
     // students listesinde id veya odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, userId
     const student = students.find(s => s.id === id || s.userId === id);
     setSelectedStudent(student);
-    
+
     if (id) {
       // Backend için doğru id'yi kullan (userId varsa onu, yoksa id)
       const backendId = student?.userId || id;
@@ -234,7 +234,7 @@ const CourseSchedule = () => {
     try {
       setLoading(true);
       const response = await courseService.getMySchedule();
-      
+
       // Haftalık programı oluştur
       const weeklySchedule = {
         'Pazartesi': [],
@@ -243,13 +243,13 @@ const CourseSchedule = () => {
         'Perşembe': [],
         'Cuma': []
       };
-      
+
       response.courses?.forEach(course => {
         course.sessions?.forEach(session => {
           // Gün ismini normalize et
           const normalizedDay = normalizeDayName(session.dayName);
           console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
-          
+
           const scheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
@@ -263,7 +263,7 @@ const CourseSchedule = () => {
             credits: course.credits,
             ects: course.ects
           };
-          
+
           if (normalizedDay && weeklySchedule[normalizedDay]) {
             weeklySchedule[normalizedDay].push(scheduleEntry);
           } else {
@@ -271,33 +271,33 @@ const CourseSchedule = () => {
           }
         });
       });
-      
+
       console.log('📊 Haftalık program:', weeklySchedule);
-      
+
       const updatedResponse = {
         ...response,
         weeklySchedule: weeklySchedule
       };
-      
-      setMySchedule(updatedResponse || { 
-        weeklySchedule: {}, 
-        courses: [], 
-        totalCourses: 0, 
-        totalCredits: 0, 
-        totalECTS: 0 
+
+      setMySchedule(updatedResponse || {
+        weeklySchedule: {},
+        courses: [],
+        totalCourses: 0,
+        totalCredits: 0,
+        totalECTS: 0
       });
-      
+
     } catch (error) {
       console.error('Ders programı yüklenirken hata:', error);
       logger.error('Error data:', error.response?.data);
       logger.error('Full error:', JSON.stringify(error, null, 2));
-      
-      setMySchedule({ 
-        weeklySchedule: {}, 
-        courses: [], 
-        totalCourses: 0, 
-        totalCredits: 0, 
-        totalECTS: 0 
+
+      setMySchedule({
+        weeklySchedule: {},
+        courses: [],
+        totalCourses: 0,
+        totalCredits: 0,
+        totalECTS: 0
       });
     } finally {
       logger.debug('loadMySchedule BİTTİ');
@@ -305,14 +305,14 @@ const CourseSchedule = () => {
     }
   };
 
-  
+
   const loadAvailableCourses = async () => {
     try {
       console.log('🔄 Tüm dersler yükleniyor (zorunlu + seçmeli)...');
-      
+
       let allCourses = [];
       let availableCoursesData = [];
-      
+
       // 1. Önce course-selection/available endpoint'ini dene (schedule bilgisiyle gelir)
       try {
         const availableResponse = await courseService.getAvailableCourses();
@@ -321,20 +321,20 @@ const CourseSchedule = () => {
       } catch (apiError) {
         logger.warn('course-selection/available endpoint başarısız:', apiError.message);
       }
-      
+
       // 2. Tüm dersleri /courses endpoint'inden al
       try {
         const allCoursesResponse = await courseService.getAllCourses();
         const rawCourses = allCoursesResponse.courses || allCoursesResponse || [];
         logger.debug('/courses endpoint:', rawCourses.length, 'ders');
-        
+
         // Tüm dersleri formatla
         allCourses = rawCourses.map(course => {
           // Eğer availableCoursesData'da bu ders varsa, oradan schedule bilgisini al
           const availableCourse = availableCoursesData.find(
             ac => ac.courseId === course.id || ac.courseCode === (course.courseCode || course.code)
           );
-          
+
           return {
             courseId: course.id || course.courseId,
             courseCode: course.courseCode || course.code,
@@ -359,18 +359,18 @@ const CourseSchedule = () => {
         });
       } catch (coursesError) {
         logger.warn('/courses endpoint başarısız:', coursesError.message);
-        
+
         // Fallback: Eğer /courses da başarısız olursa, availableCoursesData'yı kullan
         if (availableCoursesData.length > 0) {
           allCourses = availableCoursesData;
         }
       }
-      
+
       // 3. Eğer hiç ders yoksa ve availableCoursesData varsa onu kullan
       if (allCourses.length === 0 && availableCoursesData.length > 0) {
         allCourses = availableCoursesData;
       }
-      
+
       // 4. Dersleri sırala: Önce zorunlu, sonra seçmeli, alfabetik
       allCourses.sort((a, b) => {
         // Önce zorunlu/seçmeli sıralaması
@@ -380,13 +380,13 @@ const CourseSchedule = () => {
         // Sonra ders koduna göre alfabetik
         return (a.courseCode || '').localeCompare(b.courseCode || '');
       });
-      
+
       logger.debug('Toplam yüklenen ders:', allCourses.length);
       console.log('   📗 Zorunlu:', allCourses.filter(c => !c.isElective).length);
       console.log('   📘 Seçmeli:', allCourses.filter(c => c.isElective).length);
-      
+
       setAvailableCourses(allCourses);
-      
+
     } catch (error) {
       console.error('❌ Dersler yüklenirken hata:', error);
       setAvailableCourses([]);
@@ -411,25 +411,25 @@ const CourseSchedule = () => {
         course.sectionCode,
         course.semester
       );
-      
+
       alert(`${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
-      
-      
+
+
       await loadMySchedule();
       await loadAvailableCourses();
-      
+
       setShowCourseModal(false);
     } catch (error) {
       console.error('❌ Kayıt hatası:', error);
-      
+
       const errorData = error.response?.data;
-      
+
       if (errorData?.conflictDetails) {
         // Çakışma detaylarını göster
         const conflicts = errorData.conflictDetails
           .map(c => `• ${c.courseCode}: ${c.day} ${c.existingTime}`)
           .join('\n');
-        
+
         alert(`❌ ${errorData.error}\n\n${errorData.message}\n\nÇakışan Dersler:\n${conflicts}`);
       } else if (errorData?.message) {
         alert(`❌ ${errorData.error}\n\n${errorData.message}`);
@@ -449,10 +449,10 @@ const CourseSchedule = () => {
 
     try {
       await courseService.unenrollCourse(course.courseId);
-      
+
       alert(`${course.courseCode} dersinden çıkıldı.`);
-      
- 
+
+
       await loadMySchedule();
       await loadAvailableCourses();
     } catch (error) {
@@ -461,17 +461,17 @@ const CourseSchedule = () => {
     }
   };
 
- 
+
   const getCourseAtSlot = (day, time) => {
     if (!mySchedule?.weeklySchedule?.[day]) {
       return null;
     }
-    
-  
+
+
     const session = mySchedule.weeklySchedule[day].find(session => {
       return session.startTime === time;
     });
-    
+
     return session;
   };
 
@@ -508,8 +508,8 @@ const CourseSchedule = () => {
               value={selectedStudentId || ''}
               onChange={(e) => handleStudentSelect(e.target.value)}
               className="input"
-              style={{ 
-                minWidth: '280px', 
+              style={{
+                minWidth: '280px',
                 padding: '0.75rem 1rem',
                 fontSize: '1rem',
                 borderRadius: '8px',
@@ -562,8 +562,8 @@ const CourseSchedule = () => {
               value={selectedStudentId || ''}
               onChange={(e) => handleStudentSelect(e.target.value)}
               className="input"
-              style={{ 
-                minWidth: '280px', 
+              style={{
+                minWidth: '280px',
                 padding: '0.75rem 1rem',
                 fontSize: '1rem',
                 borderRadius: '8px',
@@ -579,8 +579,8 @@ const CourseSchedule = () => {
               ))}
             </select>
           )}
-          
-         
+
+
           {userRole === 'Student' && (
             <button
               onClick={() => {
@@ -618,7 +618,7 @@ const CourseSchedule = () => {
         <div className="card" style={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
           <div className="card-header" style={{ color: 'white', opacity: 0.9 }}>Haftalık Saat</div>
           <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>
-            {mySchedule?.courses?.reduce((sum, course) => 
+            {mySchedule?.courses?.reduce((sum, course) =>
               sum + (course.sessions?.reduce((s, session) => s + ((session.durationMinutes || 60) / 60), 0) || 0), 0
             ) || 0}
           </div>
@@ -631,8 +631,8 @@ const CourseSchedule = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px', tableLayout: 'fixed' }}>
             <thead>
               <tr>
-                <th style={{ 
-                  padding: '1rem', 
+                <th style={{
+                  padding: '1rem',
                   borderBottom: '2px solid var(--border-color)',
                   background: 'var(--bg-secondary)',
                   position: 'sticky',
@@ -643,8 +643,8 @@ const CourseSchedule = () => {
                   Saat
                 </th>
                 {days.map(day => (
-                  <th key={day} style={{ 
-                    padding: '1rem', 
+                  <th key={day} style={{
+                    padding: '1rem',
                     borderBottom: '2px solid var(--border-color)',
                     background: 'var(--bg-secondary)',
                     textAlign: 'center',
@@ -658,8 +658,8 @@ const CourseSchedule = () => {
             <tbody>
               {timeSlots.map(time => (
                 <tr key={time}>
-                  <td style={{ 
-                    padding: '0.75rem', 
+                  <td style={{
+                    padding: '0.75rem',
                     borderBottom: '1px solid var(--border-color)',
                     fontWeight: 'bold',
                     background: 'var(--bg-secondary)',
@@ -671,12 +671,12 @@ const CourseSchedule = () => {
                   </td>
                   {days.map(day => {
                     const session = getCourseAtSlot(day, time);
-                    
+
                     return (
-                      <td 
+                      <td
                         key={`${day}-${time}`}
-                        style={{ 
-                          padding: '0.5rem', 
+                        style={{
+                          padding: '0.5rem',
                           borderBottom: '1px solid var(--border-color)',
                           borderRight: '1px solid var(--border-color)',
                           minHeight: '60px',
@@ -691,14 +691,14 @@ const CourseSchedule = () => {
                         }}
                       >
                         {session && session.startTime === time && (
-                          <div style={{ 
+                          <div style={{
                             position: 'relative',
                             overflow: 'hidden',
                             maxHeight: '100%'
                           }}>
-                            <div style={{ 
-                              fontWeight: 'bold', 
-                              fontSize: '0.85rem', 
+                            <div style={{
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem',
                               marginBottom: '2px',
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -706,9 +706,9 @@ const CourseSchedule = () => {
                             }}>
                               {session.courseCode}
                             </div>
-                            <div style={{ 
-                              fontSize: '0.7rem', 
-                              opacity: 0.95, 
+                            <div style={{
+                              fontSize: '0.7rem',
+                              opacity: 0.95,
                               marginBottom: '2px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -719,8 +719,8 @@ const CourseSchedule = () => {
                             }} title={session.courseName}>
                               {session.courseName}
                             </div>
-                            <div style={{ 
-                              fontSize: '0.65rem', 
+                            <div style={{
+                              fontSize: '0.65rem',
                               opacity: 0.9,
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
@@ -768,16 +768,16 @@ const CourseSchedule = () => {
                     )}
                     <div style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>
                       {(course.sessions || []).map((session, idx) => (
-                        <div key={idx} style={{ 
+                        <div key={idx} style={{
                           padding: '0.5rem',
                           background: 'white',
                           borderRadius: '4px',
                           marginBottom: '0.5rem',
                           border: '1px solid #e0e0e0'
                         }}>
-                          <strong>{session.dayName}:</strong> {session.timeSlot} | 
-                          📍 {session.roomNumber} | 
-                          {session.sessionType} | 
+                          <strong>{session.dayName}:</strong> {session.timeSlot} |
+                          📍 {session.roomNumber} |
+                          {session.sessionType} |
                           👨‍🏫 {session.instructorName}
                         </div>
                       ))}
@@ -815,7 +815,7 @@ const CourseSchedule = () => {
 
       {/* Ders Seçimi Modal - Sadece öğrenci için */}
       {showCourseModal && userRole === 'Student' && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -830,7 +830,7 @@ const CourseSchedule = () => {
           }}
           onClick={() => setShowCourseModal(false)}
         >
-          <div 
+          <div
             style={{
               background: 'white',
               borderRadius: '16px',
@@ -875,7 +875,7 @@ const CourseSchedule = () => {
                 value={courseSearchTerm}
                 onChange={(e) => setCourseSearchTerm(e.target.value)}
                 className="input"
-                style={{ 
+                style={{
                   marginBottom: '1.5rem',
                   padding: '0.75rem',
                   fontSize: '1rem'
@@ -889,7 +889,7 @@ const CourseSchedule = () => {
                     if (!courseSearchTerm) return true;
                     const searchLower = courseSearchTerm.toLowerCase();
                     return course.courseCode.toLowerCase().includes(searchLower) ||
-                           course.courseName.toLowerCase().includes(searchLower);
+                      course.courseName.toLowerCase().includes(searchLower);
                   })
                   .map(course => (
                     <div
@@ -931,9 +931,9 @@ const CourseSchedule = () => {
                               </span>
                             )}
                           </div>
-                          
+
                           <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                            Şube: {course.sectionCode} | {course.credits} Kredi | {course.ects} ECTS | 
+                            Şube: {course.sectionCode} | {course.credits} Kredi | {course.ects} ECTS |
                             T:{course.theoryHours} U:{course.practiceHours}
                           </div>
 
@@ -948,9 +948,9 @@ const CourseSchedule = () => {
                           </div>
 
                           {/* Schedule */}
-                          <div style={{ 
-                            background: course.schedule && course.schedule.length > 0 ? '#f5f5f5' : '#fff3e0', 
-                            padding: '0.75rem', 
+                          <div style={{
+                            background: course.schedule && course.schedule.length > 0 ? '#f5f5f5' : '#fff3e0',
+                            padding: '0.75rem',
                             borderRadius: '8px',
                             marginBottom: '0.75rem',
                             border: course.schedule && course.schedule.length > 0 ? 'none' : '1px solid #ff9800'
@@ -961,8 +961,8 @@ const CourseSchedule = () => {
                             {course.schedule && course.schedule.length > 0 ? (
                               course.schedule.map((session, idx) => (
                                 <div key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.25rem', marginLeft: '1rem' }}>
-                                  • <strong>{dayNames[session.dayOfWeek]}:</strong> {session.startTime} - {session.endTime} 
-                                  | 📍 {session.roomNumber} 
+                                  • <strong>{dayNames[session.dayOfWeek]}:</strong> {session.startTime} - {session.endTime}
+                                  | 📍 {session.roomNumber}
                                   | {session.sessionType}
                                 </div>
                               ))
@@ -978,7 +978,7 @@ const CourseSchedule = () => {
                           </div>
 
                           <div style={{ fontSize: '0.85rem', color: course.isFull ? '#f44336' : '#4caf50' }}>
-                            Kapasite: {course.enrolledCount}/{course.maxCapacity} - 
+                            Kapasite: {course.enrolledCount}/{course.maxCapacity} -
                             {course.isFull ? ' Kapasite Dolu' : ` ${course.availableSeats} Boş Yer`}
                           </div>
                         </div>

@@ -18,7 +18,7 @@ const DocumentDetail = () => {
   const [ratingForm, setRatingForm] = useState({ score: '', comments: '' });
   const [previewUrl, setPreviewUrl] = useState(null);
   const [metadata, setMetadata] = useState(null);
-  
+
   const userInfo = authService.getUserInfo();
   const isAdvisorOrAdmin = authService.isAdvisor() || authService.isAdmin();
 
@@ -60,7 +60,7 @@ const DocumentDetail = () => {
     if (!isAdvisorOrAdmin) {
       return;
     }
-    
+
     try {
       const data = await ratingService.getRatingsByVersion(versionId);
       setRatings(prev => ({ ...prev, [versionId]: data }));
@@ -276,10 +276,10 @@ const DocumentDetail = () => {
             <div className="card" style={{ gridColumn: 'span 2' }}>
               <h2 className="card-header">Document Preview</h2>
               <div style={{ height: '600px', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
-                <iframe 
-                  src={previewUrl} 
-                  width="100%" 
-                  height="100%" 
+                <iframe
+                  src={previewUrl}
+                  width="100%"
+                  height="100%"
                   style={{ border: 'none' }}
                   title="Document Preview"
                 />
@@ -293,7 +293,7 @@ const DocumentDetail = () => {
                 <h2 className="card-header" style={{ marginBottom: 0 }}>
                   Ratings for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
                 </h2>
-                <button 
+                <button
                   onClick={() => setShowRatingModal(true)}
                   className="btn btn-primary btn-sm"
                 >
@@ -301,74 +301,74 @@ const DocumentDetail = () => {
                 </button>
               </div>
 
-            {ratings[selectedVersion]?.hasRating ? (
-              <div>
-                <div style={{ 
-                  padding: '16px', 
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  borderRadius: '12px',
-                  color: 'white',
-                  marginBottom: '16px'
-                }}>
-                  <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
-                    {ratings[selectedVersion].averageScore.toFixed(1)} / 100
-                  </div>
-                  <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
-                    Average Score ({ratings[selectedVersion].ratingCount} rating{ratings[selectedVersion].ratingCount !== 1 ? 's' : ''})
-                  </div>
-                </div>
-
+              {ratings[selectedVersion]?.hasRating ? (
                 <div>
-                  {ratings[selectedVersion].ratings?.map((rating) => (
-                    <div
-                      key={rating.id}
-                      style={{
-                        padding: '16px',
-                        background: 'var(--bg-secondary)',
-                        borderRadius: '8px',
-                        marginBottom: '12px',
-                        border: '2px solid var(--border-color)'
-                      }}
-                    >
-                      <div className="flex-between mb-2">
-                        <div style={{ 
-                          display: 'inline-block',
-                          padding: '4px 12px',
-                          background: rating.score >= 80 ? '#84fab0' : rating.score >= 60 ? '#ffd3a5' : '#fd6585',
-                          borderRadius: '6px',
-                          fontWeight: 'bold',
-                          fontSize: '1.1rem'
-                        }}>
-                          {rating.score} / 100
-                        </div>
-                        {(authService.isAdmin() || rating.advisorUserId === userInfo?.sub) && (
-                          <button
-                            onClick={() => handleDeleteRating(rating.id)}
-                            className="btn btn-danger btn-sm"
-                            style={{ fontSize: '0.8rem' }}
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                      {rating.comments && (
-                        <div className="text-sm" style={{ marginTop: '8px', lineHeight: '1.5' }}>
-                          {rating.comments}
-                        </div>
-                      )}
-                      <div className="text-xs text-muted mt-2">
-                        {new Date(rating.createdAt).toLocaleString()}
-                      </div>
+                  <div style={{
+                    padding: '16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    marginBottom: '16px'
+                  }}>
+                    <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>
+                      {ratings[selectedVersion].averageScore.toFixed(1)} / 100
                     </div>
-                  ))}
+                    <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
+                      Average Score ({ratings[selectedVersion].ratingCount} rating{ratings[selectedVersion].ratingCount !== 1 ? 's' : ''})
+                    </div>
+                  </div>
+
+                  <div>
+                    {ratings[selectedVersion].ratings?.map((rating) => (
+                      <div
+                        key={rating.id}
+                        style={{
+                          padding: '16px',
+                          background: 'var(--bg-secondary)',
+                          borderRadius: '8px',
+                          marginBottom: '12px',
+                          border: '2px solid var(--border-color)'
+                        }}
+                      >
+                        <div className="flex-between mb-2">
+                          <div style={{
+                            display: 'inline-block',
+                            padding: '4px 12px',
+                            background: rating.score >= 80 ? '#84fab0' : rating.score >= 60 ? '#ffd3a5' : '#fd6585',
+                            borderRadius: '6px',
+                            fontWeight: 'bold',
+                            fontSize: '1.1rem'
+                          }}>
+                            {rating.score} / 100
+                          </div>
+                          {(authService.isAdmin() || rating.advisorUserId === userInfo?.sub) && (
+                            <button
+                              onClick={() => handleDeleteRating(rating.id)}
+                              className="btn btn-danger btn-sm"
+                              style={{ fontSize: '0.8rem' }}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                        {rating.comments && (
+                          <div className="text-sm" style={{ marginTop: '8px', lineHeight: '1.5' }}>
+                            {rating.comments}
+                          </div>
+                        )}
+                        <div className="text-xs text-muted mt-2">
+                          {new Date(rating.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="empty-state">
-                <div className="empty-state-icon">⭐</div>
-                <div className="empty-state-text">No ratings yet</div>
-              </div>
-            )}
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-state-icon">⭐</div>
+                  <div className="empty-state-text">No ratings yet</div>
+                </div>
+              )}
             </div>
           )}
 
@@ -425,7 +425,7 @@ const DocumentDetail = () => {
 
       {/* Rating Modal */}
       {showRatingModal && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: 0,
@@ -441,7 +441,7 @@ const DocumentDetail = () => {
           }}
           onClick={() => setShowRatingModal(false)}
         >
-          <div 
+          <div
             style={{
               background: 'white',
               borderRadius: '16px',
@@ -511,8 +511,8 @@ const DocumentDetail = () => {
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
                   Submit Rating
                 </button>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setShowRatingModal(false)}
                   className="btn btn-secondary"
                   style={{ flex: 1 }}

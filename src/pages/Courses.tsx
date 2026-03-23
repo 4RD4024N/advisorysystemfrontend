@@ -20,7 +20,7 @@ function Courses() {
       setLoading(true);
       // Tüm dersleri backend'den al
       const response = await courseService.getAllCourses();
-      
+
       const rawCourses = response.courses || response || [];
       const courses = rawCourses.map(course => ({
         code: course.courseCode || course.code,
@@ -35,7 +35,7 @@ function Courses() {
         prerequisite: course.prerequisite,
         category: course.category?.name || 'Diğer'
       }));
-      
+
       setAllCourses(courses);
     } catch (error) {
       logger.error('Dersler yüklenirken hata:', error as Error);
@@ -46,18 +46,18 @@ function Courses() {
   };
 
   const filteredCourses = allCourses.filter(course => {
-    const matchesSearch = searchTerm === '' || 
-                         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesSemester = selectedSemester === 'all' || 
-                           String(course.semester) === String(selectedSemester);
-    
-    const matchesType = selectedType === 'all' || 
-                       course.type.toLowerCase() === selectedType.toLowerCase() ||
-                       (selectedType.toLowerCase() === 'zorunlu' && course.type.toLowerCase().includes('zorunlu')) ||
-                       (selectedType.toLowerCase() === 'se�meli' && (course.type.toLowerCase().includes('se�meli') || course.type.toLowerCase().includes('elective')));
-    
+    const matchesSearch = searchTerm === '' ||
+      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesSemester = selectedSemester === 'all' ||
+      String(course.semester) === String(selectedSemester);
+
+    const matchesType = selectedType === 'all' ||
+      course.type.toLowerCase() === selectedType.toLowerCase() ||
+      (selectedType.toLowerCase() === 'zorunlu' && course.type.toLowerCase().includes('zorunlu')) ||
+      (selectedType.toLowerCase() === 'se�meli' && (course.type.toLowerCase().includes('se�meli') || course.type.toLowerCase().includes('elective')));
+
     return matchesSearch && matchesSemester && matchesType;
   });
 
@@ -127,10 +127,10 @@ function Courses() {
                 className="search-input"
               />
             </div>
-            
+
             <div className="filter-group">
-              <select 
-                value={selectedSemester} 
+              <select
+                value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
                 className="filter-select"
               >
@@ -145,8 +145,8 @@ function Courses() {
                 <option value="8">8. Yarıyıl</option>
               </select>
 
-              <select 
-                value={selectedType} 
+              <select
+                value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="filter-select"
               >
@@ -172,11 +172,11 @@ function Courses() {
                       {course.type}
                     </div>
                   </div>
-                  
+
                   <h3 className="course-name">{course.name}</h3>
-                  
+
                   <p className="course-description">{course.description}</p>
-                  
+
                   <div className="course-details">
                     <div className="detail-item">
                       <span className="detail-label">Yarıyıl:</span>

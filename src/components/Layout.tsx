@@ -14,9 +14,9 @@ const Layout = () => {
     setUserRole(userInfo?.role);
 
     loadUnreadCount();
-    
+
     const interval = setInterval(loadUnreadCount, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -110,7 +110,7 @@ const Layout = () => {
           {(userRole === 'Admin' || userRole === 'Advisor') && (
             <>
               <div className="nav-divider"></div>
-              
+
               {(userRole === 'Admin' || userRole === 'Advisor') && (
                 <NavLink to="/students" className="nav-item">
                   <span className="nav-text">Students</span>
@@ -131,7 +131,7 @@ const Layout = () => {
               )}
             </>
           )}
-        
+
           <div className="nav-divider"></div>
 
           <NavLink to="/profile" className="nav-item">
@@ -148,7 +148,7 @@ const Layout = () => {
 
       <div className="main-content">
         <header className="header">
-          <button 
+          <button
             className="toggle-sidebar"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >

@@ -13,7 +13,7 @@ interface RoleBasedRouteProps {
  */
 const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles }) => {
   const userInfo = authService.getUserInfo();
-  
+
   if (!userInfo) {
     return <Navigate to="/login" replace />;
   }
@@ -23,8 +23,8 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles 
 
   if (!hasPermission) {
     return (
-      <div style={{ 
-        padding: '4rem 2rem', 
+      <div style={{
+        padding: '4rem 2rem',
         textAlign: 'center',
         maxWidth: '600px',
         margin: '0 auto'
@@ -38,7 +38,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles 
           <br />
           This page is only available for {allowedRoles.join(' and ')} roles.
         </p>
-        <button 
+        <button
           onClick={() => window.history.back()}
           style={{
             padding: '0.75rem 1.5rem',

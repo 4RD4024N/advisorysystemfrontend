@@ -31,13 +31,13 @@ const AssignAdvisor = () => {
         studentService.getAllStudents({ pageSize: 1000 }),
         advisorService.getAllAdvisors()
       ]);
-      
+
       const studentsList = Array.isArray(studentsData?.students) ? studentsData.students : [];
       setStudents(studentsList);
-      
+
       const advisorsList = Array.isArray(advisorsData?.advisors) ? advisorsData.advisors : [];
       setAdvisors(advisorsList);
-      
+
       const assigned = studentsList.filter(s => s.hasAdvisor).length;
       const unassigned = studentsList.filter(s => !s.hasAdvisor).length;
       setStats({
@@ -46,7 +46,7 @@ const AssignAdvisor = () => {
         unassigned: unassigned,
         totalAdvisors: advisorsData?.totalAdvisors || advisorsList.length
       });
-      
+
       setMessage({ type: '', text: '' });
     } catch (error) {
       setMessage({
@@ -82,7 +82,7 @@ const AssignAdvisor = () => {
 
     try {
       setLoading(true);
-      
+
       // Danışman atama işlemini yap
       const result = await advisorService.assignAdvisorToStudent(
         selectedStudent.id,
@@ -93,9 +93,9 @@ const AssignAdvisor = () => {
         type: 'success',
         text: result.message || (result.isUpdate ? 'Öğretmen başarıyla güncellendi' : 'Öğretmen başarıyla atandı')
       });
-      
+
       closeModal();
-      
+
       // Reload data to reflect changes
       setTimeout(() => {
         loadData();
@@ -119,14 +119,14 @@ const AssignAdvisor = () => {
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
-      
+
       const result = await advisorService.removeAdvisorFromStudent(student.id);
 
       setMessage({
         type: 'success',
         text: result.message || 'Öğretmen ataması kaldırıldı'
       });
-      
+
       // Reload data
       setTimeout(() => {
         loadData();
@@ -186,11 +186,10 @@ const AssignAdvisor = () => {
       </div>
 
       {message.text && (
-        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${
-          message.type === 'success' 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
+        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
+            ? 'bg-green-50 border border-green-200 text-green-800'
             : 'bg-red-50 border border-red-200 text-red-800'
-        }`}>
+          }`}>
           <p className="font-semibold">{message.type === 'success' ? '✓' : '×'} {message.text}</p>
         </div>
       )}
@@ -230,21 +229,19 @@ const AssignAdvisor = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                filterType === 'all'
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'all'
                   ? 'bg-primary text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Tümü
             </button>
             <button
               onClick={() => setFilterType('unassigned')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-                filterType === 'unassigned'
+              className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'unassigned'
                   ? 'bg-yellow-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Öğretmensizler
             </button>
@@ -348,11 +345,11 @@ const AssignAdvisor = () => {
       </div>
 
       {showModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={closeModal}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all"
             onClick={(e) => e.stopPropagation()}
           >
@@ -390,11 +387,10 @@ const AssignAdvisor = () => {
             </div>
 
             {message.text && showModal && (
-              <div className={`mb-4 px-4 py-3 rounded-lg ${
-                message.type === 'success' 
-                  ? 'bg-green-50 border border-green-200 text-green-800' 
+              <div className={`mb-4 px-4 py-3 rounded-lg ${message.type === 'success'
+                  ? 'bg-green-50 border border-green-200 text-green-800'
                   : 'bg-red-50 border border-red-200 text-red-800'
-              }`}>
+                }`}>
                 <p className="text-sm font-medium">{message.text}</p>
               </div>
             )}

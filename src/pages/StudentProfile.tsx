@@ -255,8 +255,8 @@ function StudentProfile() {
               <div className="detail-item">
                 <span className="detail-label">Enrollment Date:</span>
                 <span className="detail-value">
-                  {profile.enrollmentDate 
-                    ? new Date(profile.enrollmentDate).toLocaleDateString() 
+                  {profile.enrollmentDate
+                    ? new Date(profile.enrollmentDate).toLocaleDateString()
                     : 'Not set'}
                 </span>
               </div>

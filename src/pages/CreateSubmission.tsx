@@ -8,7 +8,7 @@ const CreateSubmission = () => {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
-  
+
   const [formData, setFormData] = useState({
     studentEmail: '',
     documentId: '',
@@ -37,7 +37,7 @@ const CreateSubmission = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.studentEmail || !formData.dueDate) {
       setMessage({
         type: 'error',
@@ -60,7 +60,7 @@ const CreateSubmission = () => {
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
-      
+
       await submissionService.createSubmission({
         studentEmail: formData.studentEmail,
         documentId: formData.documentId ? parseInt(formData.documentId) : null,
@@ -72,7 +72,7 @@ const CreateSubmission = () => {
         type: 'success',
         text: 'Teslim talebi başarıyla oluşturuldu! Öğrenciye bildirim gönderildi.'
       });
-      
+
       setFormData({
         studentEmail: '',
         documentId: '',
@@ -149,11 +149,10 @@ const CreateSubmission = () => {
       </div>
 
       {message.text && (
-        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${
-          message.type === 'success' 
-            ? 'bg-green-50 border border-green-200 text-green-800' 
+        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
+            ? 'bg-green-50 border border-green-200 text-green-800'
             : 'bg-red-50 border border-red-200 text-red-800'
-        }`}>
+          }`}>
           <p className="font-semibold">{message.text}</p>
         </div>
       )}
@@ -217,9 +216,8 @@ const CreateSubmission = () => {
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
             />
             {daysUntil !== null && (
-              <div className={`mt-2 text-sm font-medium ${
-                daysUntil < 7 ? 'text-orange-600' : 'text-green-600'
-              }`}>
+              <div className={`mt-2 text-sm font-medium ${daysUntil < 7 ? 'text-orange-600' : 'text-green-600'
+                }`}>
                 {daysUntil > 0 ? (
                   <>{daysUntil} gün sonra</>
                 ) : daysUntil === 0 ? (

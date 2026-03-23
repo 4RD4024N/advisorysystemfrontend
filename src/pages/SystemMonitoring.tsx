@@ -5,11 +5,11 @@ import './SystemMonitoring.css';
 function SystemMonitoring() {
   const [activeTab, setActiveTab] = useState('storage');
   const [loading, setLoading] = useState(true);
-  
+
   const [storageInfo, setStorageInfo] = useState(null);
   const [storageStats, setStorageStats] = useState(null);
   const [filesList, setFilesList] = useState([]);
-  
+
   const [healthStatus, setHealthStatus] = useState(null);
   const [systemInfo, setSystemInfo] = useState(null);
   const [metrics, setMetrics] = useState(null);
@@ -22,7 +22,7 @@ function SystemMonitoring() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       if (activeTab === 'storage') {
         await loadStorageData();
       } else if (activeTab === 'health') {
@@ -42,7 +42,7 @@ function SystemMonitoring() {
         storageService.getStatistics(),
         storageService.listFiles()
       ]);
-      
+
       setStorageInfo(info);
       setStorageStats(stats);
       setFilesList(Array.isArray(filesResponse?.files) ? filesResponse.files : []);
@@ -62,7 +62,7 @@ function SystemMonitoring() {
         healthService.getMetrics(),
         healthService.checkDatabase()
       ]);
-      
+
       setHealthStatus(health);
       setSystemInfo(system);
       setMetrics(metricsData);
@@ -113,13 +113,13 @@ function SystemMonitoring() {
       </div>
 
       <div className="monitoring-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'storage' ? 'active' : ''}`}
           onClick={() => setActiveTab('storage')}
         >
           💾 Storage Management
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'health' ? 'active' : ''}`}
           onClick={() => setActiveTab('health')}
         >
@@ -189,14 +189,14 @@ function SystemMonitoring() {
 
               {/* Actions */}
               <div className="actions-section">
-                <button 
+                <button
                   className="btn-danger"
                   onClick={handleCleanupOrphaned}
                   disabled={!storageStats?.orphanedCount}
                 >
                   🗑️ Cleanup Orphaned Files
                 </button>
-                <button 
+                <button
                   className="btn-secondary"
                   onClick={loadStorageData}
                 >
@@ -355,7 +355,7 @@ function SystemMonitoring() {
 
               {/* Refresh Button */}
               <div className="actions-section">
-                <button 
+                <button
                   className="btn-secondary"
                   onClick={loadHealthData}
                 >

@@ -39,7 +39,7 @@ const Profile = () => {
       <div className="grid grid-2">
         <div className="card">
           <h2 className="card-header">Account Information</h2>
-          
+
           <div className="mb-3">
             <div className="text-sm text-muted mb-1">Email</div>
             <div style={{ fontSize: '16px', fontWeight: '500' }}>
@@ -65,13 +65,13 @@ const Profile = () => {
         {userInfo?.role === 'Student' && (
           <div className="card">
             <h2 className="card-header">Danışmanım</h2>
-            
+
             {myAdvisor ? (
               <div>
                 <div className="alert alert-success">
                   <strong>Danışman Atandı</strong>
                 </div>
-                
+
                 <div className="mb-3">
                   <div className="text-sm text-muted mb-1">Danışman Adı</div>
                   <div style={{ fontSize: '16px', fontWeight: '500' }}>
@@ -106,7 +106,7 @@ const Profile = () => {
         {userInfo?.role !== 'Student' && (
           <div className="card">
             <h2 className="card-header">Settings</h2>
-            
+
             <div className="alert alert-info">
               <strong>Note:</strong> Additional profile settings and preferences will be available in future updates.
             </div>
@@ -133,7 +133,7 @@ const Profile = () => {
       {userInfo?.role === 'Student' && (
         <div className="card mt-3">
           <h2 className="card-header">Ayarlar</h2>
-          
+
           <div className="grid grid-2">
             <div className="mb-3">
               <div className="text-sm text-muted mb-1">API Base URL</div>

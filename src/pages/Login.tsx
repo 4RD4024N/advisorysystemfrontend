@@ -77,8 +77,8 @@ const Login = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-lg w-full"
             disabled={loading}
           >

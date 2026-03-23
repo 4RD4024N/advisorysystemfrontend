@@ -11,7 +11,7 @@ const Documents = () => {
   const [formData, setFormData] = useState({ title: '', tags: '' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [filters, setFilters] = useState({
     title: '',
     startDate: '',
@@ -46,19 +46,19 @@ const Documents = () => {
     let filtered = [...documents];
 
     if (filters.title.trim()) {
-      filtered = filtered.filter(doc => 
+      filtered = filtered.filter(doc =>
         doc.title.toLowerCase().includes(filters.title.toLowerCase())
       );
     }
 
     if (filters.startDate) {
-      filtered = filtered.filter(doc => 
+      filtered = filtered.filter(doc =>
         new Date(doc.createdAt) >= new Date(filters.startDate)
       );
     }
 
     if (filters.endDate) {
-      filtered = filtered.filter(doc => 
+      filtered = filtered.filter(doc =>
         new Date(doc.createdAt) <= new Date(filters.endDate + 'T23:59:59')
       );
     }
@@ -98,7 +98,7 @@ const Documents = () => {
 
   const getRoleInfo = () => {
     if (!userInfo) return null;
-    
+
     const role = userInfo.role;
     if (role === 'Admin') {
       return { text: 'Tüm Belgeler', icon: '👑', color: 'text-purple-600' };
@@ -135,8 +135,8 @@ const Documents = () => {
           )}
         </div>
         {userInfo?.role === 'Student' && (
-          <button 
-            onClick={() => setShowCreateModal(true)} 
+          <button
+            onClick={() => setShowCreateModal(true)}
             className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
             <span>➕</span>
@@ -210,13 +210,13 @@ const Documents = () => {
               {filters.title || filters.startDate || filters.endDate ? 'Belge bulunamadı' : 'Henüz belge yok'}
             </div>
             <div className="text-gray-600 mb-6">
-              {filters.title || filters.startDate || filters.endDate 
-                ? 'Farklı filtreler deneyin' 
+              {filters.title || filters.startDate || filters.endDate
+                ? 'Farklı filtreler deneyin'
                 : 'İlk belgenizi oluşturarak başlayın'}
             </div>
             {userInfo?.role === 'Student' && !filters.title && !filters.startDate && !filters.endDate && (
-              <button 
-                onClick={() => setShowCreateModal(true)} 
+              <button
+                onClick={() => setShowCreateModal(true)}
                 className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all inline-flex items-center gap-2"
               >
                 <span>➕</span>
@@ -228,8 +228,8 @@ const Documents = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDocuments.map((doc) => (
-            <div 
-              key={doc.id} 
+            <div
+              key={doc.id}
               className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl hover:-translate-y-1 transition-all"
             >
               <Link to={`/documents/${doc.id}`} className="block">
@@ -237,12 +237,12 @@ const Documents = () => {
                   {doc.title}
                 </h3>
               </Link>
-              
+
               {doc.tags && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {doc.tags.split(',').slice(0, 3).map((tag, i) => (
-                    <span 
-                      key={i} 
+                    <span
+                      key={i}
                       className="px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
                     >
                       {tag.trim()}
@@ -261,8 +261,8 @@ const Documents = () => {
                 </div>
               </div>
 
-              <Link 
-                to={`/documents/${doc.id}`} 
+              <Link
+                to={`/documents/${doc.id}`}
                 className="mt-4 w-full bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:from-primary hover:to-primary-dark hover:text-white transition-all flex items-center justify-center gap-2"
               >
                 <span>👁️</span>
@@ -274,18 +274,18 @@ const Documents = () => {
       )}
 
       {showCreateModal && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowCreateModal(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 ">📄 Yeni Belge</h2>
-              <button 
-                onClick={() => setShowCreateModal(false)} 
+              <button
+                onClick={() => setShowCreateModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors"
               >
                 ×
@@ -327,15 +327,15 @@ const Documents = () => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button 
-                  type="button" 
-                  onClick={() => setShowCreateModal(false)} 
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
                   className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors"
                 >
                   İptal
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={creating}
                   className="flex-1 bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-4 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >

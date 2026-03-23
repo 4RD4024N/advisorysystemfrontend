@@ -30,14 +30,14 @@ const Dashboard = () => {
       }
 
       const results = await Promise.all(promises);
-      
+
       setStats(results[0]);
       setRecentDocs(results[1].slice(0, 5));
-      
+
       if (userInfo?.role === 'Student' && results[2]) {
         setAdvisor(results[2]);
       }
-      
+
       if (userInfo?.role === 'Advisor' && results[2]) {
         setMyStudents(results[2]);
       }
@@ -66,9 +66,9 @@ const Dashboard = () => {
       </div>
 
       {userInfo?.role === 'Student' && advisor && (
-        <div className="card mb-4" style={{ 
-          background: advisor.hasAdvisor 
-            ? 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)' 
+        <div className="card mb-4" style={{
+          background: advisor.hasAdvisor
+            ? 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)'
             : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
           border: advisor.hasAdvisor ? '2px solid #3b82f6' : '2px solid #f59e0b'
         }}>
@@ -98,7 +98,7 @@ const Dashboard = () => {
 
       {/* ✨ NEW v2.1: Student Count for Advisors */}
       {userInfo?.role === 'Advisor' && myStudents && (
-        <div className="card mb-4" style={{ 
+        <div className="card mb-4" style={{
           background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
           border: '2px solid #f59e0b'
         }}>
