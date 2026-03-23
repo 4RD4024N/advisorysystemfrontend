@@ -1,24 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { notificationService } from '../services';
 import './Notifications.css';
 
+type NotificationFilter = 'all' | 'unread' | 'read';
+
+interface NotificationItem {
+  id: string;
+  isRead: boolean;
+  type: number;
+  title: string;
+  message: string;
+  createdAt: string;
+}
+
+interface NotificationQueryParams {
+  isRead?: boolean;
+  limit?: number;
+}
+
 function Notifications() {
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const [filter, setFilter] = useState<NotificationFilter>('all'); // 'all', 'unread', 'read'
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    loadNotifications();
-    loadUnreadCount();
-  }, [filter]);
+  const loadUnreadCount = useCallback(async () => {
+    try {
+      const data = await notificationService.getUnreadCount();
+      setUnreadCount(data?.unreadCount || 0);
+    } catch (error) {
+      console.error('Failed to load unread count:', error);
+      setUnreadCount(0); // Set 0 on error
+    }
+  }, []);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       setLoading(true);
-      const params = {};
+      const params: NotificationQueryParams = {};
 
-      // Filtreye göre bildirimleri getir
+      // Filtreye gore bildirimleri getir
       if (filter === 'unread') {
         params.isRead = false;
       } else if (filter === 'read') {
@@ -33,19 +54,14 @@ function Notifications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const loadUnreadCount = async () => {
-    try {
-      const data = await notificationService.getUnreadCount();
-      setUnreadCount(data?.unreadCount || 0);
-    } catch (error) {
-      console.error('Failed to load unread count:', error);
-      setUnreadCount(0); // Set 0 on error
-    }
-  };
+  useEffect(() => {
+    loadNotifications();
+    loadUnreadCount();
+  }, [loadNotifications, loadUnreadCount]);
 
-  const handleMarkAsRead = async (id) => {
+  const handleMarkAsRead = async (id: string) => {
     try {
       await notificationService.markAsRead(id);
       loadNotifications();
@@ -65,7 +81,7 @@ function Notifications() {
     }
   };
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIcon = (type: number) => {
     switch (type) {
       case 0: return ''; // DeadlineApproaching
       case 1: return ''; // NewComment
@@ -77,7 +93,7 @@ function Notifications() {
     }
   };
 
-  const getNotificationTypeName = (type) => {
+  const getNotificationTypeName = (type: number) => {
     const types = ['Deadline Approaching', 'New Comment', 'Advisor Assigned',
       'Document Uploaded', 'Submission Status Changed', 'General'];
     return types[type] || 'Notification';

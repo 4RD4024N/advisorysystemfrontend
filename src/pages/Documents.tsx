@@ -1,18 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { documentService, authService } from '../services';
+
+interface DocumentItem {
+  id: string;
+  title: string;
+  tags?: string;
+  createdAt: string;
+  versionCount?: number;
+}
+
+interface DocumentFilters {
+  title: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface CreateDocumentForm {
+  title: string;
+  tags: string;
+}
 
 const Documents = () => {
   const userInfo = authService.getUserInfo();
-  const [documents, setDocuments] = useState([]);
-  const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<DocumentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [formData, setFormData] = useState({ title: '', tags: '' });
+  const [formData, setFormData] = useState<CreateDocumentForm>({ title: '', tags: '' });
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<DocumentFilters>({
     title: '',
     startDate: '',
     endDate: ''
@@ -22,27 +42,7 @@ const Documents = () => {
     loadDocuments();
   }, []);
 
-  useEffect(() => {
-    applyFilters();
-  }, [documents, filters]);
-
-  const loadDocuments = async () => {
-    try {
-      // Backend'den dökümanları getir
-      const data = await documentService.getMyDocuments();
-      setDocuments(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error loading documents:', error);
-      if (error.response?.status === 403) {
-        setError('You can only access documents from students assigned to you');
-      }
-      setDocuments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...documents];
 
     if (filters.title.trim()) {
@@ -64,11 +64,31 @@ const Documents = () => {
     }
 
     setFilteredDocuments(filtered);
+  }, [documents, filters]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  const loadDocuments = async () => {
+    try {
+      // Backend'den dökümanları getir
+      const data = await documentService.getMyDocuments();
+      setDocuments(Array.isArray(data) ? data : []);
+    } catch (error: unknown) {
+      console.error('Error loading documents:', error);
+      if (isAxiosError(error) && error.response?.status === 403) {
+        setError('You can only access documents from students assigned to you');
+      }
+      setDocuments([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleFilterChange = (e) => {
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilters(prev => ({ ...prev, [name]: value } as DocumentFilters));
   };
 
   const clearFilters = () => {
@@ -79,7 +99,7 @@ const Documents = () => {
     });
   };
 
-  const handleCreateDocument = async (e) => {
+  const handleCreateDocument = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setCreating(true);
@@ -89,8 +109,14 @@ const Documents = () => {
       setShowCreateModal(false);
       setFormData({ title: '', tags: '' });
       loadDocuments();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create document');
+    } catch (err: unknown) {
+      const fallbackMessage = 'Failed to create document';
+      if (isAxiosError(err)) {
+        const message = err.response?.data?.message;
+        setError(typeof message === 'string' ? message : fallbackMessage);
+      } else {
+        setError(fallbackMessage);
+      }
     } finally {
       setCreating(false);
     }

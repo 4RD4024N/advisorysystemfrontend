@@ -1,28 +1,57 @@
-import { useState, useEffect } from 'react';
-import { studentService, advisorService, authService } from '../services';
+import { useState, useEffect, useCallback } from 'react';
+import { isAxiosError } from 'axios';
+import { studentService, authService } from '../services';
 import './Students.css';
 
+type StudentFilter = 'all' | 'without-advisor' | 'pending';
+type UserRole = string | string[] | null;
+
+interface AdvisorInfo {
+  userName: string;
+}
+
+interface StudentItem {
+  id: string;
+  fullName: string;
+  email: string;
+  registrationNo?: string;
+  department?: string;
+  createdAt: string;
+  pendingSubmissions?: number;
+  hasAdvisor?: boolean;
+  advisor?: AdvisorInfo;
+}
+
+interface NotificationPayload {
+  title: string;
+  message: string;
+}
+
+interface BulkNotificationResponse {
+  successCount: number;
+  failedCount: number;
+  errors?: string[];
+}
+
+interface StudentsResult {
+  students?: StudentItem[];
+}
+
 function Students() {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState<StudentItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'without-advisor', 'pending'
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [filter, setFilter] = useState<StudentFilter>('all'); // 'all', 'without-advisor', 'pending'
+  const [selectedStudent, setSelectedStudent] = useState<StudentItem | null>(null);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showBulkModal, setShowBulkModal] = useState(false);
-  const [selectedStudents, setSelectedStudents] = useState([]);
-  const [notificationData, setNotificationData] = useState({ title: '', message: '' });
-  const [userRole, setUserRole] = useState(null);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [notificationData, setNotificationData] = useState<NotificationPayload>({ title: '', message: '' });
+  const [userRole, setUserRole] = useState<UserRole>(null);
 
-  useEffect(() => {
-    const userInfo = authService.getUserInfo();
-    setUserRole(userInfo?.role);
-    loadStudents();
-  }, [filter]);
-
-  const loadStudents = async () => {
+  const loadStudents = useCallback(async () => {
     try {
       setLoading(true);
-      let data;
+      let data: StudentItem[] | StudentsResult;
 
       if (filter === 'without-advisor') {
         data = await studentService.getStudentsWithoutAdvisor();
@@ -32,20 +61,26 @@ function Students() {
         setStudents(Array.isArray(data) ? data : []);
       } else {
         data = await studentService.getAllStudents();
-        setStudents(Array.isArray(data.students) ? data.students : []);
+        setStudents(Array.isArray((data as StudentsResult).students) ? (data as StudentsResult).students as StudentItem[] : []);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to load students:', error);
-      if (error.response?.status === 403) {
+      if (isAxiosError(error) && error.response?.status === 403) {
         alert('You can only access students assigned to you');
       }
       setStudents([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const handleSendNotification = async (studentId) => {
+  useEffect(() => {
+    const userInfo = authService.getUserInfo();
+    setUserRole(userInfo?.role ?? null);
+    loadStudents();
+  }, [loadStudents]);
+
+  const handleSendNotification = async (studentId: string) => {
     if (!notificationData.title || !notificationData.message) {
       alert('Please fill in title and message');
       return;
@@ -56,9 +91,9 @@ function Students() {
       alert('Notification sent successfully!');
       setShowNotificationModal(false);
       setNotificationData({ title: '', message: '' });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to send notification:', error);
-      if (error.response?.status === 403) {
+      if (isAxiosError(error) && error.response?.status === 403) {
         alert('You can only send notifications to students assigned to you');
       } else {
         alert('Failed to send notification');
@@ -81,7 +116,7 @@ function Students() {
       const response = await studentService.sendBulkNotification({
         studentIds: selectedStudents,
         ...notificationData
-      });
+      }) as BulkNotificationResponse;
 
       if (response.errors && response.errors.length > 0) {
         alert(`Sent to ${response.successCount} students. Failed: ${response.failedCount}\n${response.errors.join('\n')}`);
@@ -92,9 +127,9 @@ function Students() {
       setShowBulkModal(false);
       setSelectedStudents([]);
       setNotificationData({ title: '', message: '' });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to send bulk notification:', error);
-      if (error.response?.status === 403) {
+      if (isAxiosError(error) && error.response?.status === 403) {
         alert('You can only send notifications to students assigned to you');
       } else {
         alert('Failed to send notifications');
@@ -117,13 +152,13 @@ function Students() {
       alert('Notification sent to all students!');
       setShowBulkModal(false);
       setNotificationData({ title: '', message: '' });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to send notification to all:', error);
       alert('Failed to send notifications');
     }
   };
 
-  const toggleStudentSelection = (studentId) => {
+  const toggleStudentSelection = (studentId: string) => {
     setSelectedStudents(prev =>
       prev.includes(studentId)
         ? prev.filter(id => id !== studentId)
@@ -131,11 +166,11 @@ function Students() {
     );
   };
 
-  const getStatusBadge = (student) => {
+  const getStatusBadge = (student: StudentItem) => {
     if (filter === 'without-advisor') {
       return <span className="badge badge-warning">Danışmanı Yok</span>;
     }
-    if (filter === 'pending' && student.pendingSubmissions > 0) {
+    if (filter === 'pending' && (student.pendingSubmissions ?? 0) > 0) {
       return <span className="badge badge-danger">{student.pendingSubmissions} Bekleyen</span>;
     }
     return <span className="badge badge-success">Aktif</span>;
@@ -318,7 +353,7 @@ function Students() {
                   value={notificationData.message}
                   onChange={e => setNotificationData({ ...notificationData, message: e.target.value })}
                   placeholder="Notification message"
-                  rows="4"
+                  rows={4}
                 />
               </div>
             </div>
@@ -332,7 +367,8 @@ function Students() {
               </button>
               <button
                 className="btn-primary"
-                onClick={() => handleSendNotification(selectedStudent.id)}
+                onClick={() => selectedStudent && handleSendNotification(selectedStudent.id)}
+                disabled={!selectedStudent}
               >
                 Bildirim Yolla
               </button>
@@ -377,7 +413,7 @@ function Students() {
                   value={notificationData.message}
                   onChange={e => setNotificationData({ ...notificationData, message: e.target.value })}
                   placeholder="Notification message"
-                  rows="4"
+                  rows={4}
                 />
               </div>
             </div>

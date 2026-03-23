@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { authService, courseService, studentService } from '../services';
 import { logger } from '../utils/logger';
 import './CourseSchedule.css';
@@ -77,6 +77,8 @@ interface Student {
   registrationNo?: string;
 }
 
+const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'];
+
 const CourseSchedule = () => {
   const [mySchedule, setMySchedule] = useState<ScheduleData | null>(null);
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
@@ -90,7 +92,7 @@ const CourseSchedule = () => {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
-  const dayNames = {
+  const dayNames: Record<string, string> = {
     'Monday': 'Pazartesi',
     'Tuesday': 'Salı',
     'Wednesday': 'Çarşamba',
@@ -98,15 +100,13 @@ const CourseSchedule = () => {
     'Friday': 'Cuma'
   };
 
-  const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'];
-
   const timeSlots = [
     '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00'
   ];
 
   // Gün ismini normalize et - Türkçe/İngilizce karakter uyumsuzluğunu çözer
-  const normalizeDayName = (dayName: string | undefined): string | null => {
+  const normalizeDayName = useCallback((dayName: string | undefined): string | null => {
     if (!dayName) return null;
 
     // Küçük harfe çevir ve boşlukları temizle
@@ -167,7 +167,7 @@ const CourseSchedule = () => {
     }
 
     // Zaten doğru formatta mı kontrol et
-    if (days.includes(dayName)) {
+    if (DAYS.includes(dayName)) {
       return dayName;
     }
 
@@ -180,20 +180,6 @@ const CourseSchedule = () => {
 
     logger.warn('Bilinmeyen gün ismi', { dayName });
     return dayName; // Eşleşme bulunamazsa orijinali döndür
-  };
-
-  useEffect(() => {
-    const userInfo = authService.getUserInfo();
-    setUserRole(userInfo?.role || null);
-
-    if (userInfo?.role === 'Advisor') {
-      // Advisor: önce öğrencileri yükle
-      loadMyStudents();
-    } else {
-      // Student: kendi programını yükle
-      loadMySchedule();
-      loadAvailableCourses();
-    }
   }, []);
 
   // Advisor için öğrencileri yükle
@@ -304,7 +290,7 @@ const CourseSchedule = () => {
     }
   };
 
-  const loadMySchedule = async () => {
+  const loadMySchedule = useCallback(async () => {
     try {
       setLoading(true);
       const response = await courseService.getMySchedule();
@@ -375,10 +361,10 @@ const CourseSchedule = () => {
       logger.debug('loadMySchedule BİTTİ');
       setLoading(false);
     }
-  };
+  }, [normalizeDayName]);
 
 
-  const loadAvailableCourses = async () => {
+  const loadAvailableCourses = useCallback(async () => {
     try {
       logger.debug('Tüm dersler yükleniyor (zorunlu + seçmeli)...');
 
@@ -463,8 +449,22 @@ const CourseSchedule = () => {
       logger.error('Dersler yüklenirken hata:', error);
       setAvailableCourses([]);
     }
-  };
+  }, []);
 
+
+  useEffect(() => {
+    const userInfo = authService.getUserInfo();
+    setUserRole(userInfo?.role || null);
+
+    if (userInfo?.role === 'Advisor') {
+      // Advisor: once ogrencileri yukle
+      loadMyStudents();
+    } else {
+      // Student: kendi programini yukle
+      void loadMySchedule();
+      void loadAvailableCourses();
+    }
+  }, [loadAvailableCourses, loadMySchedule]);
 
   const handleEnrollCourse = async (course: Course) => {
     if (course.isEnrolled) {
@@ -716,7 +716,7 @@ const CourseSchedule = () => {
                 }}>
                   Saat
                 </th>
-                {days.map(day => (
+                {DAYS.map(day => (
                   <th key={day} style={{
                     padding: '1rem',
                     borderBottom: '2px solid var(--border-color)',
@@ -743,7 +743,7 @@ const CourseSchedule = () => {
                   }}>
                     {time}
                   </td>
-                  {days.map(day => {
+                  {DAYS.map(day => {
                     const session = getCourseAtSlot(day, time);
 
                     return (
@@ -1034,14 +1034,14 @@ const CourseSchedule = () => {
                             {course.schedule && course.schedule.length > 0 ? (
                               course.schedule.map((session: Session, idx: number) => (
                                 <div key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.25rem', marginLeft: '1rem' }}>
-                                  • <strong>{session.dayOfWeek ? (dayNames as any)[session.dayOfWeek] || session.dayName : session.dayName}:</strong> {session.startTime} - {session.endTime}
+                                  • <strong>{session.dayOfWeek ? dayNames[session.dayOfWeek] || session.dayName : session.dayName}:</strong> {session.startTime} - {session.endTime}
                                   | {session.roomNumber}
                                   | {session.sessionType}
                                 </div>
                               ))
                             ) : (
                               <div style={{ fontSize: '0.85rem', color: '#f57c00', fontStyle: 'italic', marginLeft: '1rem' }}>
-                                Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
+                                Bu ders için henüz program oluşturulmamış. Lütfen backend&apos;de schedule generate edin.
                                 <br />
                                 <code style={{ fontSize: '0.75rem', background: '#fff', padding: '2px 6px', borderRadius: '4px', marginTop: '4px', display: 'inline-block' }}>
                                   POST /api/schedule/generate/{'{semester}'}

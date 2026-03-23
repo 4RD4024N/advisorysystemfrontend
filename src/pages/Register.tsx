@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services';
 import './Auth.css';
@@ -14,23 +15,23 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      console.log('Gönderilen veri:', formData);
       await authService.register(formData);
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    } catch (err) {
-      console.error('Register hatası:', err.response?.data);
-      const errorMsg = err.response?.data?.message
-        || err.response?.data?.title
-        || err.response?.data?.errors
+    } catch (err: unknown) {
+      console.error('Register hatası:', err);
+      const errorData = isAxiosError(err) ? err.response?.data : undefined;
+      const errorMsg = errorData?.message
+        || errorData?.title
+        || errorData?.errors
         || 'Registration failed. Please try again.';
       setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
@@ -38,7 +39,7 @@ const Register = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
