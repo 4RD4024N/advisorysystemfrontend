@@ -124,9 +124,9 @@ const authService = {
       
       return {
         email: decoded.email,
-        name: decoded.name || decoded.unique_name || decoded.given_name,
-        role: role,
-        sub: decoded.sub || decoded.nameid
+        name: decoded.name || decoded.unique_name || decoded.given_name || '',
+        role: role || '',
+        sub: decoded.sub || decoded.nameid || ''
       };
     } catch (error) {
       logger.error('Failed to decode token', error as Error);

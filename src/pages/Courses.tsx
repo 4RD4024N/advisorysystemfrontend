@@ -1,15 +1,49 @@
 import { useState, useEffect } from 'react';
-import { authService, courseService } from '../services';
+import { courseService } from '../services';
 import { logger } from '../utils/logger';
 import './Courses.css';
+
+interface CourseInfo {
+  code: string;
+  name: string;
+  theory: number;
+  practice: number;
+  credit: number;
+  ects: number;
+  semester: number;
+  type: string;
+  description: string;
+  prerequisite?: string;
+  category: string;
+}
+
+interface RawCourse {
+  courseCode?: string;
+  code?: string;
+  courseName?: string;
+  name?: string;
+  theoryHours?: number;
+  theory?: number;
+  practiceHours?: number;
+  practice?: number;
+  credit?: number;
+  credits?: number;
+  ects?: number;
+  akts?: number;
+  semester?: number;
+  isElective?: boolean;
+  description?: string;
+  Description?: string;
+  prerequisite?: string;
+  category?: { name?: string };
+}
 
 function Courses() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSemester, setSelectedSemester] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
-  const [allCourses, setAllCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState<CourseInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const userInfo = authService.getUserInfo();
 
   useEffect(() => {
     loadCourses();
@@ -22,9 +56,9 @@ function Courses() {
       const response = await courseService.getAllCourses();
 
       const rawCourses = response.courses || response || [];
-      const courses = rawCourses.map(course => ({
-        code: course.courseCode || course.code,
-        name: course.courseName || course.name,
+      const courses = rawCourses.map((course: RawCourse): CourseInfo => ({
+        code: course.courseCode || course.code || '',
+        name: course.courseName || course.name || '',
         theory: course.theoryHours || course.theory || 0,
         practice: course.practiceHours || course.practice || 0,
         credit: course.credit || course.credits || 0,
@@ -101,14 +135,14 @@ function Courses() {
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">⭐</div>
+              <div className="stat-icon"></div>
               <div className="stat-info">
                 <div className="stat-label">Seçmeli</div>
                 <div className="stat-value">{stats.elective}</div>
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">🎓</div>
+              <div className="stat-icon"></div>
               <div className="stat-info">
                 <div className="stat-label">Toplam Kredi</div>
                 <div className="stat-value">{stats.totalCredits}</div>

@@ -37,7 +37,7 @@ const Statistics = () => {
         <div className="card">
           <div className="flex-between mb-3">
             <h3 style={{ margin: 0, fontSize: '18px' }}>Documents</h3>
-            <span style={{ fontSize: '48px' }}>Docs</span>
+
           </div>
           <div style={{ fontSize: '48px', fontWeight: '700', color: 'var(--primary-color)' }}>
             {stats?.totalDocuments || 0}
@@ -48,7 +48,7 @@ const Statistics = () => {
         <div className="card">
           <div className="flex-between mb-3">
             <h3 style={{ margin: 0, fontSize: '18px' }}>Versions</h3>
-            <span style={{ fontSize: '48px' }}>Files</span>
+
           </div>
           <div style={{ fontSize: '48px', fontWeight: '700', color: 'var(--secondary-color)' }}>
             {stats?.totalVersions || 0}
@@ -59,7 +59,7 @@ const Statistics = () => {
         <div className="card">
           <div className="flex-between mb-3">
             <h3 style={{ margin: 0, fontSize: '18px' }}>Pending</h3>
-            <span style={{ fontSize: '48px' }}>Pending</span>
+
           </div>
           <div style={{ fontSize: '48px', fontWeight: '700', color: 'var(--warning-color)' }}>
             {stats?.pendingSubmissions || 0}
@@ -70,7 +70,7 @@ const Statistics = () => {
         <div className="card">
           <div className="flex-between mb-3">
             <h3 style={{ margin: 0, fontSize: '18px' }}>Completed</h3>
-            <span style={{ fontSize: '48px' }}>Done</span>
+
           </div>
           <div style={{ fontSize: '48px', fontWeight: '700', color: 'var(--secondary-color)' }}>
             {stats?.completedSubmissions || 0}

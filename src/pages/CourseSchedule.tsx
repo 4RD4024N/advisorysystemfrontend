@@ -1,20 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { authService, courseService, studentService } from '../services';
 import { logger } from '../utils/logger';
 import './CourseSchedule.css';
 
+interface Session {
+  dayName: string;
+  startTime: string;
+  endTime: string;
+  roomNumber: string;
+  instructorName: string;
+  sessionType: string;
+  isTheory: boolean;
+  durationMinutes?: number;
+  timeSlot?: string;
+  dayOfWeek?: string;
+}
+
+interface Course {
+  id?: string;
+  courseId: string;
+  courseCode: string;
+  courseName: string;
+  code?: string;
+  name?: string;
+  description: string;
+  credits: number;
+  ects: number;
+  theoryHours: number;
+  practiceHours: number;
+  isElective: boolean;
+  category: { name?: string } | string;
+  sectionCode: string;
+  semester: number;
+  instructor: string;
+  maxCapacity: number;
+  enrolledCount: number;
+  availableSeats: number;
+  isFull: boolean;
+  isEnrolled: boolean;
+  schedule: Session[];
+  sessions?: Session[];
+}
+
+interface ScheduleEntry {
+  courseCode: string;
+  courseName: string;
+  courseId: string;
+  startTime: string;
+  endTime: string;
+  roomNumber: string;
+  instructorName: string;
+  sessionType: string;
+  isTheory: boolean;
+  credits: number;
+  ects: number;
+}
+
+interface WeeklySchedule {
+  [key: string]: ScheduleEntry[];
+}
+
+interface ScheduleData {
+  weeklySchedule: WeeklySchedule;
+  courses: Course[];
+  totalCourses: number;
+  totalCredits: number;
+  totalECTS: number;
+}
+
+interface Student {
+  id: string;
+  userId?: string;
+  email?: string;
+  name?: string;
+  fullName?: string;
+  registrationNo?: string;
+}
+
 const CourseSchedule = () => {
-  const [mySchedule, setMySchedule] = useState(null);
-  const [availableCourses, setAvailableCourses] = useState([]);
+  const [mySchedule, setMySchedule] = useState<ScheduleData | null>(null);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
 
   // Advisor için öğrenci seçimi
-  const [userRole, setUserRole] = useState(null);
-  const [students, setStudents] = useState([]);
-  const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [userRole, setUserRole] = useState<string | string[] | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
   const dayNames = {
     'Monday': 'Pazartesi',
@@ -32,14 +106,14 @@ const CourseSchedule = () => {
   ];
 
   // Gün ismini normalize et - Türkçe/İngilizce karakter uyumsuzluğunu çözer
-  const normalizeDayName = (dayName) => {
+  const normalizeDayName = (dayName: string | undefined): string | null => {
     if (!dayName) return null;
 
     // Küçük harfe çevir ve boşlukları temizle
     const normalized = dayName.toLowerCase().trim();
 
     // Tüm olası gün ismi varyasyonlarını maple
-    const dayMappings = {
+    const dayMappings: Record<string, string> = {
       // İngilizce
       'monday': 'Pazartesi',
       'tuesday': 'Salı',
@@ -104,13 +178,13 @@ const CourseSchedule = () => {
       }
     }
 
-    console.warn('⚠️ Bilinmeyen gün ismi:', dayName);
+    logger.warn('Bilinmeyen gün ismi', { dayName });
     return dayName; // Eşleşme bulunamazsa orijinali döndür
   };
 
   useEffect(() => {
     const userInfo = authService.getUserInfo();
-    setUserRole(userInfo?.role);
+    setUserRole(userInfo?.role || null);
 
     if (userInfo?.role === 'Advisor') {
       // Advisor: önce öğrencileri yükle
@@ -128,10 +202,10 @@ const CourseSchedule = () => {
       setLoading(true);
       const data = await studentService.getMyStudents();
       const studentList = data.students || data || [];
-      console.log('📚 Öğrenci listesi:', studentList);
+      logger.debug('Öğrenci listesi:', studentList);
       setStudents(Array.isArray(studentList) ? studentList : []);
     } catch (error) {
-      console.error('Öğrenciler yüklenirken hata:', error);
+      logger.error('Öğrenciler yüklenirken hata:', error);
       setStudents([]);
     } finally {
       setLoading(false);
@@ -139,16 +213,16 @@ const CourseSchedule = () => {
   };
 
   // Advisor: seçilen öğrencinin programını yükle
-  const loadStudentSchedule = async (studentId) => {
+  const loadStudentSchedule = async (studentId: string) => {
     try {
       setLoading(true);
       // courseService.getStudentSchedule kullan (doğru endpoint)
       const response = await courseService.getStudentSchedule(studentId);
 
-      console.log('📚 Öğrenci programı yanıtı:', response);
+      logger.debug('Öğrenci programı yanıtı:', response);
 
       // Haftalık programı oluştur
-      const weeklySchedule = {
+      const weeklySchedule: WeeklySchedule = {
         'Pazartesi': [],
         'Salı': [],
         'Çarşamba': [],
@@ -156,13 +230,13 @@ const CourseSchedule = () => {
         'Cuma': []
       };
 
-      response.courses?.forEach(course => {
-        course.sessions?.forEach(session => {
+      response.courses?.forEach((course: Course) => {
+        course.sessions?.forEach((session: Session) => {
           // Gün ismini normalize et
           const normalizedDay = normalizeDayName(session.dayName);
-          console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
+          logger.debug(`Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
 
-          const scheduleEntry = {
+          const scheduleEntry: ScheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
             courseId: course.courseId,
@@ -179,14 +253,14 @@ const CourseSchedule = () => {
           if (normalizedDay && weeklySchedule[normalizedDay]) {
             weeklySchedule[normalizedDay].push(scheduleEntry);
           } else {
-            console.warn(`⚠️ Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
+            logger.warn(`Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
           }
         });
       });
 
-      console.log('📊 Haftalık program:', weeklySchedule);
+      logger.debug('Haftalık program:', weeklySchedule);
 
-      const updatedResponse = {
+      const updatedResponse: ScheduleData = {
         ...response,
         weeklySchedule: weeklySchedule
       };
@@ -200,7 +274,7 @@ const CourseSchedule = () => {
       });
 
     } catch (error) {
-      console.error('Ders programı yüklenirken hata:', error);
+      logger.error('Ders programı yüklenirken hata:', error);
       setMySchedule({
         weeklySchedule: {},
         courses: [],
@@ -213,13 +287,13 @@ const CourseSchedule = () => {
     }
   };
 
-  const handleStudentSelect = (studentId) => {
+  const handleStudentSelect = (studentId: string) => {
     // studentId string (GUID) olarak kalmalı, parseInt yapmıyoruz
     const id = studentId || null;
     setSelectedStudentId(id);
-    // students listesinde id veya odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, odaha geniş arayüzde şunlar olabilir: id, userId
+    // students listesinde id veya userId
     const student = students.find(s => s.id === id || s.userId === id);
-    setSelectedStudent(student);
+    setSelectedStudent(student || null);
 
     if (id) {
       // Backend için doğru id'yi kullan (userId varsa onu, yoksa id)
@@ -236,7 +310,7 @@ const CourseSchedule = () => {
       const response = await courseService.getMySchedule();
 
       // Haftalık programı oluştur
-      const weeklySchedule = {
+      const weeklySchedule: WeeklySchedule = {
         'Pazartesi': [],
         'Salı': [],
         'Çarşamba': [],
@@ -244,13 +318,13 @@ const CourseSchedule = () => {
         'Cuma': []
       };
 
-      response.courses?.forEach(course => {
-        course.sessions?.forEach(session => {
+      response.courses?.forEach((course: Course) => {
+        course.sessions?.forEach((session: Session) => {
           // Gün ismini normalize et
           const normalizedDay = normalizeDayName(session.dayName);
-          console.log(`📅 Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
+          logger.debug(`Gün mapping: "${session.dayName}" → "${normalizedDay}"`);
 
-          const scheduleEntry = {
+          const scheduleEntry: ScheduleEntry = {
             courseCode: course.courseCode,
             courseName: course.courseName,
             courseId: course.courseId,
@@ -267,14 +341,14 @@ const CourseSchedule = () => {
           if (normalizedDay && weeklySchedule[normalizedDay]) {
             weeklySchedule[normalizedDay].push(scheduleEntry);
           } else {
-            console.warn(`⚠️ Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
+            logger.warn(`Gün bulunamadı: "${session.dayName}" → "${normalizedDay}"`);
           }
         });
       });
 
-      console.log('📊 Haftalık program:', weeklySchedule);
+      logger.debug('Haftalık program:', weeklySchedule);
 
-      const updatedResponse = {
+      const updatedResponse: ScheduleData = {
         ...response,
         weeklySchedule: weeklySchedule
       };
@@ -288,9 +362,7 @@ const CourseSchedule = () => {
       });
 
     } catch (error) {
-      console.error('Ders programı yüklenirken hata:', error);
-      console.error('❌ Error data:', error.response?.data);
-      console.error('❌ Full error:', JSON.stringify(error, null, 2));
+      logger.error('Ders programı yüklenirken hata:', error);
 
       setMySchedule({
         weeklySchedule: {},
@@ -300,7 +372,7 @@ const CourseSchedule = () => {
         totalECTS: 0
       });
     } finally {
-      console.log('🏁 loadMySchedule BİTTİ');
+      logger.debug('loadMySchedule BİTTİ');
       setLoading(false);
     }
   };
@@ -308,28 +380,28 @@ const CourseSchedule = () => {
 
   const loadAvailableCourses = async () => {
     try {
-      console.log('🔄 Tüm dersler yükleniyor (zorunlu + seçmeli)...');
+      logger.debug('Tüm dersler yükleniyor (zorunlu + seçmeli)...');
 
-      let allCourses = [];
-      let availableCoursesData = [];
+      let allCourses: Course[] = [];
+      let availableCoursesData: Course[] = [];
 
       // 1. Önce course-selection/available endpoint'ini dene (schedule bilgisiyle gelir)
       try {
         const availableResponse = await courseService.getAvailableCourses();
         availableCoursesData = availableResponse.courses || availableResponse || [];
-        console.log('📚 course-selection/available:', availableCoursesData.length, 'ders');
+        logger.debug('course-selection/available', { count: availableCoursesData.length });
       } catch (apiError) {
-        console.warn('⚠️ course-selection/available endpoint başarısız:', apiError.message);
+        logger.warn('course-selection/available endpoint başarısız', { error: apiError });
       }
 
       // 2. Tüm dersleri /courses endpoint'inden al
       try {
         const allCoursesResponse = await courseService.getAllCourses();
         const rawCourses = allCoursesResponse.courses || allCoursesResponse || [];
-        console.log('📚 /courses endpoint:', rawCourses.length, 'ders');
+        logger.debug('/courses endpoint', { count: rawCourses.length });
 
         // Tüm dersleri formatla
-        allCourses = rawCourses.map(course => {
+        allCourses = rawCourses.map((course: Course) => {
           // Eğer availableCoursesData'da bu ders varsa, oradan schedule bilgisini al
           const availableCourse = availableCoursesData.find(
             ac => ac.courseId === course.id || ac.courseCode === (course.courseCode || course.code)
@@ -337,15 +409,15 @@ const CourseSchedule = () => {
 
           return {
             courseId: course.id || course.courseId,
-            courseCode: course.courseCode || course.code,
-            courseName: course.courseName || course.name,
+            courseCode: course.courseCode || course.code || '',
+            courseName: course.courseName || course.name || '',
             description: course.description || '',
             credits: course.credits || 0,
             ects: course.ects || 0,
             theoryHours: course.theoryHours || 0,
             practiceHours: course.practiceHours || 0,
             isElective: course.isElective === true,
-            category: course.category?.name || course.category || 'Genel',
+            category: typeof course.category === 'string' ? course.category : (course.category?.name || 'Genel'),
             sectionCode: availableCourse?.sectionCode || course.sectionCode || 'A',
             semester: course.semester || 1,
             instructor: availableCourse?.instructor || course.instructor || 'Atanmadı',
@@ -358,7 +430,7 @@ const CourseSchedule = () => {
           };
         });
       } catch (coursesError) {
-        console.warn('⚠️ /courses endpoint başarısız:', coursesError.message);
+        logger.warn('/courses endpoint başarısız', { error: coursesError });
 
         // Fallback: Eğer /courses da başarısız olursa, availableCoursesData'yı kullan
         if (availableCoursesData.length > 0) {
@@ -381,20 +453,20 @@ const CourseSchedule = () => {
         return (a.courseCode || '').localeCompare(b.courseCode || '');
       });
 
-      console.log('✅ Toplam yüklenen ders:', allCourses.length);
-      console.log('   📗 Zorunlu:', allCourses.filter(c => !c.isElective).length);
-      console.log('   📘 Seçmeli:', allCourses.filter(c => c.isElective).length);
+      logger.debug('Toplam yüklenen ders', { count: allCourses.length });
+      logger.debug('Zorunlu dersler', { count: allCourses.filter(c => !c.isElective).length });
+      logger.debug('Seçmeli dersler', { count: allCourses.filter(c => c.isElective).length });
 
       setAvailableCourses(allCourses);
 
     } catch (error) {
-      console.error('❌ Dersler yüklenirken hata:', error);
+      logger.error('Dersler yüklenirken hata:', error);
       setAvailableCourses([]);
     }
   };
 
 
-  const handleEnrollCourse = async (course) => {
+  const handleEnrollCourse = async (course: Course) => {
     if (course.isEnrolled) {
       alert('Bu derse zaten kayıtlısınız!');
       return;
@@ -412,17 +484,18 @@ const CourseSchedule = () => {
         course.semester
       );
 
-      alert(`✅ ${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
+      alert(`${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
 
 
       await loadMySchedule();
       await loadAvailableCourses();
 
       setShowCourseModal(false);
-    } catch (error) {
-      console.error('❌ Kayıt hatası:', error);
+    } catch (error: unknown) {
+      logger.error('Kayıt hatası:', error);
 
-      const errorData = error.response?.data;
+      const axiosError = error as { response?: { data?: { error?: string; message?: string; conflictDetails?: Array<{ courseCode: string; day: string; existingTime: string }> } } };
+      const errorData = axiosError.response?.data;
 
       if (errorData?.conflictDetails) {
         // Çakışma detaylarını göster
@@ -430,19 +503,19 @@ const CourseSchedule = () => {
           .map(c => `• ${c.courseCode}: ${c.day} ${c.existingTime}`)
           .join('\n');
 
-        alert(`❌ ${errorData.error}\n\n${errorData.message}\n\nÇakışan Dersler:\n${conflicts}`);
+        alert(`${errorData.error}\n\n${errorData.message}\n\nÇakışan Dersler:\n${conflicts}`);
       } else if (errorData?.message) {
-        alert(`❌ ${errorData.error}\n\n${errorData.message}`);
+        alert(`${errorData.error}\n\n${errorData.message}`);
       } else if (errorData?.error) {
-        alert(`❌ ${errorData.error}`);
+        alert(`${errorData.error}`);
       } else {
-        alert('❌ Derse kayıt olurken bir hata oluştu.');
+        alert('Derse kayıt olurken bir hata oluştu.');
       }
     }
   };
 
 
-  const handleUnenrollCourse = async (course) => {
+  const handleUnenrollCourse = async (course: ScheduleEntry | Course) => {
     if (!confirm(`${course.courseCode} - ${course.courseName} dersinden çıkmak istediğinize emin misiniz?`)) {
       return;
     }
@@ -450,32 +523,33 @@ const CourseSchedule = () => {
     try {
       await courseService.unenrollCourse(course.courseId);
 
-      alert(`✅ ${course.courseCode} dersinden çıkıldı.`);
+      alert(`${course.courseCode} dersinden çıkıldı.`);
 
 
       await loadMySchedule();
       await loadAvailableCourses();
-    } catch (error) {
-      console.error('❌ Çıkış hatası:', error);
-      alert(error.response?.data?.error || 'Dersten çıkarken bir hata oluştu.');
+    } catch (error: unknown) {
+      logger.error('Çıkış hatası:', error);
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      alert(axiosError.response?.data?.error || 'Dersten çıkarken bir hata oluştu.');
     }
   };
 
 
-  const getCourseAtSlot = (day, time) => {
+  const getCourseAtSlot = (day: string, time: string): ScheduleEntry | null => {
     if (!mySchedule?.weeklySchedule?.[day]) {
       return null;
     }
 
 
-    const session = mySchedule.weeklySchedule[day].find(session => {
+    const session = mySchedule.weeklySchedule[day].find((session: ScheduleEntry) => {
       return session.startTime === time;
     });
 
-    return session;
+    return session || null;
   };
 
-  const getCourseColor = (courseCode) => {
+  const getCourseColor = (courseCode: string): string => {
     const colors = [
       '#667eea', '#764ba2', '#f093fb', '#4facfe',
       '#43e97b', '#fa709a', '#fee140', '#30cfd0'
@@ -774,11 +848,10 @@ const CourseSchedule = () => {
                           borderRadius: '4px',
                           marginBottom: '0.5rem',
                           border: '1px solid #e0e0e0'
-                        }}>
-                          <strong>{session.dayName}:</strong> {session.timeSlot} |
-                          📍 {session.roomNumber} |
+                        }}>                          <strong>{session.dayName}:</strong> {session.startTime} - {session.endTime} |
+                          {session.roomNumber} |
                           {session.sessionType} |
-                          👨‍🏫 {session.instructorName}
+                          {session.instructorName}
                         </div>
                       ))}
                     </div>
@@ -944,7 +1017,7 @@ const CourseSchedule = () => {
                           )}
 
                           <div style={{ fontSize: '0.85rem', color: '#444', marginBottom: '0.75rem' }}>
-                            👨‍🏫 {course.instructor}
+                            Instructor: {course.instructor}
                           </div>
 
                           {/* Schedule */}
@@ -956,19 +1029,19 @@ const CourseSchedule = () => {
                             border: course.schedule && course.schedule.length > 0 ? 'none' : '1px solid #ff9800'
                           }}>
                             <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', fontSize: '0.9rem' }}>
-                              📅 Ders Saatleri:
+                              Ders Saatleri:
                             </div>
                             {course.schedule && course.schedule.length > 0 ? (
-                              course.schedule.map((session, idx) => (
+                              course.schedule.map((session: Session, idx: number) => (
                                 <div key={idx} style={{ fontSize: '0.85rem', marginBottom: '0.25rem', marginLeft: '1rem' }}>
-                                  • <strong>{dayNames[session.dayOfWeek]}:</strong> {session.startTime} - {session.endTime}
-                                  | 📍 {session.roomNumber}
+                                  • <strong>{session.dayOfWeek ? (dayNames as any)[session.dayOfWeek] || session.dayName : session.dayName}:</strong> {session.startTime} - {session.endTime}
+                                  | {session.roomNumber}
                                   | {session.sessionType}
                                 </div>
                               ))
                             ) : (
                               <div style={{ fontSize: '0.85rem', color: '#f57c00', fontStyle: 'italic', marginLeft: '1rem' }}>
-                                ⚠️ Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
+                                Bu ders için henüz program oluşturulmamış. Lütfen backend'de schedule generate edin.
                                 <br />
                                 <code style={{ fontSize: '0.75rem', background: '#fff', padding: '2px 6px', borderRadius: '4px', marginTop: '4px', display: 'inline-block' }}>
                                   POST /api/schedule/generate/{'{semester}'}
@@ -978,8 +1051,8 @@ const CourseSchedule = () => {
                           </div>
 
                           <div style={{ fontSize: '0.85rem', color: course.isFull ? '#f44336' : '#4caf50' }}>
-                            👥 {course.enrolledCount}/{course.maxCapacity} -
-                            {course.isFull ? ' ⛔ Kapasite Dolu' : ` ✅ ${course.availableSeats} Boş Yer`}
+                            {course.enrolledCount}/{course.maxCapacity} -
+                            {course.isFull ? ' Kapasite Dolu' : ` ${course.availableSeats} Boş Yer`}
                           </div>
                         </div>
 

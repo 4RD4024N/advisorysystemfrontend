@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { authService, advisorService } from '../services';
+import { logger } from '../utils/logger';
+
+interface AdvisorInfo {
+  email: string;
+  userName?: string;
+  userId?: string;
+}
 
 const Profile = () => {
-  const [myAdvisor, setMyAdvisor] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [myAdvisor, setMyAdvisor] = useState<AdvisorInfo | null>(null);
   const userInfo = authService.getUserInfo();
 
   useEffect(() => {
@@ -15,9 +21,17 @@ const Profile = () => {
   const loadAdvisorInfo = async () => {
     try {
       const data = await advisorService.getMyAdvisor();
-      setMyAdvisor(data.hasAdvisor ? data.advisor : null);
+      logger.debug('Advisor API response:', data);
+      
+      // Handle response: data has {hasAdvisor: boolean, advisor: {...} | null}
+      if (data.hasAdvisor && data.advisor) {
+        setMyAdvisor(data.advisor);
+      } else {
+        setMyAdvisor(null);
+      }
     } catch (error) {
-      console.error('Failed to load advisor info:', error);
+      logger.error('Failed to load advisor info', error as Error);
+      setMyAdvisor(null);
     }
   };
 
@@ -30,12 +44,6 @@ const Profile = () => {
     <div>
       <h1 className="mb-4">Profile</h1>
 
-      {message.text && (
-        <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-3`}>
-          {message.type === 'success' ? '✓' : '×'} {message.text}
-        </div>
-      )}
-
       <div className="grid grid-2">
         <div className="card">
           <h2 className="card-header">Account Information</h2>
@@ -43,7 +51,7 @@ const Profile = () => {
           <div className="mb-3">
             <div className="text-sm text-muted mb-1">Email</div>
             <div style={{ fontSize: '16px', fontWeight: '500' }}>
-              {localStorage.getItem('userEmail') || 'Not available'}
+              {userInfo?.email || 'Not available'}
             </div>
           </div>
 
@@ -87,7 +95,7 @@ const Profile = () => {
                 </div>
 
                 <div className="alert alert-info" style={{ fontSize: '13px' }}>
-                  <strong>ℹ️ Not:</strong> Danışman değiştirmek için lütfen yöneticiniz ile iletişime geçin.
+                  <strong>Not:</strong> Danışman değiştirmek için lütfen yöneticiniz ile iletişime geçin.
                 </div>
               </div>
             ) : (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { authService, notificationService } from '../services';
 import './Layout.css';
@@ -7,11 +7,11 @@ const Layout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [userRole, setUserRole] = useState(null);
+  const [userRole, setUserRole] = useState<string | string[] | null>(null);
 
   useEffect(() => {
     const userInfo = authService.getUserInfo();
-    setUserRole(userInfo?.role);
+    setUserRole(userInfo?.role || null);
 
     loadUnreadCount();
 
@@ -44,10 +44,10 @@ const Layout = () => {
           {authService.getUserInfo() && (
             <div className="user-info">
               <div className="user-avatar">
-                {authService.getUserInfo().email?.charAt(0).toUpperCase()}
+                {authService.getUserInfo()?.email?.charAt(0).toUpperCase()}
               </div>
               <div className="user-details">
-                <div className="user-name">{authService.getUserInfo().email?.split('@')[0]}</div>
+                <div className="user-name">{authService.getUserInfo()?.email?.split('@')[0]}</div>
                 <div className="user-role">{userRole}</div>
               </div>
             </div>

@@ -105,7 +105,7 @@ const Documents = () => {
     } else if (role === 'Advisor') {
       return { text: 'Danışmanı Olduğum Belgeler', icon: '👨‍🏫', color: 'text-blue-600' };
     } else {
-      return { text: 'Belgelerim', icon: '📄', color: 'text-green-600' };
+      return { text: 'Belgelerim', icon: '', color: 'text-green-600' };
     }
   };
 
@@ -127,7 +127,7 @@ const Documents = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">📚 Belgeler</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2"> Belgeler</h1>
           {roleInfo && (
             <p className={`text-sm font-medium ${roleInfo.color}`}>
               {roleInfo.icon} {roleInfo.text}
@@ -139,7 +139,7 @@ const Documents = () => {
             onClick={() => setShowCreateModal(true)}
             className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2"
           >
-            <span>➕</span>
+            <span></span>
             <span>Yeni Belge</span>
           </button>
         )}
@@ -147,7 +147,7 @@ const Documents = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4">🔍 Filtrele</h2>
+        <h2 className="text-lg font-bold text-gray-900 mb-4"> Filtrele</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -205,7 +205,7 @@ const Documents = () => {
       {filteredDocuments.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
           <div className="text-center">
-            <div className="text-6xl mb-4">📭</div>
+            <div className="text-6xl mb-4"></div>
             <div className="text-xl font-semibold text-gray-900 mb-2">
               {filters.title || filters.startDate || filters.endDate ? 'Belge bulunamadı' : 'Henüz belge yok'}
             </div>
@@ -219,7 +219,7 @@ const Documents = () => {
                 onClick={() => setShowCreateModal(true)}
                 className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all inline-flex items-center gap-2"
               >
-                <span>➕</span>
+                <span></span>
                 <span>Belge Oluştur</span>
               </button>
             )}
@@ -265,7 +265,7 @@ const Documents = () => {
                 to={`/documents/${doc.id}`}
                 className="mt-4 w-full bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:from-primary hover:to-primary-dark hover:text-white transition-all flex items-center justify-center gap-2"
               >
-                <span>👁️</span>
+                <span></span>
                 <span>Detayları Gör</span>
               </Link>
             </div>
@@ -283,7 +283,7 @@ const Documents = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 ">📄 Yeni Belge</h2>
+              <h2 className="text-2xl font-bold text-gray-900 "> Yeni Belge</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors"

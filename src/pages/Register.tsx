@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services';
 import './Auth.css';
@@ -103,7 +103,7 @@ const Register = () => {
               className="input"
               placeholder="••••••••"
               required
-              minLength="6"
+              minLength={6}
             />
             <p className="text-xs text-muted mt-1">Minimum 6 karakter</p>
           </div>

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { documentService, commentService, ratingService, authService } from '../services';
-import { validateFile, formatFileSize, getFileTypeIcon } from '../utils/fileValidation';
+import { validateFile } from '../utils/fileValidation';
 
 const DocumentDetail = () => {
   const { id } = useParams();
