@@ -93,35 +93,35 @@ const authService = {
       // JWT structure: header.payload.signature
       const payload = token.split('.')[1];
       const decoded: DecodedToken = JSON.parse(atob(payload));
-      
+
       logger.debug('Decoding token claims', { claims: Object.keys(decoded) });
-      
+
       // Check if token is expired
       if (decoded.exp) {
         const expirationDate = new Date(decoded.exp * 1000);
         const now = new Date();
         const isExpired = now > expirationDate;
-        
+
         if (isExpired) {
           logger.warn('Token has expired', { expirationDate, currentTime: now });
         } else {
           logger.debug('Token is valid', { expiresAt: expirationDate });
         }
-        
+
         if (isExpired) {
           return null;
         }
       }
-      
+
       // Try different role claim formats
-      const role = decoded.role 
+      const role = decoded.role
         || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
         || decoded.Role
         || decoded.roles
         || decoded['role'];
-      
+
       logger.debug('User role detected', { role });
-      
+
       return {
         email: decoded.email,
         name: decoded.name || decoded.unique_name || decoded.given_name || '',

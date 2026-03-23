@@ -22,7 +22,7 @@ const Profile = () => {
     try {
       const data = await advisorService.getMyAdvisor();
       logger.debug('Advisor API response:', data);
-      
+
       // Handle response: data has {hasAdvisor: boolean, advisor: {...} | null}
       if (data.hasAdvisor && data.advisor) {
         setMyAdvisor(data.advisor);
