@@ -1,4 +1,5 @@
 import api from './api';
+import { logger } from '../utils/logger';
 
 export interface RegisterData {
   email: string;
@@ -93,20 +94,22 @@ const authService = {
       const payload = token.split('.')[1];
       const decoded: DecodedToken = JSON.parse(atob(payload));
       
-      // Debug: Log all claims to find role
-      console.log('🔍 Token Claims:', decoded);
+      logger.debug('Decoding token claims', { claims: Object.keys(decoded) });
       
       // Check if token is expired
       if (decoded.exp) {
         const expirationDate = new Date(decoded.exp * 1000);
         const now = new Date();
         const isExpired = now > expirationDate;
-        console.log('⏰ Token Expiration:', expirationDate.toLocaleString());
-        console.log('⏰ Current Time:', now.toLocaleString());
-        console.log(isExpired ? '❌ Token EXPIRED!' : '✅ Token is valid');
         
         if (isExpired) {
-          console.warn('🚨 Token has expired! Please login again.');
+          logger.warn('Token has expired', { expirationDate, currentTime: now });
+        } else {
+          logger.debug('Token is valid', { expiresAt: expirationDate });
+        }
+        
+        if (isExpired) {
+          return null;
         }
       }
       
@@ -117,7 +120,7 @@ const authService = {
         || decoded.roles
         || decoded['role'];
       
-      console.log('✅ Detected Role:', role);
+      logger.debug('User role detected', { role });
       
       return {
         email: decoded.email,
@@ -126,7 +129,7 @@ const authService = {
         sub: decoded.sub || decoded.nameid
       };
     } catch (error) {
-      console.error('❌ Failed to decode token:', error);
+      logger.error('Failed to decode token', error as Error);
       return null;
     }
   },

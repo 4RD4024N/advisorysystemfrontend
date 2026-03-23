@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { logger } from '../utils/logger';
 
 // API Base URL - can be configured for different environments
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'https://localhost:44375/api';
@@ -18,15 +19,14 @@ api.interceptors.request.use(
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔐 Request to:', config.url);
-      console.log('📝 Token attached:', token.substring(0, 50) + '...');
+      logger.debug(`Request to: ${config.url}`, { hasToken: true });
     } else {
-      console.warn('⚠️ No token found for request:', config.url);
+      logger.warn(`No token found for request: ${config.url}`);
     }
     return config;
   },
   (error: AxiosError) => {
-    console.error('❌ Request interceptor error:', error);
+    logger.error('Request interceptor error', error);
     return Promise.reject(error);
   }
 );
@@ -34,52 +34,41 @@ api.interceptors.request.use(
 // Response interceptor to handle errors
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log('✅ Response from:', response.config.url, '- Status:', response.status);
+    logger.api(response.config.method?.toUpperCase() || 'GET', response.config.url || '', response.status);
     return response;
   },
   (error: AxiosError) => {
     const status = error.response?.status;
     const url = error.config?.url;
     
-    console.error('❌ API Error:', {
-      url,
+    logger.api(
+      error.config?.method?.toUpperCase() || 'GET',
+      url || '',
       status,
-      message: error.message,
-      data: error.response?.data
-    });
+      error
+    );
     
     if (status === 401) {
-      console.warn('🔒 Unauthorized - Redirecting to login');
+      logger.warn('Unauthorized - Redirecting to login');
       localStorage.removeItem('token');
       window.location.href = '/login';
     } else if (status === 403) {
-      console.error('🚫 Forbidden - Access denied. Check your role and token.');
-      console.error('📍 Failed URL:', url);
-      console.error('📦 Response data:', error.response?.data);
+      logger.error('Forbidden - Access denied', error, {
+        url,
+        responseData: error.response?.data,
+      });
       
       const token = localStorage.getItem('token');
       if (token) {
         try {
           const payload = token.split('.')[1];
           const decoded = JSON.parse(atob(payload));
-          console.log('📋 Current token payload:', decoded);
-          console.log('🔑 All claim keys:', Object.keys(decoded));
-          
-          // Check role specifically
           const roleClaim = decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-          console.log('👤 Role Claim Value:', roleClaim);
+          logger.debug('Token payload', { role: roleClaim, claims: Object.keys(decoded) });
         } catch (e) {
-          console.error('Failed to decode token:', e);
+          logger.error('Failed to decode token', e as Error);
         }
       }
-      
-      console.log('💡 SOLUTION: Backend needs this configuration:');
-      console.log(`
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-        };
-      `);
     }
     
     return Promise.reject(error);
