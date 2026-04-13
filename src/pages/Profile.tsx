@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { authService, advisorService } from '../services';
+import api from '../services/api';
 import { logger } from '../utils/logger';
 
 interface AdvisorInfo {
@@ -122,7 +123,7 @@ const Profile = () => {
             <div className="mb-3">
               <div className="text-sm text-muted mb-1">API Base URL</div>
               <div style={{ fontSize: '14px', fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '8px', borderRadius: '4px' }}>
-                https://localhost:7175/api
+                {api.defaults.baseURL || 'Not configured'}
               </div>
             </div>
 
@@ -146,7 +147,7 @@ const Profile = () => {
             <div className="mb-3">
               <div className="text-sm text-muted mb-1">API Base URL</div>
               <div style={{ fontSize: '14px', fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '8px', borderRadius: '4px' }}>
-                https://localhost:7175/api
+                {api.defaults.baseURL || 'Not configured'}
               </div>
             </div>
 

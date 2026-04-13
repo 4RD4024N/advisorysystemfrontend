@@ -93,7 +93,7 @@ const documentService = {
    */
   getPreviewUrl: (versionId) => {
     const token = localStorage.getItem('token');
-    const baseURL = api.defaults.baseURL || 'https://localhost:7175/api';
+    const baseURL = api.defaults.baseURL || '';
     return `${baseURL}/documents/preview/${versionId}?token=${token}`;
   },
 

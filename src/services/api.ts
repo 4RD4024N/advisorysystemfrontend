@@ -1,8 +1,14 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { logger } from '../utils/logger';
 
-// API Base URL - can be configured for different environments
-const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'https://localhost:44375/api';
+// API Base URL - configured via environment variables
+// Production: set VITE_API_URL in .env.production or Azure SWA app settings
+// Development: set VITE_API_URL in .env or .env.development
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'https://localhost:44375/api' : '');
+
+if (!API_BASE_URL && !import.meta.env.DEV) {
+  console.error('VITE_API_URL environment variable is not set. API calls will fail.');
+}
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
