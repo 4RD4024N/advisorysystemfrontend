@@ -22,10 +22,12 @@
   },
   "routes": [
     {
+      "route": "/api/auth/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/api/*",
-      "allowedRoles": [
-        "authenticated"
-      ]
+      "allowedRoles": ["anonymous"]
     }
   ],
   "responseOverrides": {
