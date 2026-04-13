@@ -1,12 +1,17 @@
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/**", "*.{css,scss,js,mjs,png,gif,ico,jpg,jpeg,svg,json,txt,woff,woff2,ttf,eot,map}"]
+    "exclude": [
+      "/assets/**",
+      "*.{css,scss,js,mjs,png,gif,ico,jpg,jpeg,svg,json,txt,woff,woff2,ttf,eot,map}"
+    ]
   },
   "routes": [
     {
       "route": "/api/*",
-      "allowedRoles": ["authenticated"]
+      "allowedRoles": [
+        "authenticated"
+      ]
     }
   ],
   "responseOverrides": {

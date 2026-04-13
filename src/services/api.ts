@@ -46,14 +46,14 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     const status = error.response?.status;
     const url = error.config?.url;
-    
+
     logger.api(
       error.config?.method?.toUpperCase() || 'GET',
       url || '',
       status,
       error
     );
-    
+
     if (status === 401) {
       logger.warn('Unauthorized - Redirecting to login');
       localStorage.removeItem('token');
@@ -63,7 +63,7 @@ api.interceptors.response.use(
         url,
         responseData: error.response?.data,
       });
-      
+
       const token = localStorage.getItem('token');
       if (token) {
         try {
@@ -76,7 +76,7 @@ api.interceptors.response.use(
         }
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
