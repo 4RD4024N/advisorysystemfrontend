@@ -7,7 +7,13 @@
 
 /* Auth-specific text-muted override */
 .auth-container .text-muted {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #6b7280 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-container .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
 }
 
 /* Auth Container */
@@ -53,16 +59,28 @@
 .auth-title {
   font-size: 32px;
   font-weight: 700;
-  color: #ffffff;
+  color: #1f2937;
   margin-bottom: 8px;
   letter-spacing: -0.5px;
 }
 
+@media (prefers-color-scheme: dark) {
+  .auth-title {
+    color: #ffffff;
+  }
+}
+
 .auth-subtitle {
   font-size: 15px;
-  color: #ffffff;
+  color: #6b7280;
   margin: 0;
   font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+  }
 }
 
 /* Auth Form */
@@ -79,27 +97,33 @@
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #ffffff;
+  color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-form .input-label {
+    color: #ffffff;
+  }
 }
 
 .auth-form .input {
   width: 100%;
   padding: 14px 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid #e5e7eb;
   border-radius: 12px;
   font-size: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: #f9fafb;
+  color: #1f2937;
 }
 
 .auth-form .input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: #667eea;
+  background: #ffffff;
 }
 
 .auth-form .input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: #9ca3af;
 }
 
 /* Dark mode input */
@@ -107,13 +131,16 @@
   .auth-form .input {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.1);
-    color: white
+    color: white;
+  }
+
+  .auth-form .input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
   }
   
   .auth-form .input:focus {
     background: rgba(255, 255, 255, 0.08);
     border-color: #667eea;
-    
   }
 }
 
@@ -155,9 +182,15 @@
 
 .auth-footer p {
   font-size: 14px;
-  color: #ffffff;
+  color: #4b5563;
   margin: 0;
   font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-footer p {
+    color: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .auth-link {
@@ -184,8 +217,14 @@
 .auth-demo p {
   margin: 6px 0;
   font-size: 13px;
-  color: #ffffff;
+  color: #4b5563;
   font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-demo p {
+    color: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .auth-demo p:first-child {
