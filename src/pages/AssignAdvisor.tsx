@@ -187,8 +187,8 @@ const AssignAdvisor = () => {
 
       {message.text && (
         <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-red-50 border border-red-200 text-red-800'
+          ? 'bg-green-50 border border-green-200 text-green-800'
+          : 'bg-red-50 border border-red-200 text-red-800'
           }`}>
           <p className="font-semibold">{message.type === 'success' ? '✓' : '×'} {message.text}</p>
         </div>
@@ -230,8 +230,8 @@ const AssignAdvisor = () => {
             <button
               onClick={() => setFilterType('all')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'all'
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-primary text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
               Tümü
@@ -239,8 +239,8 @@ const AssignAdvisor = () => {
             <button
               onClick={() => setFilterType('unassigned')}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'unassigned'
-                  ? 'bg-yellow-500 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-yellow-500 text-white shadow-lg'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
               Öğretmensizler
@@ -388,8 +388,8 @@ const AssignAdvisor = () => {
 
             {message.text && showModal && (
               <div className={`mb-4 px-4 py-3 rounded-lg ${message.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : 'bg-red-50 border border-red-200 text-red-800'
                 }`}>
                 <p className="text-sm font-medium">{message.text}</p>
               </div>

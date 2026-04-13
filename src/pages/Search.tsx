@@ -67,7 +67,7 @@ const Search = () => {
                   key={i}
                   onClick={() => {
                     setQuery(tag.tag);
-                    handleSearch({ preventDefault: () => {} });
+                    handleSearch({ preventDefault: () => { } });
                   }}
                   className="badge badge-primary"
                   style={{ marginRight: '8px', marginBottom: '8px', cursor: 'pointer', border: 'none' }}
@@ -106,7 +106,7 @@ const Search = () => {
                       {doc.title}
                     </Link>
                   </h3>
-                  
+
                   <div className="mb-2">
                     {doc.tags && doc.tags.split(',').map((tag, i) => (
                       <span key={i} className="badge badge-primary" style={{ marginRight: '6px', marginBottom: '6px' }}>

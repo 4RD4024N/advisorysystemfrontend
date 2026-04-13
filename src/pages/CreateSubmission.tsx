@@ -150,8 +150,8 @@ const CreateSubmission = () => {
 
       {message.text && (
         <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
-            ? 'bg-green-50 border border-green-200 text-green-800'
-            : 'bg-red-50 border border-red-200 text-red-800'
+          ? 'bg-green-50 border border-green-200 text-green-800'
+          : 'bg-red-50 border border-red-200 text-red-800'
           }`}>
           <p className="font-semibold">{message.text}</p>
         </div>

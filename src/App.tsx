@@ -30,67 +30,67 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:id" element={<DocumentDetail />} />
-          
-          <Route 
-            path="/submissions" 
+
+          <Route
+            path="/submissions"
             element={
               <RoleBasedRoute allowedRoles={['Student']}>
                 <Submissions />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
+
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/search" element={<Search />} />
           <Route path="/notifications" element={<Notifications />} />
-          
-          <Route 
-            path="/student-profile" 
+
+          <Route
+            path="/student-profile"
             element={
               <RoleBasedRoute allowedRoles={['Student']}>
                 <StudentProfile />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
+
           <Route path="/courses" element={<Courses />} />
-          
-          <Route 
-            path="/course-schedule" 
+
+          <Route
+            path="/course-schedule"
             element={
               <RoleBasedRoute allowedRoles={['Student', 'Advisor']}>
                 <CourseSchedule />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/students" 
+
+          <Route
+            path="/students"
             element={
               <RoleBasedRoute allowedRoles={['Admin', 'Advisor']}>
                 <Students />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/assign-advisor" 
+
+          <Route
+            path="/assign-advisor"
             element={
               <RoleBasedRoute allowedRoles={['Admin']}>
                 <AssignAdvisor />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
-          <Route 
-            path="/create-submission" 
+
+          <Route
+            path="/create-submission"
             element={
               <RoleBasedRoute allowedRoles={['Advisor']}>
                 <CreateSubmission />
               </RoleBasedRoute>
-            } 
+            }
           />
-          
+
           <Route path="/profile" element={<Profile />} />
         </Route>
 
