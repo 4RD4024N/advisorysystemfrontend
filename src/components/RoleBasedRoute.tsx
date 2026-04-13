@@ -34,7 +34,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({ children, allowedRoles 
           Access Denied
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-          You don't have permission to access this page.
+          You don&apos;t have permission to access this page.
           <br />
           This page is only available for {allowedRoles.join(' and ')} roles.
         </p>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { submissionService, documentService, authService } from '../services';
 
 const CreateSubmission = () => {
   const userInfo = authService.getUserInfo();
-  const [students, setStudents] = useState([]);
+  const [_students, _setStudents] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);

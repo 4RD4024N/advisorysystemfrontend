@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   authService,
   documentService,
-  advisorService,
-  commentService,
-  submissionService,
   statisticsService,
   searchService,
 } from '../services';

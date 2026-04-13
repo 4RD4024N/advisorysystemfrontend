@@ -17,6 +17,7 @@ const Profile = () => {
     if (userInfo?.role === 'Student') {
       loadAdvisorInfo();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAdvisorInfo = async () => {

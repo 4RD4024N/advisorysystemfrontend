@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { statisticsService, documentService, advisorService, authService } from '../services';
 
@@ -12,6 +12,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadDashboard();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDashboard = async () => {

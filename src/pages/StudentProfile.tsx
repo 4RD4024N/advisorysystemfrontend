@@ -152,7 +152,7 @@ function StudentProfile() {
           ) : (
             <div className="no-advisor-message">
               <div className="no-advisor-icon">📭</div>
-              <p>You don't have an advisor assigned yet.</p>
+              <p>You don&apos;t have an advisor assigned yet.</p>
               <p className="text-muted">Please contact administration.</p>
             </div>
           )}
@@ -263,7 +263,7 @@ function StudentProfile() {
             </div>
           ) : (
             <div className="no-profile">
-              <p>No profile found. Click "Edit Profile" to create one.</p>
+              <p>No profile found. Click &quot;Edit Profile&quot; to create one.</p>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { advisorService, studentService, authService } from '../services';
 
 const AssignAdvisor = () => {
