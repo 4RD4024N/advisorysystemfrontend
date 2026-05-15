@@ -82,11 +82,10 @@
 }
 
 .sidebar-logo {
-  font-size: 26px;
-  font-weight: 800;
-  color: #667eea;
+  height: 48px;
+  width: auto;
+  object-fit: contain;
   margin: 0;
-  letter-spacing: -0.5px;
 }
 
 .sidebar-nav {

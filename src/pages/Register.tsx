@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services';
+import bedesLogo from '../../bedeslogo.jpeg';
 import './Auth.css';
 
 const Register = () => {
@@ -50,7 +51,7 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo">BEDES</h1>
+          <img src={bedesLogo} alt="BEDES" className="auth-logo" />
           <h2 className="auth-title">Hesap oluştur</h2>
           <p className="auth-subtitle">Kayıt olarak başlayın</p>
         </div>

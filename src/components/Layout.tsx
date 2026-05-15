@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { authService, notificationService } from '../services';
+import bedesLogo from '../../bedeslogo.jpeg';
 import './Layout.css';
 
 const Layout = () => {
@@ -40,7 +41,7 @@ const Layout = () => {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
-          <h2 className="sidebar-logo">BEDES</h2>
+          <img src={bedesLogo} alt="BEDES" className="sidebar-logo" />
           {authService.getUserInfo() && (
             <div className="user-info">
               <div className="user-avatar">

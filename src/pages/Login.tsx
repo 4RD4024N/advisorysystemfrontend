@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services';
+import bedesLogo from '../../bedeslogo.jpeg';
 import './Auth.css';
 
 const Login = () => {
@@ -39,7 +40,7 @@ const Login = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1 className="auth-logo">BEDES</h1>
+          <img src={bedesLogo} alt="BEDES" className="auth-logo" />
           <h2 className="auth-title">Hoşgeldiniz</h2>
           <p className="auth-subtitle">Hesabınıza giriş yapınız</p>
         </div>
