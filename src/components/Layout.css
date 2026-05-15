@@ -187,7 +187,7 @@
   transition: margin-left 0.3s ease;
 }
 
-.sidebar.closed + .main-content {
+.sidebar.closed+.main-content {
   margin-left: 0;
 }
 

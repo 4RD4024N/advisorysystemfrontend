@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../services';
-import bedesLogo from '../../bedeslogo.jpeg';
+import bedesLogo from '../../bedeslogo.png';
 import './Auth.css';
 
 const Login = () => {

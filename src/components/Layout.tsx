@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { authService, notificationService } from '../services';
-import bedesLogo from '../../bedeslogo.jpeg';
+import bedesLogo from '../../bedeslogo.png';
 import './Layout.css';
 
 const Layout = () => {
