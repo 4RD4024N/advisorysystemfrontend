@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { storageService, healthService } from '../services';
 import './SystemMonitoring.css';
 
@@ -78,17 +79,17 @@ function SystemMonitoring() {
   };
 
   const handleCleanupOrphaned = async () => {
-    if (!confirm('Clean up orphaned files? This will delete files without database records.')) {
+    if (!confirm('Sahipsiz dosyaları temizle? Bu işlem veritabanı kaydı olmayan dosyaları silecektir.')) {
       return;
     }
 
     try {
       const result = await storageService.cleanupOrphanedFiles();
-      alert(`Cleanup complete! Deleted ${result.deletedCount} orphaned files.`);
+      toast.success(`Temizleme tamamlandı! ${result.deletedCount} sahipsiz dosya silindi.`);
       loadStorageData();
     } catch (error) {
       console.error('Cleanup failed:', error);
-      alert('Cleanup failed: ' + error.message);
+      toast.error('Temizleme başarısız: ' + error.message);
     }
   };
 

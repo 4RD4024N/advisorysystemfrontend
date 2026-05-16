@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { isAxiosError } from 'axios';
+import toast from 'react-hot-toast';
 import { studentService, authService } from '../services';
 import './Students.css';
 
@@ -66,7 +67,7 @@ function Students() {
     } catch (error: unknown) {
       console.error('Failed to load students:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('Sadece size atanmış öğrencilere erişebilirsiniz');
+        toast.error('Sadece size atanmış öğrencilere erişebilirsiniz');
       }
       setStudents([]); // Set empty array on error
     } finally {
@@ -82,33 +83,33 @@ function Students() {
 
   const handleSendNotification = async (studentId: string) => {
     if (!notificationData.title || !notificationData.message) {
-      alert('Lütfen başlık ve mesaj girin');
+      toast.error('Lütfen başlık ve mesaj girin');
       return;
     }
 
     try {
       await studentService.sendNotification(studentId, notificationData);
-      alert('Bildirim başarıyla gönderildi!');
+      toast.success('Bildirim başarıyla gönderildi!');
       setShowNotificationModal(false);
       setNotificationData({ title: '', message: '' });
     } catch (error: unknown) {
       console.error('Failed to send notification:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
+        toast.error('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
       } else {
-        alert('Bildirim gönderilemedi');
+        toast.error('Bildirim gönderilemedi');
       }
     }
   };
 
   const handleSendBulkNotification = async () => {
     if (selectedStudents.length === 0) {
-      alert('Lütfen en az bir öğrenci seçin');
+      toast.error('Lütfen en az bir öğrenci seçin');
       return;
     }
 
     if (!notificationData.title || !notificationData.message) {
-      alert('Lütfen başlık ve mesaj girin');
+      toast.error('Lütfen başlık ve mesaj girin');
       return;
     }
 
@@ -119,9 +120,9 @@ function Students() {
       }) as BulkNotificationResponse;
 
       if (response.errors && response.errors.length > 0) {
-        alert(`${response.successCount} öğrenciye gönderildi. Başarısız: ${response.failedCount}\n${response.errors.join('\n')}`);
+        toast.error(`${response.successCount} öğrenciye gönderildi. Başarısız: ${response.failedCount}`);
       } else {
-        alert(`Bildirim ${selectedStudents.length} öğrenciye gönderildi!`);
+        toast.success(`Bildirim ${selectedStudents.length} öğrenciye gönderildi!`);
       }
 
       setShowBulkModal(false);
@@ -130,16 +131,16 @@ function Students() {
     } catch (error: unknown) {
       console.error('Failed to send bulk notification:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
+        toast.error('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
       } else {
-        alert('Bildirimler gönderilemedi');
+        toast.error('Bildirimler gönderilemedi');
       }
     }
   };
 
   const handleSendToAll = async () => {
     if (!notificationData.title || !notificationData.message) {
-      alert('Lütfen başlık ve mesaj girin');
+      toast.error('Lütfen başlık ve mesaj girin');
       return;
     }
 
@@ -149,12 +150,12 @@ function Students() {
 
     try {
       await studentService.sendNotificationToAll(notificationData);
-      alert('Tüm öğrencilere bildirim gönderildi!');
+      toast.success('Tüm öğrencilere bildirim gönderildi!');
       setShowBulkModal(false);
       setNotificationData({ title: '', message: '' });
     } catch (error: unknown) {
       console.error('Failed to send notification to all:', error);
-      alert('Bildirimler gönderilemedi');
+      toast.error('Bildirimler gönderilemedi');
     }
   };
 

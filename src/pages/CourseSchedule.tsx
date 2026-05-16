@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { authService, courseService, studentService } from '../services';
 import { logger } from '../utils/logger';
 import './CourseSchedule.css';
@@ -468,12 +469,12 @@ const CourseSchedule = () => {
 
   const handleEnrollCourse = async (course: Course) => {
     if (course.isEnrolled) {
-      alert('Bu derse zaten kayıtlısınız!');
+      toast.error('Bu derse zaten kayıtlısınız!');
       return;
     }
 
     if (course.isFull) {
-      alert('Bu ders şubesi dolu!');
+      toast.error('Bu ders şubesi dolu!');
       return;
     }
 
@@ -484,7 +485,7 @@ const CourseSchedule = () => {
         course.semester
       );
 
-      alert(`${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
+      toast.success(`${result.courseCode} - ${result.courseName} dersine kayıt olundu!`);
 
 
       await loadMySchedule();
@@ -498,18 +499,16 @@ const CourseSchedule = () => {
       const errorData = axiosError.response?.data;
 
       if (errorData?.conflictDetails) {
-        // Çakışma detaylarını göster
         const conflicts = errorData.conflictDetails
           .map(c => `• ${c.courseCode}: ${c.day} ${c.existingTime}`)
           .join('\n');
-
-        alert(`${errorData.error}\n\n${errorData.message}\n\nÇakışan Dersler:\n${conflicts}`);
+        toast.error(`${errorData.error} - ${errorData.message}\nÇakışan Dersler: ${conflicts}`, { duration: 6000 });
       } else if (errorData?.message) {
-        alert(`${errorData.error}\n\n${errorData.message}`);
+        toast.error(`${errorData.error} - ${errorData.message}`);
       } else if (errorData?.error) {
-        alert(`${errorData.error}`);
+        toast.error(`${errorData.error}`);
       } else {
-        alert('Derse kayıt olurken bir hata oluştu.');
+        toast.error('Derse kayıt olurken bir hata oluştu.');
       }
     }
   };
@@ -523,7 +522,7 @@ const CourseSchedule = () => {
     try {
       await courseService.unenrollCourse(course.courseId);
 
-      alert(`${course.courseCode} dersinden çıkıldı.`);
+      toast.success(`${course.courseCode} dersinden çıkıldı.`);
 
 
       await loadMySchedule();
@@ -531,7 +530,7 @@ const CourseSchedule = () => {
     } catch (error: unknown) {
       logger.error('Çıkış hatası:', error);
       const axiosError = error as { response?: { data?: { error?: string } } };
-      alert(axiosError.response?.data?.error || 'Dersten çıkarken bir hata oluştu.');
+      toast.error(axiosError.response?.data?.error || 'Dersten çıkarken bir hata oluştu.');
     }
   };
 

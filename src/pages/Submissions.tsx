@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { submissionService } from '../services';
 
 const Submissions = () => {
@@ -25,7 +26,7 @@ const Submissions = () => {
       await submissionService.updateStatus(id, status);
       loadSubmissions();
     } catch (error) {
-      alert('Durum güncellenemedi: ' + error.message);
+      toast.error('Durum güncellenemedi: ' + error.message);
     }
   };
 

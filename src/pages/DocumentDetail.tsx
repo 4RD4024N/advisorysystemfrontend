@@ -1,23 +1,60 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { documentService, commentService, ratingService, authService } from '../services';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { validateFile } from '../utils/fileValidation';
+
+interface Version {
+  id: string;
+  versionNo: number;
+  size: number;
+  fileName: string;
+  notes?: string;
+  createdAt: string;
+}
+
+interface RatingEntry {
+  id: string;
+  score: number;
+  comments?: string;
+  createdAt: string;
+  advisorUserId: string;
+}
+
+interface RatingsData {
+  hasRating: boolean;
+  averageScore: number;
+  ratingCount: number;
+  ratings: RatingEntry[];
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
+interface Metadata {
+  isPdf: boolean;
+  canPreview: boolean;
+}
 
 const DocumentDetail = () => {
   const { id } = useParams();
-  const [versions, setVersions] = useState([]);
-  const [comments, setComments] = useState({});
-  const [ratings, setRatings] = useState({});
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
+  const [ratings, setRatings] = useState<Record<string, RatingsData>>({});
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [notes, setNotes] = useState('');
-  const [selectedVersion, setSelectedVersion] = useState(null);
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [ratingForm, setRatingForm] = useState({ score: '', comments: '' });
-  const [previewUrl, setPreviewUrl] = useState(null);
-  const [metadata, setMetadata] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [metadata, setMetadata] = useState<Metadata | null>(null);
 
   const userInfo = authService.getUserInfo();
   const isAdvisorOrAdmin = authService.isAdvisor() || authService.isAdmin();
@@ -48,7 +85,7 @@ const DocumentDetail = () => {
     }
   };
 
-  const loadComments = async (versionId) => {
+  const loadComments = async (versionId: string) => {
     try {
       const data = await commentService.getCommentsByVersion(versionId);
       setComments(prev => ({ ...prev, [versionId]: data }));
@@ -57,24 +94,25 @@ const DocumentDetail = () => {
     }
   };
 
-  const loadRatings = async (versionId) => {
+  const loadRatings = async (versionId: string) => {
     if (!isAdvisorOrAdmin) {
       return;
     }
 
     try {
       const data = await ratingService.getRatingsByVersion(versionId);
-      setRatings(prev => ({ ...prev, [versionId]: data }));
+      setRatings(prev => ({ ...prev, [versionId]: data as RatingsData }));
     } catch (error) {
-      if (error.response?.status !== 403) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status !== 403) {
         console.error('Error loading ratings:', error);
       }
     }
   };
 
-  const loadMetadata = async (versionId) => {
+  const loadMetadata = async (versionId: string) => {
     try {
-      const data = await documentService.getMetadata(versionId);
+      const data = await documentService.getMetadata(versionId) as Metadata;
       setMetadata(data);
       if (data.isPdf && data.canPreview) {
         setPreviewUrl(documentService.getPreviewUrl(versionId));
@@ -86,13 +124,13 @@ const DocumentDetail = () => {
     }
   };
 
-  const handleUpload = async (e) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFile) return;
 
     const validation = validateFile(selectedFile);
     if (!validation.valid) {
-      alert(validation.error);
+      toast.error(validation.error);
       return;
     }
 
@@ -103,21 +141,23 @@ const DocumentDetail = () => {
       setNotes('');
       loadVersions();
     } catch (error) {
-        alert('Yükleme başarısız: ' + error.message);
+      const err = error as Error;
+      toast.error('Yükleme başarısız: ' + err.message);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleDownload = async (versionId, fileName) => {
+  const handleDownload = async (versionId: string, fileName: string) => {
     try {
       await documentService.downloadAndSaveFile(versionId, fileName);
     } catch (error) {
-        alert('İndirme başarısız: ' + error.message);
+      const err = error as Error;
+      toast.error('İndirme başarısız: ' + err.message);
     }
   };
 
-  const handleAddComment = async (e) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !selectedVersion) return;
 
@@ -129,11 +169,12 @@ const DocumentDetail = () => {
       setNewComment('');
       loadComments(selectedVersion);
     } catch (error) {
-        alert('Yorum eklenemedi: ' + error.message);
+      const err = error as Error;
+      toast.error('Yorum eklenemedi: ' + err.message);
     }
   };
 
-  const handleAddRating = async (e) => {
+  const handleAddRating = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedVersion || !ratingForm.score) return;
 
@@ -146,21 +187,23 @@ const DocumentDetail = () => {
       setShowRatingModal(false);
       setRatingForm({ score: '', comments: '' });
       loadRatings(selectedVersion);
-      alert('Değlendirme başarıyla gönderildi!');
+      toast.success('Değerlendirme başarıyla gönderildi!');
     } catch (error) {
-      alert('Değlendirme gönderilemedi: ' + (error.response?.data?.error || error.message));
+      const axiosError = error as { response?: { data?: { error?: string } }; message?: string };
+      toast.error('Değerlendirme gönderilemedi: ' + (axiosError.response?.data?.error || axiosError.message));
     }
   };
 
-  const handleDeleteRating = async (ratingId) => {
-    if (!confirm('Bu değlendirmeyi silmek istediğinizden emin misiniz?')) return;
+  const handleDeleteRating = async (ratingId: string) => {
+    if (!confirm('Bu değerlendirmeyi silmek istediğinizden emin misiniz?')) return;
 
     try {
       await ratingService.deleteRating(ratingId);
-      loadRatings(selectedVersion);
-      alert('Değlendirme başarıyla silindi!');
+      if (selectedVersion) loadRatings(selectedVersion);
+      toast.success('Değerlendirme başarıyla silindi!');
     } catch (error) {
-      alert('Değlendirme silinemedi: ' + error.message);
+      const err = error as Error;
+      toast.error('Değerlendirme silinemedi: ' + err.message);
     }
   };
 
@@ -189,7 +232,7 @@ const DocumentDetail = () => {
               <label className="input-label">Dosya Seç</label>
               <input
                 type="file"
-                onChange={(e) => setSelectedFile(e.target.files[0])}
+                onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                 className="input"
                 required
               />
@@ -201,7 +244,7 @@ const DocumentDetail = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="input"
-                rows="3"
+                rows={3}
                 placeholder="Versiyon notları..."
               />
             </div>
@@ -292,13 +335,13 @@ const DocumentDetail = () => {
             <div className="card">
               <div className="flex-between mb-3">
                 <h2 className="card-header" style={{ marginBottom: 0 }}>
-                  Versiyon {versions.find(v => v.id === selectedVersion)?.versionNo} Değlendirmeleri
+                  Versiyon {versions.find(v => v.id === selectedVersion)?.versionNo} Değerlendirmeleri
                 </h2>
                 <button
                   onClick={() => setShowRatingModal(true)}
                   className="btn btn-primary btn-sm"
                 >
-                  Belgeyi Değlendir
+                  Belgeyi Değerlendir
                 </button>
               </div>
 
@@ -315,7 +358,7 @@ const DocumentDetail = () => {
                       {ratings[selectedVersion].averageScore.toFixed(1)} / 100
                     </div>
                     <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
-                      Ortalama Puan ({ratings[selectedVersion].ratingCount} değlendirme)
+                      Ortalama Puan ({ratings[selectedVersion].ratingCount} değerlendirme)
                     </div>
                   </div>
 
@@ -367,7 +410,7 @@ const DocumentDetail = () => {
               ) : (
                 <div className="empty-state">
                   <div className="empty-state-icon">⭐</div>
-                  <div className="empty-state-text">Henüz değlendirme yok</div>
+                  <div className="empty-state-text">Henüz değerlendirme yok</div>
                 </div>
               )}
             </div>
@@ -385,7 +428,7 @@ const DocumentDetail = () => {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   className="input"
-                  rows="2"
+                  rows={2}
                   placeholder="Yorum ekle..."
                   required
                 />
@@ -461,7 +504,7 @@ const DocumentDetail = () => {
               padding: '1.5rem 2rem',
               borderBottom: '2px solid var(--border-color)'
             }}>
-              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Belgeyi Değlendir</h2>
+              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Belgeyi Değerlendir</h2>
               <button
                 onClick={() => setShowRatingModal(false)}
                 style={{
@@ -503,14 +546,14 @@ const DocumentDetail = () => {
                   value={ratingForm.comments}
                   onChange={(e) => setRatingForm({ ...ratingForm, comments: e.target.value })}
                   className="input"
-                  rows="4"
+                  rows={4}
                   placeholder="Belge hakkında geri bildirim yazın..."
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                  Değlendirmeyi Gönder
+                  Değerlendirmeyi Gönder
                 </button>
                 <button
                   type="button"
