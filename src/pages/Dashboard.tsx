@@ -60,9 +60,9 @@ const Dashboard = () => {
   return (
     <div>
       <div className="flex-between mb-4">
-        <h1>Dashboard</h1>
+        <h1>Ana Sayfa</h1>
         <Link to="/documents" className="btn btn-primary">
-          + New Document
+          + Yeni Belge
         </Link>
       </div>
 
@@ -73,7 +73,7 @@ const Dashboard = () => {
             : 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
           border: advisor.hasAdvisor ? '2px solid #3b82f6' : '2px solid #f59e0b'
         }}>
-          <h2 className="card-header" style={{ marginBottom: '1rem' }}>👨‍🏫 My Advisor</h2>
+          <h2 className="card-header" style={{ marginBottom: '1rem' }}>👨‍🏫 Danışmanım</h2>
           {advisor.hasAdvisor ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -85,13 +85,13 @@ const Dashboard = () => {
                 </div>
               </div>
               <span className="badge badge-success" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
-                Assigned
+                Atandı
               </span>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '1.5rem' }}>
               <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>📭</div>
-              <p style={{ color: '#657786', margin: 0 }}>No advisor assigned yet</p>
+              <p style={{ color: '#657786', margin: 0 }}>Henüz danışman atanmadı</p>
             </div>
           )}
         </div>
@@ -104,13 +104,13 @@ const Dashboard = () => {
           border: '2px solid #f59e0b'
         }}>
           <div className="flex-between mb-3">
-            <h2 className="card-header" style={{ marginBottom: 0 }}>My Students</h2>
+            <h2 className="card-header" style={{ marginBottom: 0 }}>Öğrencilerim</h2>
             <div style={{ fontSize: '2rem', fontWeight: '700', color: '#f59e0b' }}>
               {myStudents.totalStudents || 0}
             </div>
           </div>
           <p style={{ color: '#657786', margin: 0, fontSize: '0.95rem' }}>
-            You are currently advising {myStudents.totalStudents || 0} student{myStudents.totalStudents !== 1 ? 's' : ''}
+            {myStudents.totalStudents || 0} öğrenciye danışmanlık yapıyorsunuz
           </p>
         </div>
       )}
@@ -118,21 +118,21 @@ const Dashboard = () => {
 
       <div className="grid grid-3 mb-4">
         <div className="card">
-          <div className="text-muted text-sm mb-1">Total Documents</div>
+          <div className="text-muted text-sm mb-1">Toplam Belge</div>
           <div className="text-lg" style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary-color)' }}>
             {stats?.totalDocuments || 0}
           </div>
         </div>
 
         <div className="card">
-          <div className="text-muted text-sm mb-1">Total Versions</div>
+          <div className="text-muted text-sm mb-1">Toplam Versiyon</div>
           <div className="text-lg" style={{ fontSize: '32px', fontWeight: '700', color: 'var(--secondary-color)' }}>
             {stats?.totalVersions || 0}
           </div>
         </div>
 
         <div className="card">
-          <div className="text-muted text-sm mb-1">Pending Submissions</div>
+          <div className="text-muted text-sm mb-1">Bekleyen Görevler</div>
           <div className="text-lg" style={{ fontSize: '32px', fontWeight: '700', color: 'var(--warning-color)' }}>
             {stats?.pendingSubmissions || 0}
           </div>
@@ -142,17 +142,17 @@ const Dashboard = () => {
 
       <div className="card">
         <div className="flex-between mb-3">
-          <h2 className="card-header" style={{ marginBottom: 0 }}>Recent Documents</h2>
-          <Link to="/documents" className="text-sm text-primary">View All →</Link>
+          <h2 className="card-header" style={{ marginBottom: 0 }}>Son Belgeler</h2>
+          <Link to="/documents" className="text-sm text-primary">Tümünü Gör →</Link>
         </div>
 
         {recentDocs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📄</div>
-            <div className="empty-state-text">No documents yet</div>
-            <div className="empty-state-subtext">Create your first document to get started</div>
+            <div className="empty-state-text">Henüz belge yok</div>
+            <div className="empty-state-subtext">Başlamak için ilk belgenizi oluşturun</div>
             <Link to="/documents" className="btn btn-primary mt-3">
-              Create Document
+              Belge Oluştur
             </Link>
           </div>
         ) : (
@@ -160,10 +160,10 @@ const Dashboard = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Title</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Tags</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Versions</th>
-                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Created</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Başlık</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Etiketler</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Versiyonlar</th>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-secondary)', fontWeight: '500', fontSize: '14px' }}>Oluşturuldu</th>
                 </tr>
               </thead>
               <tbody>

@@ -94,17 +94,17 @@ function Notifications() {
   };
 
   const getNotificationTypeName = (type: number) => {
-    const types = ['Deadline Approaching', 'New Comment', 'Advisor Assigned',
-      'Document Uploaded', 'Submission Status Changed', 'General'];
-    return types[type] || 'Notification';
+    const types = ['Son Tarih Yaklaşıyor', 'Yeni Yorum', 'Danışman Atandı',
+      'Belge Yüklendi', 'Görev Durumu Değişti', 'Genel'];
+    return types[type] || 'Bildirim';
   };
 
   return (
     <div className="notifications-page">
       <div className="notifications-header">
         <div>
-          <h1>Notifications</h1>
-          <p>Stay updated with your activity</p>
+          <h1>Bildirimler</h1>
+          <p>Aktivitelerinizden haberdar olun</p>
         </div>
 
         {unreadCount > 0 && (
@@ -112,7 +112,7 @@ function Notifications() {
             className="btn-mark-all"
             onClick={handleMarkAllAsRead}
           >
-            Mark All as Read ({unreadCount})
+            Tümünü Okundu İşaretle ({unreadCount})
           </button>
         )}
       </div>
@@ -122,32 +122,32 @@ function Notifications() {
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          All
+          Tümü
         </button>
         <button
           className={`filter-btn ${filter === 'unread' ? 'active' : ''}`}
           onClick={() => setFilter('unread')}
         >
-          Unread {unreadCount > 0 && `(${unreadCount})`}
+          Okunmamış {unreadCount > 0 && `(${unreadCount})`}
         </button>
         <button
           className={`filter-btn ${filter === 'read' ? 'active' : ''}`}
           onClick={() => setFilter('read')}
         >
-          Read
+          Okunmuş
         </button>
       </div>
 
       {loading ? (
-        <div className="loading">Loading notifications...</div>
+        <div className="loading">Bildirimler yükleniyor...</div>
       ) : notifications.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📬</div>
-          <h3>No notifications</h3>
+          <h3>Bildirim yok</h3>
           <p>
             {filter === 'unread'
-              ? "You're all caught up!"
-              : 'No notifications to display'}
+              ? "Tüm bildirimleriniz okunmuş!"
+              : 'Gösterilecek bildirim yok'}
           </p>
         </div>
       ) : (
@@ -181,7 +181,7 @@ function Notifications() {
                       className="btn-mark-read"
                       onClick={() => handleMarkAsRead(notification.id)}
                     >
-                      Mark as read
+                      Okundu İşaretle
                     </button>
                   )}
                 </div>

@@ -66,7 +66,7 @@ function Students() {
     } catch (error: unknown) {
       console.error('Failed to load students:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('You can only access students assigned to you');
+        alert('Sadece size atanmış öğrencilere erişebilirsiniz');
       }
       setStudents([]); // Set empty array on error
     } finally {
@@ -82,33 +82,33 @@ function Students() {
 
   const handleSendNotification = async (studentId: string) => {
     if (!notificationData.title || !notificationData.message) {
-      alert('Please fill in title and message');
+      alert('Lütfen başlık ve mesaj girin');
       return;
     }
 
     try {
       await studentService.sendNotification(studentId, notificationData);
-      alert('Notification sent successfully!');
+      alert('Bildirim başarıyla gönderildi!');
       setShowNotificationModal(false);
       setNotificationData({ title: '', message: '' });
     } catch (error: unknown) {
       console.error('Failed to send notification:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('You can only send notifications to students assigned to you');
+        alert('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
       } else {
-        alert('Failed to send notification');
+        alert('Bildirim gönderilemedi');
       }
     }
   };
 
   const handleSendBulkNotification = async () => {
     if (selectedStudents.length === 0) {
-      alert('Please select at least one student');
+      alert('Lütfen en az bir öğrenci seçin');
       return;
     }
 
     if (!notificationData.title || !notificationData.message) {
-      alert('Please fill in title and message');
+      alert('Lütfen başlık ve mesaj girin');
       return;
     }
 
@@ -119,9 +119,9 @@ function Students() {
       }) as BulkNotificationResponse;
 
       if (response.errors && response.errors.length > 0) {
-        alert(`Sent to ${response.successCount} students. Failed: ${response.failedCount}\n${response.errors.join('\n')}`);
+        alert(`${response.successCount} öğrenciye gönderildi. Başarısız: ${response.failedCount}\n${response.errors.join('\n')}`);
       } else {
-        alert(`Notification sent to ${selectedStudents.length} students!`);
+        alert(`Bildirim ${selectedStudents.length} öğrenciye gönderildi!`);
       }
 
       setShowBulkModal(false);
@@ -130,31 +130,31 @@ function Students() {
     } catch (error: unknown) {
       console.error('Failed to send bulk notification:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        alert('You can only send notifications to students assigned to you');
+        alert('Sadece size atanmış öğrencilere bildirim gönderebilirsiniz');
       } else {
-        alert('Failed to send notifications');
+        alert('Bildirimler gönderilemedi');
       }
     }
   };
 
   const handleSendToAll = async () => {
     if (!notificationData.title || !notificationData.message) {
-      alert('Please fill in title and message');
+      alert('Lütfen başlık ve mesaj girin');
       return;
     }
 
-    if (!confirm('Send notification to ALL students?')) {
+    if (!confirm('TÜM öğrencilere bildirim gönderilsin mi?')) {
       return;
     }
 
     try {
       await studentService.sendNotificationToAll(notificationData);
-      alert('Notification sent to all students!');
+      alert('Tüm öğrencilere bildirim gönderildi!');
       setShowBulkModal(false);
       setNotificationData({ title: '', message: '' });
     } catch (error: unknown) {
       console.error('Failed to send notification to all:', error);
-      alert('Failed to send notifications');
+      alert('Bildirimler gönderilemedi');
     }
   };
 
@@ -197,7 +197,7 @@ function Students() {
           className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
           onClick={() => setFilter('all')}
         >
-          {userRole === 'Admin' ? 'All Students' : 'My Students'}
+          {userRole === 'Admin' ? 'Tüm Öğrenciler' : 'Öğrencilerim'}
         </button>
         {userRole === 'Admin' && (
           <button
@@ -223,10 +223,10 @@ function Students() {
           <h3>Öğrenci bulunamadı</h3>
           <p>
             {filter === 'without-advisor'
-              ? 'All students have advisors assigned'
+              ? 'Tüm öğrencilere danışman atanmış'
               : filter === 'pending'
-                ? 'No students with pending submissions'
-                : 'No students in the system'}
+                ? 'Bekleyen görevi olan öğrenci yok'
+                : 'Sistemde öğrenci bulunamadı'}
           </p>
         </div>
       ) : (
@@ -290,7 +290,7 @@ function Students() {
                       </span>
                     ) : (
                       <span className="detail-value" style={{ color: '#f59e0b' }}>
-                        Not Assigned
+                        Atanmamış
                       </span>
                     )}
                   </div>
@@ -310,8 +310,8 @@ function Students() {
               </div>
             )) : (
               <div className="empty-state">
-                <div className="empty-icon">No students</div>
-                <p>No students found</p>
+                <div className="empty-icon">Öğrenci yok</div>
+                <p>Öğrenci bulunamadı</p>
               </div>
             )}
           </div>
@@ -334,7 +334,7 @@ function Students() {
 
             <div className="modal-body">
               <p className="modal-subtitle">
-                To: {selectedStudent?.fullName}
+                Alıcı: {selectedStudent?.fullName}
               </p>
 
               <div className="form-group">
@@ -381,7 +381,7 @@ function Students() {
         <div className="modal-overlay" onClick={() => setShowBulkModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Send Bulk Notification</h2>
+              <h2>Toplu Bildirim Gönder</h2>
               <button
                 className="modal-close"
                 onClick={() => setShowBulkModal(false)}
@@ -393,26 +393,26 @@ function Students() {
             <div className="modal-body">
               <p className="modal-subtitle">
                 {selectedStudents.length > 0
-                  ? `To: ${selectedStudents.length} selected students`
-                  : 'To: All students'}
+                  ? `Alıcı: ${selectedStudents.length} seçili öğrenci`
+                  : 'Alıcı: Tüm öğrenciler'}
               </p>
 
               <div className="form-group">
-                <label>Title</label>
+                <label>Başlık</label>
                 <input
                   type="text"
                   value={notificationData.title}
                   onChange={e => setNotificationData({ ...notificationData, title: e.target.value })}
-                  placeholder="Notification title"
+                  placeholder="Bildirim başlığı"
                 />
               </div>
 
               <div className="form-group">
-                <label>Message</label>
+                <label>Mesaj</label>
                 <textarea
                   value={notificationData.message}
                   onChange={e => setNotificationData({ ...notificationData, message: e.target.value })}
-                  placeholder="Notification message"
+                  placeholder="Bildirim mesajı"
                   rows={4}
                 />
               </div>
@@ -423,21 +423,21 @@ function Students() {
                 className="btn-secondary"
                 onClick={() => setShowBulkModal(false)}
               >
-                Cancel
+                İptal
               </button>
               {selectedStudents.length > 0 ? (
                 <button
                   className="btn-primary"
                   onClick={handleSendBulkNotification}
                 >
-                  Send to Selected ({selectedStudents.length})
+                  Seçilenlere Gönder ({selectedStudents.length})
                 </button>
               ) : userRole === 'Admin' ? (
                 <button
                   className="btn-danger"
                   onClick={handleSendToAll}
                 >
-                  Send to All Students
+                  Tüm Öğrencilere Gönder
                 </button>
               ) : (
                 <button
@@ -445,7 +445,7 @@ function Students() {
                   onClick={handleSendBulkNotification}
                   disabled
                 >
-                  Select Students to Send
+                  Gönderim için öğrenci seçin
                 </button>
               )}
             </div>

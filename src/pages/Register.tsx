@@ -33,7 +33,7 @@ const Register = () => {
       const errorMsg = errorData?.message
         || errorData?.title
         || errorData?.errors
-        || 'Registration failed. Please try again.';
+        || 'Kayıt başarısız. Lütfen tekrar deneyin.';
       setError(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ const Register = () => {
 
         {success && (
           <div className="alert alert-success">
-            Registration successful! Redirecting to login...
+            Kayıt başarılı! Giriş sayfasına yönlendiriliyor...
           </div>
         )}
 
@@ -77,7 +77,7 @@ const Register = () => {
               value={formData.fullName}
               onChange={handleChange}
               className="input"
-              placeholder="John Doe"
+              placeholder="Ad Soyadınız"
               required
             />
           </div>

@@ -44,31 +44,31 @@ const Profile = () => {
 
   return (
     <div>
-      <h1 className="mb-4">Profile</h1>
+      <h1 className="mb-4">Profil</h1>
 
       <div className="grid grid-2">
         <div className="card">
-          <h2 className="card-header">Account Information</h2>
+          <h2 className="card-header">Hesap Bilgileri</h2>
 
           <div className="mb-3">
             <div className="text-sm text-muted mb-1">Email</div>
             <div style={{ fontSize: '16px', fontWeight: '500' }}>
-              {userInfo?.email || 'Not available'}
+              {userInfo?.email || 'Müsait değil'}
             </div>
           </div>
 
           <div className="mb-3">
-            <div className="text-sm text-muted mb-1">Role</div>
-            <span className="badge badge-primary">{userInfo?.role || 'Unknown'}</span>
+            <div className="text-sm text-muted mb-1">Rol</div>
+            <span className="badge badge-primary">{userInfo?.role || 'Bilinmiyor'}</span>
           </div>
 
           <div className="mb-3">
-            <div className="text-sm text-muted mb-1">Account Status</div>
-            <span className="badge badge-success">Active</span>
+            <div className="text-sm text-muted mb-1">Hesap Durumu</div>
+            <span className="badge badge-success">Aktif</span>
           </div>
 
           <button onClick={handleLogout} className="btn btn-danger">
-            Logout
+            Çıkış Yap
           </button>
         </div>
 
@@ -115,23 +115,23 @@ const Profile = () => {
 
         {userInfo?.role !== 'Student' && (
           <div className="card">
-            <h2 className="card-header">Settings</h2>
+            <h2 className="card-header">Ayarlar</h2>
 
             <div className="alert alert-info">
-              <strong>Note:</strong> Additional profile settings and preferences will be available in future updates.
+              <strong>Not:</strong> Ek profil ayarları ve tercihler gelecek güncellemelerde kullanılabilir olacak.
             </div>
 
             <div className="mb-3">
-              <div className="text-sm text-muted mb-1">API Base URL</div>
+              <div className="text-sm text-muted mb-1">API Temel URL</div>
               <div style={{ fontSize: '14px', fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '8px', borderRadius: '4px' }}>
-                {api.defaults.baseURL || 'Not configured'}
+                {api.defaults.baseURL || 'Yapılandırılmamış'}
               </div>
             </div>
 
             <div className="mb-3">
-              <div className="text-sm text-muted mb-1">Token Status</div>
+              <div className="text-sm text-muted mb-1">Token Durumu</div>
               <span className={`badge ${authService.isAuthenticated() ? 'badge-success' : 'badge-danger'}`}>
-                {authService.isAuthenticated() ? 'Valid' : 'Invalid'}
+                {authService.isAuthenticated() ? 'Geçerli' : 'Geçersiz'}
               </span>
             </div>
           </div>
@@ -146,9 +146,9 @@ const Profile = () => {
 
           <div className="grid grid-2">
             <div className="mb-3">
-              <div className="text-sm text-muted mb-1">API Base URL</div>
+              <div className="text-sm text-muted mb-1">API Temel URL</div>
               <div style={{ fontSize: '14px', fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '8px', borderRadius: '4px' }}>
-                {api.defaults.baseURL || 'Not configured'}
+                {api.defaults.baseURL || 'Yapılandırılmamış'}
               </div>
             </div>
 

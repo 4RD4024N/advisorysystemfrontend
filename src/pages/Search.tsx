@@ -37,7 +37,7 @@ const Search = () => {
 
   return (
     <div>
-      <h1 className="mb-4">Search Documents</h1>
+      <h1 className="mb-4">Belge Ara</h1>
 
       <div className="card mb-3">
         <form onSubmit={handleSearch}>
@@ -47,18 +47,18 @@ const Search = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="input"
-              placeholder="Search for documents..."
+              placeholder="Belge ara..."
               style={{ flex: 1 }}
             />
             <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? <span className="loading"></span> : '🔍 Search'}
+              {loading ? <span className="loading"></span> : '🔍 Ara'}
             </button>
           </div>
         </form>
 
         <div className="mt-3">
           <button onClick={loadPopularTags} className="btn btn-secondary btn-sm">
-            Show Popular Tags
+            Popüler Etiketleri Göster
           </button>
           {popularTags.length > 0 && (
             <div className="mt-2">
@@ -84,18 +84,18 @@ const Search = () => {
         <div className="card">
           <div className="flex-between mb-3">
             <h2 className="card-header" style={{ marginBottom: 0 }}>
-              Results ({results.totalCount})
+              Sonuçlar ({results.totalCount})
             </h2>
             <div className="text-sm text-muted">
-              Page {results.page} of {results.totalPages}
+              Sayfa {results.page} / {results.totalPages}
             </div>
           </div>
 
           {results.documents.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">🔍</div>
-              <div className="empty-state-text">No documents found</div>
-              <div className="empty-state-subtext">Try a different search term</div>
+              <div className="empty-state-text">Belge bulunamadı</div>
+              <div className="empty-state-subtext">Farklı bir arama terimi deneyin</div>
             </div>
           ) : (
             <div className="grid grid-2">
@@ -117,7 +117,7 @@ const Search = () => {
 
                   <div className="flex-between mt-3" style={{ paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
                     <div className="text-sm text-muted">
-                      {doc.versionCount || 0} versions
+                      {doc.versionCount || 0} versiyon
                     </div>
                     <div className="text-sm text-muted">
                       {new Date(doc.createdAt).toLocaleDateString()}

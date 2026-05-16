@@ -25,7 +25,7 @@ const Submissions = () => {
       await submissionService.updateStatus(id, status);
       loadSubmissions();
     } catch (error) {
-      alert('Failed to update status: ' + error.message);
+      alert('Durum güncellenemedi: ' + error.message);
     }
   };
 
@@ -39,14 +39,14 @@ const Submissions = () => {
 
   return (
     <div>
-      <h1 className="mb-4">My Submissions</h1>
+      <h1 className="mb-4">Görevlerim</h1>
 
       {submissions.length === 0 ? (
         <div className="card">
           <div className="empty-state">
             <div className="empty-state-icon">📅</div>
-            <div className="empty-state-text">No submissions yet</div>
-            <div className="empty-state-subtext">Your advisor will assign submissions to you</div>
+            <div className="empty-state-text">Henüz görev yok</div>
+            <div className="empty-state-subtext">Danışmanınız size görev atayacak</div>
           </div>
         </div>
       ) : (
@@ -54,14 +54,14 @@ const Submissions = () => {
           {submissions.map((submission) => (
             <div key={submission.id} className="card">
               <div className="flex-between mb-3">
-                <h3 style={{ margin: 0, fontSize: '18px' }}>Submission #{submission.id}</h3>
+                <h3 style={{ margin: 0, fontSize: '18px' }}>Görev #{submission.id}</h3>
                 <span className={`badge ${submission.status === 'Completed' ? 'badge-success' : 'badge-warning'}`}>
                   {submission.status}
                 </span>
               </div>
 
               <div className="mb-3">
-                <div className="text-sm text-muted mb-1">Due Date</div>
+                <div className="text-sm text-muted mb-1">Teslim Tarihi</div>
                 <div style={{ fontSize: '16px', fontWeight: '500' }}>
                   {new Date(submission.dueDate).toLocaleDateString()}
                 </div>
@@ -73,7 +73,7 @@ const Submissions = () => {
                   className="btn btn-success btn-sm"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  Mark as Completed
+                  Tamamlandı İşaretle
                 </button>
               )}
 
@@ -83,7 +83,7 @@ const Submissions = () => {
                   className="btn btn-secondary btn-sm"
                   style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  Mark as Pending
+                  Bekleyen İşaretle
                 </button>
               )}
             </div>

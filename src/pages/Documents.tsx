@@ -78,7 +78,7 @@ const Documents = () => {
     } catch (error: unknown) {
       console.error('Error loading documents:', error);
       if (isAxiosError(error) && error.response?.status === 403) {
-        setError('You can only access documents from students assigned to you');
+        setError('Sadece size atanmış öğrencilerin belgelerine erişebilirsiniz');
       }
       setDocuments([]);
     } finally {
@@ -110,7 +110,7 @@ const Documents = () => {
       setFormData({ title: '', tags: '' });
       loadDocuments();
     } catch (err: unknown) {
-      const fallbackMessage = 'Failed to create document';
+      const fallbackMessage = 'Belge oluşturma başarısız';
       if (isAxiosError(err)) {
         const message = err.response?.data?.message;
         setError(typeof message === 'string' ? message : fallbackMessage);
@@ -372,7 +372,6 @@ const Documents = () => {
                     </>
                   ) : (
                     <>
-                      <span>OK</span>
                       <span>Oluştur</span>
                     </>
                   )}

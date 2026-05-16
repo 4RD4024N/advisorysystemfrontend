@@ -103,7 +103,7 @@ const DocumentDetail = () => {
       setNotes('');
       loadVersions();
     } catch (error) {
-      alert('Upload failed: ' + error.message);
+        alert('Yükleme başarısız: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -113,7 +113,7 @@ const DocumentDetail = () => {
     try {
       await documentService.downloadAndSaveFile(versionId, fileName);
     } catch (error) {
-      alert('Download failed: ' + error.message);
+        alert('İndirme başarısız: ' + error.message);
     }
   };
 
@@ -129,7 +129,7 @@ const DocumentDetail = () => {
       setNewComment('');
       loadComments(selectedVersion);
     } catch (error) {
-      alert('Failed to add comment: ' + error.message);
+        alert('Yorum eklenemedi: ' + error.message);
     }
   };
 
@@ -146,21 +146,21 @@ const DocumentDetail = () => {
       setShowRatingModal(false);
       setRatingForm({ score: '', comments: '' });
       loadRatings(selectedVersion);
-      alert('Rating submitted successfully!');
+      alert('Değlendirme başarıyla gönderildi!');
     } catch (error) {
-      alert('Failed to submit rating: ' + (error.response?.data?.error || error.message));
+      alert('Değlendirme gönderilemedi: ' + (error.response?.data?.error || error.message));
     }
   };
 
   const handleDeleteRating = async (ratingId) => {
-    if (!confirm('Are you sure you want to delete this rating?')) return;
+    if (!confirm('Bu değlendirmeyi silmek istediğinizden emin misiniz?')) return;
 
     try {
       await ratingService.deleteRating(ratingId);
       loadRatings(selectedVersion);
-      alert('Rating deleted successfully!');
+      alert('Değlendirme başarıyla silindi!');
     } catch (error) {
-      alert('Failed to delete rating: ' + error.message);
+      alert('Değlendirme silinemedi: ' + error.message);
     }
   };
 
@@ -175,18 +175,18 @@ const DocumentDetail = () => {
   return (
     <div>
       <div className="mb-3">
-        <Link to="/documents" className="text-primary text-sm">← Back to Documents</Link>
+        <Link to="/documents" className="text-primary text-sm">← Belgelere Geri Dön</Link>
       </div>
 
-      <h1 className="mb-4">Document Details</h1>
+      <h1 className="mb-4">Belge Detayları</h1>
 
       <div className="grid grid-2 gap-3">
         {/* Upload Section */}
         <div className="card">
-          <h2 className="card-header">Upload New Version</h2>
+          <h2 className="card-header">Yeni Versiyon Yükle</h2>
           <form onSubmit={handleUpload}>
             <div className="input-group">
-              <label className="input-label">Select File</label>
+              <label className="input-label">Dosya Seç</label>
               <input
                 type="file"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
@@ -196,28 +196,28 @@ const DocumentDetail = () => {
             </div>
 
             <div className="input-group">
-              <label className="input-label">Notes</label>
+              <label className="input-label">Notlar</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="input"
                 rows="3"
-                placeholder="Version notes..."
+                placeholder="Versiyon notları..."
               />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={uploading || !selectedFile}>
-              {uploading ? <span className="loading"></span> : 'Upload'}
+              {uploading ? <span className="loading"></span> : 'Yükle'}
             </button>
           </form>
         </div>
 
         <div className="card">
-          <h2 className="card-header">Versions ({versions.length})</h2>
+          <h2 className="card-header">Versiyonlar ({versions.length})</h2>
           {versions.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">No comments</div>
-              <div className="empty-state-text">No versions yet</div>
+              <div className="empty-state-icon">Yorum yok</div>
+              <div className="empty-state-text">Henüz versiyon yok</div>
             </div>
           ) : (
             <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -233,7 +233,7 @@ const DocumentDetail = () => {
                   }}
                 >
                   <div className="flex-between mb-1">
-                    <strong>Version {version.versionNo}</strong>
+                    <strong>Versiyon {version.versionNo}</strong>
                     <span className="badge badge-primary">{(version.size / 1024 / 1024).toFixed(2)} MB</span>
                   </div>
                   <div className="text-sm text-muted mb-2">{version.fileName}</div>
@@ -246,7 +246,7 @@ const DocumentDetail = () => {
                       onClick={() => handleDownload(version.id, version.fileName)}
                       className="btn btn-secondary btn-sm"
                     >
-                      Download
+                      İndir
                     </button>
                     <button
                       onClick={() => {
@@ -259,7 +259,7 @@ const DocumentDetail = () => {
                       }}
                       className="btn btn-primary btn-sm"
                     >
-                      View Details
+                      Detayları Gör
                     </button>
                   </div>
                 </div>
@@ -275,7 +275,7 @@ const DocumentDetail = () => {
           {/* PDF Preview Section */}
           {previewUrl && metadata?.isPdf && (
             <div className="card" style={{ gridColumn: 'span 2' }}>
-              <h2 className="card-header">Document Preview</h2>
+              <h2 className="card-header">Belge Önizleme</h2>
               <div style={{ height: '600px', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
                 <iframe
                   src={previewUrl}
@@ -292,13 +292,13 @@ const DocumentDetail = () => {
             <div className="card">
               <div className="flex-between mb-3">
                 <h2 className="card-header" style={{ marginBottom: 0 }}>
-                  Ratings for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
+                  Versiyon {versions.find(v => v.id === selectedVersion)?.versionNo} Değlendirmeleri
                 </h2>
                 <button
                   onClick={() => setShowRatingModal(true)}
                   className="btn btn-primary btn-sm"
                 >
-                  Rate Document
+                  Belgeyi Değlendir
                 </button>
               </div>
 
@@ -315,7 +315,7 @@ const DocumentDetail = () => {
                       {ratings[selectedVersion].averageScore.toFixed(1)} / 100
                     </div>
                     <div style={{ fontSize: '0.9rem', opacity: 0.95 }}>
-                      Average Score ({ratings[selectedVersion].ratingCount} rating{ratings[selectedVersion].ratingCount !== 1 ? 's' : ''})
+                      Ortalama Puan ({ratings[selectedVersion].ratingCount} değlendirme)
                     </div>
                   </div>
 
@@ -348,7 +348,7 @@ const DocumentDetail = () => {
                               className="btn btn-danger btn-sm"
                               style={{ fontSize: '0.8rem' }}
                             >
-                              Delete
+                              Sil
                             </button>
                           )}
                         </div>
@@ -367,7 +367,7 @@ const DocumentDetail = () => {
               ) : (
                 <div className="empty-state">
                   <div className="empty-state-icon">⭐</div>
-                  <div className="empty-state-text">No ratings yet</div>
+                  <div className="empty-state-text">Henüz değlendirme yok</div>
                 </div>
               )}
             </div>
@@ -376,7 +376,7 @@ const DocumentDetail = () => {
 
           <div className="card">
             <h2 className="card-header">
-              Comments for Version {versions.find(v => v.id === selectedVersion)?.versionNo}
+              Versiyon {versions.find(v => v.id === selectedVersion)?.versionNo} Yorumları
             </h2>
 
             <form onSubmit={handleAddComment} className="mb-3">
@@ -386,12 +386,12 @@ const DocumentDetail = () => {
                   onChange={(e) => setNewComment(e.target.value)}
                   className="input"
                   rows="2"
-                  placeholder="Add a comment..."
+                  placeholder="Yorum ekle..."
                   required
                 />
               </div>
               <button type="submit" className="btn btn-primary btn-sm">
-                Add Comment
+                Yorum Ekle
               </button>
             </form>
 
@@ -399,7 +399,7 @@ const DocumentDetail = () => {
               {comments[selectedVersion]?.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-state-icon">💬</div>
-                  <div className="empty-state-text">No comments yet</div>
+                  <div className="empty-state-text">Henüz yorum yok</div>
                 </div>
               ) : (
                 comments[selectedVersion]?.map((comment) => (
@@ -461,7 +461,7 @@ const DocumentDetail = () => {
               padding: '1.5rem 2rem',
               borderBottom: '2px solid var(--border-color)'
             }}>
-              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Rate Document</h2>
+              <h2 style={{ margin: 0, fontSize: '1.5rem' }}>Belgeyi Değlendir</h2>
               <button
                 onClick={() => setShowRatingModal(false)}
                 style={{
@@ -484,7 +484,7 @@ const DocumentDetail = () => {
 
             <form onSubmit={handleAddRating} style={{ padding: '2rem' }}>
               <div className="input-group">
-                <label className="input-label">Score (1-100) *</label>
+                <label className="input-label">Puan (1-100) *</label>
                 <input
                   type="number"
                   value={ratingForm.score}
@@ -492,25 +492,25 @@ const DocumentDetail = () => {
                   className="input"
                   min="1"
                   max="100"
-                  placeholder="e.g., 85"
+                  placeholder="örn. 85"
                   required
                 />
               </div>
 
               <div className="input-group">
-                <label className="input-label">Comments</label>
+                <label className="input-label">Yorumlar</label>
                 <textarea
                   value={ratingForm.comments}
                   onChange={(e) => setRatingForm({ ...ratingForm, comments: e.target.value })}
                   className="input"
                   rows="4"
-                  placeholder="Provide feedback on the document..."
+                  placeholder="Belge hakkında geri bildirim yazın..."
                 />
               </div>
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                  Submit Rating
+                  Değlendirmeyi Gönder
                 </button>
                 <button
                   type="button"
@@ -518,7 +518,7 @@ const DocumentDetail = () => {
                   className="btn btn-secondary"
                   style={{ flex: 1 }}
                 >
-                  Cancel
+                  İptal
                 </button>
               </div>
             </form>

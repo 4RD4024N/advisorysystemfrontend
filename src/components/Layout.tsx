@@ -57,27 +57,27 @@ const Layout = () => {
 
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" className="nav-item">
-            <span className="nav-text">Dashboard</span>
+            <span className="nav-text">Ana Sayfa</span>
           </NavLink>
 
           <NavLink to="/documents" className="nav-item">
-            <span className="nav-text">Documents</span>
+            <span className="nav-text">Belgeler</span>
           </NavLink>
 
           {userRole === 'Student' && (
             <NavLink to="/submissions" className="nav-item">
-              <span className="nav-text">Submissions</span>
+              <span className="nav-text">Görevler</span>
             </NavLink>
           )}
 
           <NavLink to="/search" className="nav-item">
-            <span className="nav-text">Search</span>
+            <span className="nav-text">Arama</span>
           </NavLink>
 
           <div className="nav-divider"></div>
 
           <NavLink to="/notifications" className="nav-item">
-            <span className="nav-text">Notifications
+            <span className="nav-text">Bildirimler
               {unreadCount > 0 && (
                 <span className="notification-badge">{unreadCount}</span>
               )}
@@ -85,7 +85,7 @@ const Layout = () => {
           </NavLink>
 
           <NavLink to="/statistics" className="nav-item">
-            <span className="nav-text">Statistics</span>
+            <span className="nav-text">İstatistikler</span>
           </NavLink>
 
           <div className="nav-divider"></div>
@@ -93,12 +93,12 @@ const Layout = () => {
           {/* Student Only: My Profile */}
           {userRole === 'Student' && (
             <NavLink to="/student-profile" className="nav-item">
-              <span className="nav-text">My Profile</span>
+              <span className="nav-text">Profilim</span>
             </NavLink>
           )}
 
           <NavLink to="/courses" className="nav-item">
-            <span className="nav-text">Courses</span>
+            <span className="nav-text">Dersler</span>
           </NavLink>
 
           {/* Student & Advisor: Course Schedule */}
@@ -114,7 +114,7 @@ const Layout = () => {
 
               {(userRole === 'Admin' || userRole === 'Advisor') && (
                 <NavLink to="/students" className="nav-item">
-                  <span className="nav-text">Students</span>
+                  <span className="nav-text">Öğrenciler</span>
                 </NavLink>
               )}
 
@@ -127,7 +127,7 @@ const Layout = () => {
               {/* Advisor Only: Create Submission */}
               {userRole === 'Advisor' && (
                 <NavLink to="/create-submission" className="nav-item">
-                  <span className="nav-text">Set Deadline</span>
+                  <span className="nav-text">Son Tarih Belirle</span>
                 </NavLink>
               )}
             </>
@@ -136,13 +136,13 @@ const Layout = () => {
           <div className="nav-divider"></div>
 
           <NavLink to="/profile" className="nav-item">
-            <span className="nav-text">Profile</span>
+            <span className="nav-text">Profil</span>
           </NavLink>
         </nav>
 
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="nav-item logout-btn">
-            <span className="nav-text">Logout</span>
+            <span className="nav-text">Çıkış Yap</span>
           </button>
         </div>
       </aside>
