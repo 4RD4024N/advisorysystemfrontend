@@ -139,46 +139,37 @@ const Documents = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
+      <div className="flex-center" style={{ minHeight: '400px' }}>
+        <div className="loading" style={{ width: '40px', height: '40px', borderWidth: '4px' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div>
+      {/* Başlık */}
+      <div className="flex-between mb-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2"> Belgeler</h1>
+          <h1>Belgeler</h1>
           {roleInfo && (
-            <p className={`text-sm font-medium ${roleInfo.color}`}>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.25rem', fontSize: '0.95rem' }}>
               {roleInfo.icon} {roleInfo.text}
             </p>
           )}
         </div>
         {userInfo?.role === 'Student' && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center gap-2"
-          >
-            <span></span>
-            <span>Yeni Belge</span>
+          <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
+            + Yeni Belge
           </button>
         )}
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-4"> Filtrele</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Başlık
-            </label>
+      {/* Filtreler */}
+      <div className="card mb-4">
+        <h2 className="card-header">Filtrele</h2>
+        <div className="grid grid-3 gap-3">
+          <div className="input-group">
+            <label className="input-label">Başlık</label>
             <input
               type="text"
               name="title"
@@ -188,10 +179,8 @@ const Documents = () => {
               className="input"
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Başlangıç Tarihi
-            </label>
+          <div className="input-group">
+            <label className="input-label">Başlangıç Tarihi</label>
             <input
               type="date"
               name="startDate"
@@ -200,10 +189,8 @@ const Documents = () => {
               className="input"
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Bitiş Tarihi
-            </label>
+          <div className="input-group">
+            <label className="input-label">Bitiş Tarihi</label>
             <input
               type="date"
               name="endDate"
@@ -214,170 +201,176 @@ const Documents = () => {
           </div>
         </div>
         {(filters.title || filters.startDate || filters.endDate) && (
-          <div className="mt-4 flex items-center gap-3">
+          <div className="flex-between mt-3">
             <button
               onClick={clearFilters}
-              className="text-sm text-gray-600 hover:text-primary font-medium transition-colors"
+              className="btn btn-secondary btn-sm"
             >
               ✕ Filtreleri Temizle
             </button>
-            <span className="text-sm text-gray-500">
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
               {filteredDocuments.length} belge bulundu
             </span>
           </div>
         )}
       </div>
 
+      {/* Belge Listesi */}
       {filteredDocuments.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12">
-          <div className="text-center">
-            <div className="text-6xl mb-4"></div>
-            <div className="text-xl font-semibold text-gray-900 mb-2">
-              {filters.title || filters.startDate || filters.endDate ? 'Belge bulunamadı' : 'Henüz belge yok'}
+        <div className="card">
+          <div className="empty-state">
+            <div className="empty-state-icon">📄</div>
+            <div className="empty-state-text">
+              {filters.title || filters.startDate || filters.endDate
+                ? 'Belge bulunamadı'
+                : 'Henüz belge yok'}
             </div>
-            <div className="text-gray-600 mb-6">
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem' }}>
               {filters.title || filters.startDate || filters.endDate
                 ? 'Farklı filtreler deneyin'
                 : 'İlk belgenizi oluşturarak başlayın'}
             </div>
             {userInfo?.role === 'Student' && !filters.title && !filters.startDate && !filters.endDate && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all inline-flex items-center gap-2"
-              >
-                <span></span>
-                <span>Belge Oluştur</span>
+              <button onClick={() => setShowCreateModal(true)} className="btn btn-primary">
+                + Belge Oluştur
               </button>
             )}
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-3 gap-3">
           {filteredDocuments.map((doc) => (
-            <div
-              key={doc.id}
-              className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl hover:-translate-y-1 transition-all"
-            >
-              <Link to={`/documents/${doc.id}`} className="block">
-                <h3 className="text-xl font-bold text-gray-900 mb-3 hover:text-primary transition-colors line-clamp-2">
+            <div key={doc.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+              <Link to={`/documents/${doc.id}`}>
+                <h3 style={{
+                  fontSize: '1.1rem',
+                  fontWeight: '700',
+                  color: 'var(--text-primary)',
+                  marginBottom: '0.75rem',
+                  lineHeight: '1.4',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden'
+                }}>
                   {doc.title}
                 </h3>
               </Link>
 
               {doc.tags && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
                   {doc.tags.split(',').slice(0, 3).map((tag, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200"
-                    >
+                    <span key={i} className="badge badge-primary">
                       {tag.trim()}
                     </span>
                   ))}
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex-between mt-auto pt-3" style={{ borderTop: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                   <span>📑</span>
                   <span>{doc.versionCount || 0} versiyon</span>
                 </div>
-                <div className="text-sm text-gray-600">
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
                   {new Date(doc.createdAt).toLocaleDateString('tr-TR')}
-                </div>
+                </span>
               </div>
 
-              <Link
-                to={`/documents/${doc.id}`}
-                className="mt-4 w-full bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 font-semibold py-2 px-4 rounded-xl hover:from-primary hover:to-primary-dark hover:text-white transition-all flex items-center justify-center gap-2"
-              >
-                <span></span>
-                <span>Detayları Gör</span>
+              <Link to={`/documents/${doc.id}`} className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem', textAlign: 'center' }}>
+                Detayları Gör
               </Link>
             </div>
           ))}
         </div>
       )}
 
+      {/* Belge Oluştur Modal */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          }}
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 animate-slideUp"
+            style={{
+              background: 'white', borderRadius: '16px',
+              maxWidth: '480px', width: '90%',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 "> Yeni Belge</h2>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '1.5rem 2rem', borderBottom: '2px solid var(--border-color)'
+            }}>
+              <h2 style={{ margin: 0 }}>Yeni Belge</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-3xl leading-none transition-colors"
+                style={{ background: 'none', border: 'none', fontSize: '2rem', cursor: 'pointer', lineHeight: 1 }}
               >
                 ×
               </button>
             </div>
 
-            {error && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-sm">
-                ❌ {error}
-              </div>
-            )}
+            <div style={{ padding: '1.5rem 2rem' }}>
+              {error && (
+                <div className="alert alert-error mb-3" style={{
+                  padding: '0.75rem 1rem', background: '#fef2f2',
+                  border: '1px solid #fecaca', borderRadius: '8px',
+                  color: '#dc2626', marginBottom: '1rem', fontSize: '0.9rem'
+                }}>
+                  ❌ {error}
+                </div>
+              )}
 
-            <form onSubmit={handleCreateDocument} className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">
-                  Belge Başlığı
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Örn: Tez Taslağı"
-                  required
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                />
-              </div>
+              <form onSubmit={handleCreateDocument}>
+                <div className="input-group">
+                  <label className="input-label">Belge Başlığı</label>
+                  <input
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Örn: Tez Taslağı"
+                    required
+                    className="input"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-900 mb-2">
-                  Etiketler (virgülle ayırın)
-                </label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  placeholder="araştırma, tez, yazılım"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-                />
-              </div>
+                <div className="input-group">
+                  <label className="input-label">Etiketler (virgülle ayırın)</label>
+                  <input
+                    type="text"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    placeholder="araştırma, tez, yazılım"
+                    className="input"
+                  />
+                </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="flex-1 bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-3 px-4 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {creating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>Oluşturuluyor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Oluştur</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="btn btn-secondary"
+                    style={{ flex: 1 }}
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="btn btn-primary"
+                    style={{ flex: 1 }}
+                  >
+                    {creating ? <span className="loading"></span> : 'Oluştur'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
