@@ -1,128 +1,129 @@
 .create-submission-page {
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-  animation: fadeIn 0.3s ease-in;
+    padding: 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeIn 0.3s ease-in;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .create-submission-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .create-submission-header h1 {
-  margin: 0;
-  font-size: 2rem;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .create-submission-header p {
-  margin: 0.5rem 0 0 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
+    margin: 0.5rem 0 0 0;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
 }
 
 .form-card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e0e0e0;
-  padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e0e0e0;
+    padding: 2rem;
 }
 
 .form-card .input-group:last-of-type {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 .date-hint {
-  margin-top: 6px;
-  font-size: 13px;
-  font-weight: 500;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .date-hint.upcoming {
-  color: #059669;
+    color: #059669;
 }
 
 .date-hint.soon {
-  color: #d97706;
+    color: #d97706;
 }
 
 .date-hint.past {
-  color: #dc2626;
+    color: #dc2626;
 }
 
 .form-hint {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--text-secondary);
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
 }
 
 .form-divider {
-  border: none;
-  border-top: 1px solid #e0e0e0;
-  margin: 1.5rem 0;
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 1.5rem 0;
 }
 
 .submit-btn {
-  width: 100%;
-  padding: 14px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  justify-content: center;
+    width: 100%;
+    padding: 14px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    justify-content: center;
 }
 
 .info-box {
-  margin-top: 1.5rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 16px;
-  padding: 1.5rem;
+    margin-top: 1.5rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    padding: 1.5rem;
 }
 
 .info-box h3 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #1e40af;
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e40af;
 }
 
 .info-box ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .info-box ul li {
-  display: flex;
-  gap: 8px;
-  font-size: 14px;
-  color: #1e40af;
-  padding: 4px 0;
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
+    color: #1e40af;
+    padding: 4px 0;
 }
 
 .info-box ul li::before {
-  content: '•';
-  color: #3b82f6;
-  flex-shrink: 0;
+    content: '•';
+    color: #3b82f6;
+    flex-shrink: 0;
 }
