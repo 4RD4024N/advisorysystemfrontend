@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { submissionService, documentService, authService } from '../services';
+import './CreateSubmission.css';
 
 const CreateSubmission = () => {
   const userInfo = authService.getUserInfo();
@@ -121,10 +122,10 @@ const CreateSubmission = () => {
 
   if (!userInfo || (userInfo.role !== 'Admin' && userInfo.role !== 'Advisor')) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl">
-          <p className="font-semibold">⛔ Erişim Engellendi</p>
-          <p className="text-sm mt-1">Bu sayfaya sadece danışmanlar ve adminler erişebilir</p>
+      <div className="flex-center" style={{ minHeight: '400px' }}>
+        <div className="alert alert-error">
+          <p><strong>⛔ Erişim Engellendi</strong></p>
+          <p>Bu sayfaya sadece danışmanlar ve adminler erişebilir</p>
         </div>
       </div>
     );
@@ -132,37 +133,33 @@ const CreateSubmission = () => {
 
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
+      <div className="flex-center" style={{ minHeight: '400px' }}>
+        <div className="loading" style={{ width: '40px', height: '40px', borderWidth: '4px', borderColor: 'rgba(102,126,234,0.3)', borderTopColor: '#667eea' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Teslim Talebi Oluştur</h1>
-        <p className="text-gray-600">Öğrenciye tarih belirterek belge teslimi talep edin</p>
+    <div className="create-submission-page">
+      <div className="create-submission-header">
+        <div>
+          <h1>Teslim Talebi Oluştur</h1>
+          <p>Öğrenciye tarih belirterek belge teslimi talep edin</p>
+        </div>
       </div>
 
       {message.text && (
-        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
-          ? 'bg-green-50 border border-green-200 text-green-800'
-          : 'bg-red-50 border border-red-200 text-red-800'
-          }`}>
-          <p className="font-semibold">{message.text}</p>
+        <div className={`alert mb-3 ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          {message.text}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="form-card">
+        <form onSubmit={handleSubmit}>
           {/* Student Selection */}
-          <div>
-            <label className="block text-sm font-bold text-gray-900 mb-2">
-              Öğrenci E-postası <span className="text-red-500">*</span>
+          <div className="input-group">
+            <label className="input-label">
+              Öğrenci E-postası <span style={{ color: 'var(--danger-color)' }}>*</span>
             </label>
             <input
               type="email"
@@ -171,23 +168,19 @@ const CreateSubmission = () => {
               onChange={handleChange}
               placeholder="ornek@ogrenci.edu.tr"
               required
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             />
-            <p className="mt-2 text-sm text-gray-500">
-              📧 Öğrencinin e-posta adresini girin
-            </p>
+            <p className="form-hint">📧 Öğrencinin e-posta adresini girin</p>
           </div>
 
           {/* Document Selection (Optional) */}
-          <div>
-            <label className="block text-sm font-bold text-gray-900 mb-2">
-              Belge (İsteğe Bağlı)
-            </label>
+          <div className="input-group">
+            <label className="input-label">Belge (İsteğe Bağlı)</label>
             <select
               name="documentId"
               value={formData.documentId}
               onChange={handleChange}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             >
               <option value="">Belge seçilmedi</option>
               {documents.map(doc => (
@@ -196,15 +189,13 @@ const CreateSubmission = () => {
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-sm text-gray-500">
-              📄 İsteğe bağlı: Belirli bir belge için talep oluşturabilirsiniz
-            </p>
+            <p className="form-hint">📄 İsteğe bağlı: Belirli bir belge için talep oluşturabilirsiniz</p>
           </div>
 
           {/* Due Date */}
-          <div>
-            <label className="block text-sm font-bold text-gray-900 mb-2">
-              Teslim Tarihi <span className="text-red-500">*</span>
+          <div className="input-group">
+            <label className="input-label">
+              Teslim Tarihi <span style={{ color: 'var(--danger-color)' }}>*</span>
             </label>
             <input
               type="date"
@@ -213,89 +204,61 @@ const CreateSubmission = () => {
               onChange={handleChange}
               min={getMinDate()}
               required
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+              className="input"
             />
             {daysUntil !== null && (
-              <div className={`mt-2 text-sm font-medium ${daysUntil < 7 ? 'text-orange-600' : 'text-green-600'
-                }`}>
-                {daysUntil > 0 ? (
-                  <>{daysUntil} gün sonra</>
-                ) : daysUntil === 0 ? (
-                  <>Bugün</>
-                ) : (
-                  <>Geçmiş tarih seçilemez</>
-                )}
-              </div>
+              <p className={`date-hint ${daysUntil < 0 ? 'past' : daysUntil < 7 ? 'soon' : 'upcoming'}`}>
+                {daysUntil > 0 ? `${daysUntil} gün sonra` : daysUntil === 0 ? 'Bugün' : 'Geçmiş tarih seçilemez'}
+              </p>
             )}
-            <p className="mt-2 text-sm text-gray-500">
-              🔔 Teslim tarihinden 3 gün önce otomatik hatırlatma gönderilir
-            </p>
+            <p className="form-hint">🔔 Teslim tarihinden 3 gün önce otomatik hatırlatma gönderilir</p>
           </div>
 
           {/* Notes */}
-          <div>
-            <label className="block text-sm font-bold text-gray-900 mb-2">
-              Notlar
-            </label>
+          <div className="input-group">
+            <label className="input-label">Notlar</label>
             <textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              rows="4"
+              rows={4}
               placeholder="Ek açıklamalar veya talimatlar yazın..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"
+              className="input"
+              style={{ resize: 'none' }}
             />
-            <p className="mt-2 text-sm text-gray-500">
-              Öğrenciye gönderilecek ek bilgiler
-            </p>
+            <p className="form-hint">Öğrenciye gönderilecek ek bilgiler</p>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4 border-t border-gray-200">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-primary to-primary-dark text-white font-bold py-4 px-6 rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  <span>Oluşturuluyor...</span>
-                </>
-              ) : (
-                <>
-                  <span>📤</span>
-                  <span>Teslim Talebi Oluştur</span>
-                </>
-              )}
-            </button>
-          </div>
+          <hr className="form-divider" />
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary submit-btn"
+          >
+            {loading ? (
+              <>
+                <div className="loading"></div>
+                <span>Oluşturuluyor...</span>
+              </>
+            ) : (
+              <>
+                <span>📤</span>
+                <span>Teslim Talebi Oluştur</span>
+              </>
+            )}
+          </button>
         </form>
       </div>
 
       {/* Info Box */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6">
-        <h3 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
-          <span>ℹ️</span>
-          <span>Bilgilendirme</span>
-        </h3>
-        <ul className="space-y-2 text-sm text-blue-800">
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">•</span>
-            <span>Öğrenciye anında bildirim gönderilir</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">•</span>
-            <span>Teslim tarihinden 3 gün önce otomatik hatırlatma yapılır</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">•</span>
-            <span>Öğrenci, teslim durumunu sisteme işaretleyebilir</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-blue-600 mt-0.5">•</span>
-            <span>Danışmanlar sadece kendi öğrencileri için talep oluşturabilir</span>
-          </li>
+      <div className="info-box">
+        <h3>ℹ️ Bilgilendirme</h3>
+        <ul>
+          <li>Öğrenciye anında bildirim gönderilir</li>
+          <li>Teslim tarihinden 3 gün önce otomatik hatırlatma yapılır</li>
+          <li>Öğrenci, teslim durumunu sisteme işaretleyebilir</li>
+          <li>Danışmanlar sadece kendi öğrencileri için talep oluşturabilir</li>
         </ul>
       </div>
     </div>
