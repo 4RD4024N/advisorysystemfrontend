@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { advisorService, studentService, authService } from '../services';
+import './AssignAdvisor.css';
 
 const AssignAdvisor = () => {
   const userInfo = authService.getUserInfo();
@@ -158,10 +159,10 @@ const AssignAdvisor = () => {
 
   if (!userInfo || userInfo.role !== 'Admin') {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-xl">
-          <p className="font-semibold">⛔ Erişim Engellendi</p>
-          <p className="text-sm mt-1">Bu sayfaya sadece adminler erişebilir</p>
+      <div className="flex-center" style={{ minHeight: '400px' }}>
+        <div className="alert alert-error">
+          <p><strong>⛔ Erişim Engellendi</strong></p>
+          <p>Bu sayfaya sadece adminler erişebilir</p>
         </div>
       </div>
     );
@@ -169,85 +170,73 @@ const AssignAdvisor = () => {
 
   if (loadingData) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
-        </div>
+      <div className="flex-center" style={{ minHeight: '400px' }}>
+        <div className="loading" style={{ width: '40px', height: '40px', borderWidth: '4px', borderColor: 'rgba(102,126,234,0.3)', borderTopColor: '#667eea' }}></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-full mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2"> Öğretmen Atama Yönetimi </h1>
-        <p className="text-gray-600">Tüm öğrencileri görüntüleyin ve öğretmen ataması yapın</p>
+    <div className="assign-advisor-page">
+      <div className="assign-advisor-header">
+        <div>
+          <h1>Öğretmen Atama Yönetimi</h1>
+          <p>Tüm öğrencileri görüntüleyin ve öğretmen ataması yapın</p>
+        </div>
       </div>
 
-      {message.text && (
-        <div className={`mb-6 px-6 py-4 rounded-xl animate-slideDown ${message.type === 'success'
-          ? 'bg-green-50 border border-green-200 text-green-800'
-          : 'bg-red-50 border border-red-200 text-red-800'
-          }`}>
-          <p className="font-semibold">{message.type === 'success' ? '✓' : '×'} {message.text}</p>
+      {message.text && !showModal && (
+        <div className={`alert mb-3 ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+          {message.type === 'success' ? '✓' : '×'} {message.text}
         </div>
       )}
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="text-sm opacity-90 mb-2">Toplam Öğrenci</div>
-          <div className="text-4xl font-bold">{stats.total}</div>
+      <div className="stats-grid">
+        <div className="stat-card stat-card-blue">
+          <div className="stat-card-label">Toplam Öğrenci</div>
+          <div className="stat-card-value">{stats.total}</div>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="text-sm opacity-90 mb-2">Öğretmeni Olan</div>
-          <div className="text-4xl font-bold">{stats.assigned}</div>
+        <div className="stat-card stat-card-green">
+          <div className="stat-card-label">Öğretmeni Olan</div>
+          <div className="stat-card-value">{stats.assigned}</div>
         </div>
-        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="text-sm opacity-90 mb-2">Öğretmeni Olmayan</div>
-          <div className="text-4xl font-bold">{stats.unassigned}</div>
+        <div className="stat-card stat-card-yellow">
+          <div className="stat-card-label">Öğretmeni Olmayan</div>
+          <div className="stat-card-value">{stats.unassigned}</div>
         </div>
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
-          <div className="text-sm opacity-90 mb-2">Toplam Öğretmen</div>
-          <div className="text-4xl font-bold">{stats.totalAdvisors}</div>
+        <div className="stat-card stat-card-purple">
+          <div className="stat-card-label">Toplam Öğretmen</div>
+          <div className="stat-card-value">{stats.totalAdvisors}</div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+      <div className="card">
         {/* Search and Filter Bar */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Öğrenci ara (email, isim, öğretmen)..."
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
-            />
-          </div>
-          <div className="flex gap-2">
+        <div className="filter-bar">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Öğrenci ara (email, isim, öğretmen)..."
+            className="input"
+          />
+          <div className="filter-buttons">
             <button
               onClick={() => setFilterType('all')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'all'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              className={filterType === 'all' ? 'filter-btn-active-primary' : 'filter-btn-inactive'}
             >
               Tümü
             </button>
             <button
               onClick={() => setFilterType('unassigned')}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all ${filterType === 'unassigned'
-                ? 'bg-yellow-500 text-white shadow-lg'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+              className={filterType === 'unassigned' ? 'filter-btn-active-yellow' : 'filter-btn-inactive'}
             >
               Öğretmensizler
             </button>
             <button
               onClick={loadData}
-              className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all shadow-lg"
+              className="btn btn-success"
               disabled={loadingData}
             >
               {loadingData ? '⟳' : '↻'} Yenile
@@ -255,72 +244,61 @@ const AssignAdvisor = () => {
           </div>
         </div>
 
-        <div className="text-sm text-gray-500 mb-4">
-          {filteredStudents.length} öğrenci gösteriliyor
-        </div>
+        <div className="results-count">{filteredStudents.length} öğrenci gösteriliyor</div>
 
         {loadingData ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-            <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          <div className="flex-center" style={{ padding: '3rem' }}>
+            <div className="loading" style={{ width: '40px', height: '40px', borderWidth: '4px', borderColor: 'rgba(102,126,234,0.3)', borderTopColor: '#667eea' }}></div>
           </div>
         ) : filteredStudents.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-6xl mb-4">�️</p>
-            <p className="text-gray-600 text-lg">Öğrenci bulunamadı</p>
-            <p className="text-gray-400 text-sm mt-2">Arama kriterlerinizi değiştirmeyi deneyin</p>
+          <div className="empty-table">
+            <div className="empty-table-icon">🔍</div>
+            <p style={{ fontSize: '1.1rem', marginBottom: '6px' }}>Öğrenci bulunamadı</p>
+            <p className="text-sm text-muted">Arama kriterlerinizi değiştirmeyi deneyin</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="advisor-table-wrap">
+            <table className="advisor-table">
               <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-4 px-4 font-bold text-gray-900">Öğrenci</th>
-                  <th className="text-left py-4 px-4 font-bold text-gray-900">Email</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-900">Belge Sayısı</th>
-                  <th className="text-center py-4 px-4 font-bold text-gray-900">Durum</th>
-                  <th className="text-left py-4 px-4 font-bold text-gray-900">Öğretmen</th>
-                  <th className="text-right py-4 px-4 font-bold text-gray-900">İşlemler</th>
+                <tr>
+                  <th style={{ textAlign: 'left' }}>Öğrenci</th>
+                  <th style={{ textAlign: 'left' }}>Email</th>
+                  <th style={{ textAlign: 'center' }}>Belge Sayısı</th>
+                  <th style={{ textAlign: 'center' }}>Durum</th>
+                  <th style={{ textAlign: 'left' }}>Öğretmen</th>
+                  <th style={{ textAlign: 'right' }}>İşlemler</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredStudents.map(student => (
-                  <tr key={student.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="py-4 px-4">
-                      <p className="font-semibold text-gray-900">{student.userName}</p>
+                  <tr key={student.id}>
+                    <td><p className="student-name">{student.userName}</p></td>
+                    <td className="student-email">{student.email}</td>
+                    <td style={{ textAlign: 'center' }}>
+                      <span className="doc-count-badge">{student.documentCount || 0}</span>
                     </td>
-                    <td className="py-4 px-4 text-gray-600">{student.email}</td>
-                    <td className="py-4 px-4 text-center">
-                      <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        {student.documentCount || 0}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-center">
+                    <td style={{ textAlign: 'center' }}>
                       {student.hasAdvisor ? (
-                        <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
-                          Atandı
-                        </span>
+                        <span className="status-badge-assigned">Atandı</span>
                       ) : (
-                        <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
-                          Atanmadı
-                        </span>
+                        <span className="status-badge-unassigned">Atanmadı</span>
                       )}
                     </td>
-                    <td className="py-4 px-4">
+                    <td>
                       {student.hasAdvisor && student.advisor ? (
                         <div>
-                          <p className="font-medium text-gray-900">{student.advisor.userName}</p>
-                          <p className="text-sm text-gray-500">{student.advisor.email}</p>
+                          <p className="advisor-name">{student.advisor.userName}</p>
+                          <p className="advisor-email-small">{student.advisor.email}</p>
                         </div>
                       ) : (
-                        <em className="text-gray-400">Atanmamış</em>
+                        <em className="not-assigned-em">Atanmamış</em>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex gap-2 justify-end">
+                    <td>
+                      <div className="action-buttons">
                         <button
                           onClick={() => openAdvisorModal(student)}
-                          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium text-sm"
+                          className="btn btn-primary btn-sm"
                           disabled={loading}
                         >
                           {student.hasAdvisor ? 'Değiştir' : 'Ata'}
@@ -328,7 +306,7 @@ const AssignAdvisor = () => {
                         {student.hasAdvisor && (
                           <button
                             onClick={() => handleRemoveAdvisor(student)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm"
+                            className="btn btn-danger btn-sm"
                             disabled={loading}
                           >
                             Kaldır
@@ -345,34 +323,22 @@ const AssignAdvisor = () => {
       </div>
 
       {showModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform transition-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Öğretmen Seç</h3>
-              <p className="text-gray-600">
-                <span className="font-semibold">{selectedStudent?.userName}</span> için öğretmen seçin
-              </p>
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modal-title">Öğretmen Seç</h3>
+            <p className="modal-subtitle">
+              <strong>{selectedStudent?.userName}</strong> için öğretmen seçin
               {selectedStudent?.hasAdvisor && (
-                <p className="text-sm text-yellow-600 mt-2">
-                  Mevcut öğretmen değiştirilecek
-                </p>
+                <span className="modal-warning"><br />Mevcut öğretmen değiştirilecek</span>
               )}
-            </div>
+            </p>
 
-            <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-900 mb-2">
-                Öğretmen
-              </label>
+            <div className="input-group">
+              <label className="input-label">Öğretmen</label>
               <select
                 value={selectedAdvisor}
                 onChange={(e) => setSelectedAdvisor(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                className="input"
               >
                 <option value="">Bir öğretmen seçin...</option>
                 {advisors.map(advisor => (
@@ -381,38 +347,29 @@ const AssignAdvisor = () => {
                   </option>
                 ))}
               </select>
-              <p className="mt-2 text-sm text-gray-500">
-                {advisors.length} öğretmen mevcut
-              </p>
+              <p className="form-hint">{advisors.length} öğretmen mevcut</p>
             </div>
 
             {message.text && showModal && (
-              <div className={`mb-4 px-4 py-3 rounded-lg ${message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-                }`}>
-                <p className="text-sm font-medium">{message.text}</p>
+              <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-error'}`}>
+                {message.text}
               </div>
             )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={closeModal}
-                className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-semibold"
-                disabled={loading}
-              >
+            <div className="modal-footer">
+              <button onClick={closeModal} className="btn btn-secondary" disabled={loading}>
                 İptal
               </button>
               <button
                 onClick={handleAssignAdvisor}
                 disabled={loading || !selectedAdvisor}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-primary-dark text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn btn-primary"
               >
                 {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <>
+                    <div className="loading"></div>
                     Atanıyor...
-                  </span>
+                  </>
                 ) : (
                   selectedStudent?.hasAdvisor ? 'Güncelle' : 'Ata'
                 )}
