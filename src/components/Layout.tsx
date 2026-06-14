@@ -6,7 +6,8 @@ import './Layout.css';
 
 const Layout = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = () => window.innerWidth <= 768;
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile());
   const [unreadCount, setUnreadCount] = useState(0);
   const [userRole, setUserRole] = useState<string | string[] | null>(null);
 
@@ -18,7 +19,19 @@ const Layout = () => {
 
     const interval = setInterval(loadUnreadCount, 30000);
 
-    return () => clearInterval(interval);
+    const handleResize = () => {
+      if (!isMobile()) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const loadUnreadCount = async () => {
@@ -36,8 +49,16 @@ const Layout = () => {
     navigate('/login');
   };
 
+  const closeSidebarOnMobile = () => {
+    if (isMobile()) setSidebarOpen(false);
+  };
+
   return (
     <div className="layout">
+      {/* Mobile overlay */}
+      {sidebarOpen && isMobile() && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : 'closed'}`}>
         <div className="sidebar-header">
@@ -56,27 +77,27 @@ const Layout = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <NavLink to="/dashboard" className="nav-item">
+          <NavLink to="/dashboard" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Ana Sayfa</span>
           </NavLink>
 
-          <NavLink to="/documents" className="nav-item">
+          <NavLink to="/documents" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Belgeler</span>
           </NavLink>
 
           {userRole === 'Student' && (
-            <NavLink to="/submissions" className="nav-item">
+            <NavLink to="/submissions" className="nav-item" onClick={closeSidebarOnMobile}>
               <span className="nav-text">Görevler</span>
             </NavLink>
           )}
 
-          <NavLink to="/search" className="nav-item">
+          <NavLink to="/search" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Arama</span>
           </NavLink>
 
           <div className="nav-divider"></div>
 
-          <NavLink to="/notifications" className="nav-item">
+          <NavLink to="/notifications" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Bildirimler
               {unreadCount > 0 && (
                 <span className="notification-badge">{unreadCount}</span>
@@ -84,7 +105,7 @@ const Layout = () => {
             </span>
           </NavLink>
 
-          <NavLink to="/statistics" className="nav-item">
+          <NavLink to="/statistics" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">İstatistikler</span>
           </NavLink>
 
@@ -92,18 +113,18 @@ const Layout = () => {
 
           {/* Student Only: My Profile */}
           {userRole === 'Student' && (
-            <NavLink to="/student-profile" className="nav-item">
+            <NavLink to="/student-profile" className="nav-item" onClick={closeSidebarOnMobile}>
               <span className="nav-text">Profilim</span>
             </NavLink>
           )}
 
-          <NavLink to="/courses" className="nav-item">
+          <NavLink to="/courses" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Dersler</span>
           </NavLink>
 
           {/* Student & Advisor: Course Schedule */}
           {(userRole === 'Student' || userRole === 'Advisor') && (
-            <NavLink to="/course-schedule" className="nav-item">
+            <NavLink to="/course-schedule" className="nav-item" onClick={closeSidebarOnMobile}>
               <span className="nav-text">Ders Programı</span>
             </NavLink>
           )}
@@ -113,20 +134,20 @@ const Layout = () => {
               <div className="nav-divider"></div>
 
               {(userRole === 'Admin' || userRole === 'Advisor') && (
-                <NavLink to="/students" className="nav-item">
+                <NavLink to="/students" className="nav-item" onClick={closeSidebarOnMobile}>
                   <span className="nav-text">Öğrenciler</span>
                 </NavLink>
               )}
 
               {userRole === 'Admin' && (
-                <NavLink to="/assign-advisor" className="nav-item">
+                <NavLink to="/assign-advisor" className="nav-item" onClick={closeSidebarOnMobile}>
                   <span className="nav-text">Öğretmen Atama</span>
                 </NavLink>
               )}
 
               {/* Advisor Only: Create Submission */}
               {userRole === 'Advisor' && (
-                <NavLink to="/create-submission" className="nav-item">
+                <NavLink to="/create-submission" className="nav-item" onClick={closeSidebarOnMobile}>
                   <span className="nav-text">Son Tarih Belirle</span>
                 </NavLink>
               )}
@@ -135,13 +156,13 @@ const Layout = () => {
 
           <div className="nav-divider"></div>
 
-          <NavLink to="/profile" className="nav-item">
+          <NavLink to="/profile" className="nav-item" onClick={closeSidebarOnMobile}>
             <span className="nav-text">Profil</span>
           </NavLink>
         </nav>
 
         <div className="sidebar-footer">
-          <button onClick={handleLogout} className="nav-item logout-btn">
+          <button onClick={() => { handleLogout(); closeSidebarOnMobile(); }} className="nav-item logout-btn">
             <span className="nav-text">Çıkış Yap</span>
           </button>
         </div>
