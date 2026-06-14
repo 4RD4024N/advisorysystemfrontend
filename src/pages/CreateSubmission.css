@@ -130,22 +130,22 @@
 
 /* ===== Mobile Responsive ===== */
 @media (max-width: 768px) {
-  .create-submission-page {
-    padding: 1rem;
-  }
+    .create-submission-page {
+        padding: 1rem;
+    }
 
-  .create-submission-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 1rem;
-  }
+    .create-submission-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
 
-  .create-submission-header h1 {
-    font-size: 1.4rem;
-  }
+    .create-submission-header h1 {
+        font-size: 1.4rem;
+    }
 
-  .form-card {
-    padding: 1rem;
-  }
+    .form-card {
+        padding: 1rem;
+    }
 }
