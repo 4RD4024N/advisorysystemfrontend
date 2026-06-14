@@ -547,3 +547,41 @@ code {
   font-size: 14px;
   color: var(--text-secondary);
 }
+
+/* ===== Global Mobile Responsive ===== */
+@media (max-width: 768px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .flex-between {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  .input {
+    min-height: 44px;
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .modal-content,
+  .modal-box {
+    width: 95%;
+    max-height: 90vh;
+    margin: auto;
+  }
+}

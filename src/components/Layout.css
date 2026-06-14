@@ -253,6 +253,14 @@
     transform: translateX(-260px);
   }
 
+  .sidebar-header {
+    padding: 16px 14px;
+  }
+
+  .sidebar-logo {
+    height: 80px;
+  }
+
   .main-content {
     margin-left: 0 !important;
   }
