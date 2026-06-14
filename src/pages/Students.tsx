@@ -217,7 +217,10 @@ function Students() {
       </div>
 
       {loading ? (
-        <div className="loading">Öğrenciler yükleniyor...</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="loading"></div>
+          <span>Öğrenciler yükleniyor...</span>
+        </div>
       ) : students.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">👨‍🎓</div>

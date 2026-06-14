@@ -139,7 +139,10 @@ function Notifications() {
       </div>
 
       {loading ? (
-        <div className="loading">Bildirimler yükleniyor...</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="loading"></div>
+          <span>Bildirimler yükleniyor...</span>
+        </div>
       ) : notifications.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📬</div>
