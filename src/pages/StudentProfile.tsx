@@ -111,7 +111,10 @@ function StudentProfile() {
   if (loading) {
     return (
       <div className="student-profile-container">
-        <div className="loading">Loading profile...</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="loading"></div>
+          <span>Profil yükleniyor...</span>
+        </div>
       </div>
     );
   }
