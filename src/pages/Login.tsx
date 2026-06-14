@@ -7,8 +7,8 @@ import './Auth.css';
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: 'stu@local',
-    password: 'Arda123!'
+    email: '',
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
